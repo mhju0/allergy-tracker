@@ -137,27 +137,57 @@ async def create_testing_with_end_date(
         if existing_start.tzinfo is None:
             existing_start = existing_start.replace(tzinfo=timezone.utc)
 
+        # 갱신 후 적용될 기간/상태를 mutation 전에 먼저 계산한다.
+        # existing을 먼저 더럽히면 아래 _has_reaction_record/_assert 의 SELECT가
+        # autoflush로 그 UPDATE를 선반영해 EXCLUDE 위반이 깨끗한 409 매핑 밖에서
+        # 500으로 새어나간다. INSERT 경로처럼 "선검사 → mutation → flush 가드" 순서를 지킨다.
         if requested_start < existing_start:
-            existing.test_start_date = requested_start
-            existing.test_end_date = _test_end_date(requested_start)
+            new_start = requested_start
+            new_end = _test_end_date(requested_start)
         elif existing.test_end_date is None:
-            existing.test_end_date = _test_end_date(existing_start)
+            new_start = existing_start
+            new_end = _test_end_date(existing_start)
+        else:
+            new_start = existing_start
+            new_end = existing.test_end_date
 
         has_reaction = (
             existing.test_status == "completed_reaction"
             or await _has_reaction_record(db, existing.id)
         )
-        existing.test_status = _status_from_dates(
-            existing.test_start_date,
-            existing.test_end_date,
+        new_status = _status_from_dates(
+            new_start,
+            new_end,
             now,
             requested_status=requested_status,
             has_reaction=has_reaction,
         )
+
+        # 갱신 결과가 미완료(NULL·testing)면 다른 재료의 진행 중 테스트와 겹치는지 선검사
+        # (자기 재료는 자기 자신 갱신이므로 제외)
+        if new_status in (None, "testing"):
+            await _assert_no_active_overlap(
+                db, data.baby_id, new_start, new_end,
+                exclude_ingredient_id=data.ingredient_id,
+            )
+
+        existing.test_start_date = new_start
+        existing.test_end_date = new_end
+        existing.test_status = new_status
         if data.memo is not None:
             existing.memo = data.memo
 
-        await db.flush()
+        try:
+            await db.flush()
+        except IntegrityError as exc:
+            await db.rollback()
+            # 선검사를 통과했어도 동시 요청 경합으로 EXCLUDE에 걸릴 수 있어 409로 매핑
+            if _is_active_testing_unique_violation(exc):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="이미 진행 중인 테스트와\n기간이 겹칩니다.",
+                ) from exc
+            raise
         return await _load_testing_with_ingredient(db, existing.id)
 
     test_end = _test_end_date(requested_start)
