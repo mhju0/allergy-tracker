@@ -62,7 +62,7 @@ pnpm dev        # http://localhost:5173
 ```
 
 ## 6. iOS 시뮬레이터 빌드
-Android는 사용하지 않는다(`android/` 폴더는 남겨두거나 나중에 제거 가능).
+Android는 사용하지 않는다(`android/` 폴더 제거됨).
 ```bash
 cd frontend
 pnpm build
