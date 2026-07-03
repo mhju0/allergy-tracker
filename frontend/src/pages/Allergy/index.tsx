@@ -261,6 +261,8 @@ function AllergyInner() {
   const [reactionDescription, setReactionDescription] = useState("");
   // 삭제 중인 testing id
   const [deletingTestingId, setDeletingTestingId] = useState<string | null>(null);
+  // 삭제 확인 대기 중인 testing id (2단계 확인)
+  const [confirmDeleteTestingId, setConfirmDeleteTestingId] = useState<string | null>(null);
 
   // 확정 재료 수정 모달
   const [editingConfirmed, setEditingConfirmed] = useState<ConfirmedAllergyResponse | null>(null);
@@ -586,6 +588,7 @@ function AllergyInner() {
       const newTestEnd = new Date(now.getTime() + 72 * 60 * 60 * 1000);
 
       const conflict = testings.find((t) => {
+        if (t.test_status !== null && t.test_status !== "testing") return false;
         const tStart = new Date(t.test_start_date);
         const tEnd = t.test_end_date
           ? new Date(t.test_end_date)
@@ -1173,7 +1176,7 @@ function AllergyInner() {
           {testing.length === 0 && (
             <button
               onClick={() => setShowAddModal(true)}
-              className="hidden flex items-center gap-1.5 px-4 py-2
+              className="flex items-center gap-1.5 px-4 py-2
               bg-[radial-gradient(ellipse_at_center,#EBF7FF_0%,#DBF2FF_50%,#D1EDFF_100%)]
               hover:bg-[radial-gradient(ellipse_at_center,#D4EEFF_0%,#DBF2FF_100%)]
               text-primary-foreground shadow-sm text-base font-bold rounded-full"
@@ -1479,13 +1482,31 @@ function AllergyInner() {
                     <IngredientIcon name={item.ingredient_name} emoji={item.ingredient_emoji} size={17} />
                     <span className="text-sm font-semibold">{item.ingredient_name}</span>
                   </div>
-                  <button
-                    onClick={() => handleDeleteTesting(item.id)}
-                    disabled={deletingTestingId === item.id}
-                    className="px-1 py-1 rounded-full hover:bg-[#9AC6AF]/40 text-muted-foreground disabled:opacity-40"
-                  >
-                    <X size={10} />
-                  </button>
+                  {confirmDeleteTestingId === item.id ? (
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button
+                        onClick={() => setConfirmDeleteTestingId(null)}
+                        disabled={deletingTestingId === item.id}
+                        className="text-xs px-2 py-0.5 rounded-full border border-border hover:bg-muted transition-colors"
+                      >
+                        취소
+                      </button>
+                      <button
+                        onClick={() => { setConfirmDeleteTestingId(null); handleDeleteTesting(item.id); }}
+                        disabled={deletingTestingId === item.id}
+                        className="text-xs px-2 py-0.5 rounded-full bg-destructive/10 border border-destructive/30 text-destructive hover:bg-destructive/20 transition-colors"
+                      >
+                        {deletingTestingId === item.id ? "삭제 중" : "삭제"}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmDeleteTestingId(item.id)}
+                      className="px-1 py-1 rounded-full hover:bg-[#9AC6AF]/40 text-muted-foreground"
+                    >
+                      <X size={10} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -1546,13 +1567,31 @@ function AllergyInner() {
                         <IngredientIcon name={item.ingredient_name} emoji={item.ingredient_emoji} size={17} />
                         <span className="text-sm font-semibold">{item.ingredient_name}</span>
                       </button>
-                      <button
-                        onClick={() => handleDeleteTesting(item.id)}
-                        disabled={deletingTestingId === item.id}
-                        className="px-1 py-1 rounded-full hover:bg-[#FF8763]/20 text-muted-foreground disabled:opacity-40"
-                      >
-                        <X size={10} />
-                      </button>
+                      {confirmDeleteTestingId === item.id ? (
+                        <div className="flex items-center gap-1 flex-shrink-0 mr-0.5">
+                          <button
+                            onClick={() => setConfirmDeleteTestingId(null)}
+                            disabled={deletingTestingId === item.id}
+                            className="text-xs px-2 py-0.5 rounded-full border border-border hover:bg-muted transition-colors"
+                          >
+                            취소
+                          </button>
+                          <button
+                            onClick={() => { setConfirmDeleteTestingId(null); handleDeleteTesting(item.id); }}
+                            disabled={deletingTestingId === item.id}
+                            className="text-xs px-2 py-0.5 rounded-full bg-destructive/10 border border-destructive/30 text-destructive hover:bg-destructive/20 transition-colors"
+                          >
+                            {deletingTestingId === item.id ? "삭제 중" : "삭제"}
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmDeleteTestingId(item.id)}
+                          className="px-1 py-1 rounded-full hover:bg-[#FF8763]/20 text-muted-foreground"
+                        >
+                          <X size={10} />
+                        </button>
+                      )}
 
                     </div>
                   );
