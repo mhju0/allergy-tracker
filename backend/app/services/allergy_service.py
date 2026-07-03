@@ -141,15 +141,15 @@ async def create_testing_with_end_date(
         if existing_end is not None and existing_end.tzinfo is None:
             existing_end = existing_end.replace(tzinfo=timezone.utc)
 
-        # 재테스트 판정: 완료된 테스트를 같은 재료로 '새 72시간 관찰'로 다시 시작하는 경우만.
-        # 옛 관찰 창이 완전히 끝난 뒤(requested_start >= existing_end) testing 상태로
-        # 요청할 때로 한정한다. testing 행 재제출이나 날짜 당기기는 재테스트가 아니다.
-        # (선례 없어 경계는 existing_end 기준으로 둠 — [Inferred])
+        # 재테스트 판정: 완료된 테스트(completed_safe/completed_reaction)를 같은 재료로
+        # '새 72시간 관찰'로 다시 시작하는 경우. 옛 관찰 창이 아직 안 끝났어도(예: 반응
+        # 기록 직후 재테스트) 완료 상태에서 testing으로 재제출하면 재테스트로 본다 —
+        # existing_end 도달을 요구하면 실사용 대부분의 재테스트가 이 분기를 못 타
+        # SymptomCheck가 삭제되지 않고 has_reaction이 남는 문제가 있었다.
+        # testing 행 재제출(진행 중 테스트 자체 수정)은 재테스트가 아니다.
         is_retest = (
             existing.test_status in ("completed_safe", "completed_reaction")
             and requested_status == "testing"
-            and existing_end is not None
-            and requested_start >= existing_end
         )
 
         # 갱신 후 적용될 기간/상태를 mutation 전에 먼저 계산한다.
