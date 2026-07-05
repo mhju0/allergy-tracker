@@ -3,6 +3,11 @@
 > **코드 + 로컬 DB가 1차 진실.** 이 표는 read-only 감사(`git log`/`status`, 코드 읽기, DB 제약 조회)로 갱신한다.
 > ✅는 `[Verified]`된 것만. **"코드 완료" ≠ "E2E 검증 완료".** 남은 작업은 **데모 크리티컬 패스 순(P1→P5)**.
 
+## 최종 목표 (North Star)
+- 최종 산출물은 **iOS 앱 단독**. 웹 서비스는 제공하지 않는다.
+- React/Vite 코드는 **Capacitor iOS 빌드의 소스**이자 **개발 중 브라우저 E2E 도구**로 유지한다.
+  삭제 대상은 "웹 서비스 전용 표면"(웹 배포 설정, 마케팅 홈 등)이며, READ-ONLY 인벤토리 후 delete-only 슬라이스로 진행한다.
+
 ## 현재 위치
 - **M0~M3 코드 레벨 완료(전부 2026-06). 실클릭 E2E 0회 — 지금까지 검증은 전부 code-tracing.**
 - 다음 한 걸음: **P1 브라우저 E2E 1회차** (`/e2e-check` 스킬 사용). 이것이 M3의 done gate.
@@ -17,6 +22,14 @@
   - ⚠️ **E2E 미검증** — P1 통과 전까지 M3 close 아님.
 - [x] 동의 게이트 커밋 확정 여부 재확인 — `35e0b3d` [Verified]
 - [x] 이미 빨강 재료 반응 모달 동작 — 동의 게이트로 대응 확인됨
+
+---
+
+## 데모 이후 로드맵
+
+- **Phase 1 (현재)**: M4–M5 + design-polish + 데모 녹화. 현행 스택(FastAPI + 로컬 Postgres) 유지.
+- **Phase 2 (데모 후, 확정)**: Docker화(backend + Postgres 로컬 컨테이너), 웹 서비스 표면 인벤토리 → 제거, iOS 빌드 정리.
+- **Phase 3 (결정 게이트)**: Supabase 이관 여부 결정. 이관 시 FastAPI/자체 JWT/manual_sql을 Supabase(Postgres/Auth/RLS)로 전면 교체하며, 케이스 스터디의 "로컬 완결/프라이버시/백엔드 역량" 서사를 다시 써야 함. 미이관 시 FastAPI 유지. → 포지셔닝 선택임을 명시.
 
 ---
 
