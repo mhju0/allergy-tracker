@@ -1177,8 +1177,8 @@ function AllergyInner() {
             <button
               onClick={() => setShowAddModal(true)}
               className="flex items-center gap-1.5 px-4 py-2
-              bg-[radial-gradient(ellipse_at_center,#EBF7FF_0%,#DBF2FF_50%,#D1EDFF_100%)]
-              hover:bg-[radial-gradient(ellipse_at_center,#D4EEFF_0%,#DBF2FF_100%)]
+              bg-[image:var(--action-soft-bg)]
+              hover:bg-[image:var(--action-soft-bg-hover)]
               text-primary-foreground shadow-sm text-base font-bold rounded-full"
             >
               <Plus className="w-4 h-4 sm:w-[18px] sm:h-[18px]" /> 새 재료 추가
