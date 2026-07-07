@@ -259,7 +259,20 @@ export default function Dashboard() {
                 const day = observationDay(t.test_start_date);
                 const pct = observationPercent(t.test_start_date);
                 return (
-                  <Card key={t.id} variant="warm" className="gap-2">
+                  <Card
+                    key={t.id}
+                    variant="warm"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(`/observe/${t.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        navigate(`/observe/${t.id}`);
+                      }
+                    }}
+                    className="cursor-pointer gap-2 transition-colors hover:bg-warm-surface-soft/40"
+                  >
                     <div className="flex items-center gap-3">
                       <IngredientIcon
                         name={t.ingredient_name}
