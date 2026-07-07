@@ -214,6 +214,7 @@ function AllergyInner() {
   const [testings, setTestings] = useState<IngredientTestingResponse[]>(initialTestings ?? []);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [testingsFetchError, setTestingsFetchError] = useState("");
   const testingsLengthRef = useRef(testings.length);
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -224,6 +225,7 @@ function AllergyInner() {
   const [addError, setAddError] = useState("");
 
   const [confirmedAllergies, setConfirmedAllergies] = useState<ConfirmedAllergyResponse[]>(initialConfirmedAllergies ?? []);
+  const [confirmedAllergiesFetchError, setConfirmedAllergiesFetchError] = useState("");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState("");
 
@@ -428,12 +430,13 @@ function AllergyInner() {
     const cacheKey = confirmedAllergiesCacheKey(activeBaby.id);
     const cached = readSessionCache<ConfirmedAllergyResponse[]>(cacheKey);
     if (cached) setConfirmedAllergies(cached);
+    setConfirmedAllergiesFetchError("");
     try {
       const data = await dedupeRequest(cacheKey, () => listConfirmedAllergies(activeBaby.id, token));
       setConfirmedAllergies(data);
       writeSessionCache(cacheKey, data, ALLERGY_CACHE_TTL_MS);
     } catch {
-      // 무시
+      setConfirmedAllergiesFetchError("확정된 알레르기 재료를 불러오지 못했어요");
     }
   }, [activeBaby?.id, token]);
 
@@ -469,12 +472,13 @@ function AllergyInner() {
     if (cached) setTestings(cached);
     setLoading(!cached && testingsLengthRef.current === 0);
     setRefreshing(Boolean(cached || testingsLengthRef.current > 0));
+    setTestingsFetchError("");
     try {
       const data = await dedupeRequest(cacheKey, () => listTestings(activeBaby.id, token));
       setTestings(data);
       writeSessionCache(cacheKey, data, ALLERGY_CACHE_TTL_MS);
     } catch {
-      // 에러는 무시하고 빈 목록 유지
+      setTestingsFetchError("테스트 중인 재료 정보를 불러오지 못했어요");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -1186,14 +1190,27 @@ function AllergyInner() {
           )}
         </div>
 
+        {testingsFetchError && (
+          <div className="mb-3 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-2xl text-base text-destructive flex items-center justify-between gap-3">
+            <span>{testingsFetchError}</span>
+            <button
+              onClick={fetchTestings}
+              className="shrink-0 px-4 py-1.5 bg-[image:var(--action-soft-bg)] hover:bg-[image:var(--action-soft-bg-hover)] text-primary-foreground shadow-sm text-sm font-bold rounded-full"
+            >
+              다시 시도
+            </button>
+          </div>
+        )}
         {loading && testing.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground text-base">불러오는 중</div>
         ) : testing.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <div className="text-4xl mb-3">🍽️</div>
-            <p className="text-xl">아직 테스트 중인 재료가 없어요</p>
-            <p className="mt-2 text-sm">새로운 재료를 추가하면 여기에서 관찰을 시작할 수 있어요.</p>
-          </div>
+          testingsFetchError ? null : (
+            <div className="text-center py-12 text-muted-foreground">
+              <div className="text-4xl mb-3">🍽️</div>
+              <p className="text-xl">아직 테스트 중인 재료가 없어요</p>
+              <p className="mt-2 text-sm">새로운 재료를 추가하면 여기에서 관찰을 시작할 수 있어요.</p>
+            </div>
+          )
         ) : (
           <div className="space-y-5">
             {testing.map((item) => (
@@ -1621,10 +1638,23 @@ function AllergyInner() {
             <Plus className="w-4 h-4 sm:w-[18px] sm:h-[18px]" /> 추가
           </button>
         </div>
-        {confirmedAllergies.length === 0 ? (
-          <div className="flex items-center justify-center text-center text-muted-foreground text-base">
-            확정된 알레르기 재료가 없습니다
+        {confirmedAllergiesFetchError && (
+          <div className="mb-3 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-2xl text-base text-destructive flex items-center justify-between gap-3">
+            <span>{confirmedAllergiesFetchError}</span>
+            <button
+              onClick={fetchConfirmedAllergies}
+              className="shrink-0 px-4 py-1.5 bg-[image:var(--action-soft-bg)] hover:bg-[image:var(--action-soft-bg-hover)] text-primary-foreground shadow-sm text-sm font-bold rounded-full"
+            >
+              다시 시도
+            </button>
           </div>
+        )}
+        {confirmedAllergies.length === 0 ? (
+          confirmedAllergiesFetchError ? null : (
+            <div className="flex items-center justify-center text-center text-muted-foreground text-base">
+              확정된 알레르기 재료가 없습니다
+            </div>
+          )
         ) : (
           <div className="flex flex-wrap gap-2 mb-2">
             {[...confirmedAllergies].sort((a, b) => (a.ingredient_name ?? "").localeCompare(b.ingredient_name ?? "", "ko")).map((item) => (
