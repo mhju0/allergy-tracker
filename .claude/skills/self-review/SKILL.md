@@ -17,15 +17,8 @@ If either fails, fix the failure first (it is part of the current task), then re
 ## 2. Adversarial review
 The reviewer input must be the full unfiltered diff, not a compressed one.
 
-- Check `command -v rtk` first.
-- **rtk absent**: plain `git diff --stat` / `git diff` are already unfiltered (no hook
-  rewrites them) — use those directly, and note "rtk absent → plain diff is unfiltered"
-  in your working notes.
-- **rtk present**: use `rtk proxy git diff --stat` / `rtk proxy git diff` (unfiltered) —
-  the PreToolUse hook rewrites plain bash through rtk, which compresses/filters output,
-  so plain `git diff` would NOT be unfiltered in this case. If the `rtk proxy` command
-  itself errors, do NOT silently fall back to plain `git diff` — stop and report
-  "reviewer input may be filtered" so the human decides.
+- Use plain `git diff --stat` / `git diff` — no hook rewrites the output, so it is
+  already unfiltered.
 
 Invoke the `code-reviewer` subagent (Agent tool, subagent_type `code-reviewer`)
 with the diff summary and the task description. Wait for its verdict.
