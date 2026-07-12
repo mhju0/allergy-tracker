@@ -1,21 +1,23 @@
 # docs/mocks — 디자인 기준 시안
 
-## 세트
-- **`warm-kr/` — 1차 방향(채택).** 페일 로즈 배경(`#FFF8F7`) + 코랄 CTA(`#FF8B7D`) + 딥 테라코타 브랜드(`#9E4037`). 코드 토큰은 `frontend/src/styles/theme.css:68~`에 시안에서 직접 샘플링해 반영됨.
-- **`clinical-en/` — 정보 구조 참고용.** 클리닉 블루("SafeSprout"). 레이아웃(진행 카드 → 신호등 스트립 → 추천 카드 → 최근 활동)이 잘 잡혀 있어 **구조만** 참고한다. 색·무드는 따라가지 않는다.
+## 세트 (2026-07-13 하이브리드 확정)
+- **`hybrid/` — 1차 기준(오너 확정).** warm-kr 셸(페일 로즈 `#FFF8F7` + 코랄 CTA `#FF8B7D` + 딥 테라코타 `#9E4037`) + **잉크 스탬프 언어는 도감·리포트 두 화면 한정**. 스탬프 화면에서만 세리프 디스플레이 타이틀 허용(여권 무드), 나머지는 산세리프.
+- **`warm-kr/` — 구판 참고.** hybrid의 전신. 토큰 샘플링 원본(`frontend/src/styles/theme.css:68~`). 신규 작업 기준은 hybrid.
+- **`clinical-en/` — 정보 구조 참고용.** 클리닉 블루("SafeSprout"). **구조와 콘텐츠 패턴만** 참고(히어로 안심 문구, 큰 숫자 타일). 색·무드는 따라가지 않는다.
+- `proposals/` — 방향 비교 시안 4종(로컬, 미커밋). clinic-sage·night-watch는 보류.
 
 ## 커버리지
 
-| 화면 | warm-kr | clinical-en | 구현 상태 (2026-07-13) |
+| 화면 | hybrid | warm-kr(구판) | 구현 상태 (2026-07-13) |
 |---|---|---|---|
-| 홈(대시보드 히어로) | ✅ home.png | ✅ | warm-kr 적용 커밋됨(42f7622) |
-| 식재료 도감 | ✅ ingredients.png | ✅ | WIP 슬라이스(미커밋) |
-| 72시간 관찰 | ✅ observe-72h.png | ✅ | warm-kr 적용 커밋됨(2bd4e2c) |
-| 프로필 | ✅ profile.png | ✅ | 미착수(구 디자인) |
-| 리포트(음식 여권) | ❌ 미생성 | ❌ | 구 디자인 — **시안부터** |
-| 알레르기 타임라인 | ❌ 미생성 | ❌ | 구 디자인 — **시안부터** |
-| 재료 상세 | ❌ 미생성 | ❌ | 미착수 |
-| 온보딩/로그인 | ❌ 미생성 | ❌ | 구 디자인 |
+| 홈(대시보드 히어로) | ✅ home.png | ✅ | warm-kr 적용 커밋됨(42f7622) — hybrid가 신호등 점 색·한글 탭 교정 |
+| 식재료 도감 | ✅ ingredients.png (스탬프) | ✅ | WIP 슬라이스(미커밋) — 스탬프 그리드로 재해석 필요 |
+| 72시간 관찰 | — (warm-kr 참조) | ✅ observe-72h.png | warm-kr 적용 커밋됨(2bd4e2c) |
+| 프로필 | — (warm-kr 참조) | ✅ profile.png | 미착수(구 디자인) |
+| 리포트(음식 여권) | ❌ 크레딧 소진으로 미생성 | ❌ | 구 디자인 — **시안부터** |
+| 알레르기 타임라인 | ❌ 크레딧 소진으로 미생성 | ❌ | 구 디자인 — **시안부터** |
+| 재료 상세 | ❌ 크레딧 소진으로 미생성 | ❌ | 미착수 |
+| 온보딩/로그인 | ❌ 크레딧 소진으로 미생성 | ❌ | 구 디자인 |
 
 ## 외부 레퍼런스 — 어느 앱에서 뭘 배울지
 
@@ -24,27 +26,13 @@
 - **Fig / Spokin** (식품 알레르기 특화 앱) — **훔칠 것**: 알레르겐 필터·경고의 명확한 시각 언어, "이 재료가 왜 위험한지" 근거를 함께 보여 주는 신뢰 장치. → 교차반응 경고·반응 재테스트 동의 게이트 카피/표현 참고.
 - 공통 교훈: 셋 다 **한 가지 문제를 깊게** 판다. MammaCare 포지셔닝("알레르기 안전 도구")과 같다 — 화면을 늘리지 말고 데모 경로를 깊게.
 
-## 미생성 시안 만들기 (higgsfield CLI)
+## 미생성 시안 만들기
 
-전제: `higgsfield auth login` 1회 필요(2026-07-13 기준 미인증 상태).
-스타일 고정을 위해 **기존 warm-kr 시안을 reference 이미지로 항상 전달**한다.
+4개 화면(리포트·타임라인·재료 상세·온보딩)의 확정 프롬프트가 **`generate-remaining.sh`**에 들어 있다.
+2026-07-13 higgsfield 크레딧 소진(`not_enough_credits`, starter plan)으로 중단됨 — 크레딧 충전 후:
 
 ```bash
-higgsfield generate create gpt_image_2 \
-  --image docs/mocks/warm-kr/home.png \
-  --prompt "<아래 화면별 프롬프트>" \
-  --aspect_ratio 9:16 --resolution 2k --wait
+bash docs/mocks/generate-remaining.sh
 ```
 
-공통 프리픽스(모든 프롬프트 앞에 붙임):
-
-> Mobile app UI mockup, exact same design system as the reference image: Korean baby-food allergy tracking app, pale rose background #FFF8F7, white rounded cards with soft terracotta-tinted shadow, deep terracotta #9E4037 brand accents, coral #FF8B7D pill CTA, Korean UI text with small English labels, 5-tab bottom nav (Home, Ingredients, Observe, Reports, Profile), clean readable typography, calm and warm, no device frame.
-
-화면별 본문:
-
-- **reports.png** — "Reports screen, header '리포트'. Food-passport preview card: baby name + age, safe ingredients list with green check dots, reaction ingredients with red dots. Coral pill CTA 'PDF 내려받기', secondary text button '진료 시 공유'. Monthly summary strip (safe/testing/reaction counts). Reports tab active."
-- **allergy-timeline.png** — "Allergy history screen, header '알레르기 기록'. Vertical timeline grouped by date: test started (yellow dot), symptom logged (red dot with small photo thumbnail), confirmed safe (green dot with check). Ingredient filter chips at top. Calm spacing, one event card per row."
-- **ingredient-detail.png** — "Ingredient detail screen for 달걀 (egg): hero food photo in rounded frame, status chip '반응' in red, recommended age badge '생후 6개월+', cross-reactivity warning card in soft red ('교차반응 주의: 메추리알'), past test history list, bottom guarded action '다시 테스트 시작' styled as cautious secondary, not primary."
-- **onboarding-login.png** — "First-run welcome screen: full-bleed soft photo of baby food preparation fading into #FFF8F7 at bottom, tagline '한 재료씩, 안전하게, 놓치지 않게.', below it login buttons: Kakao (yellow), Naver (green), Google (white outline), '이메일로 시작하기' text link. Minimal, one focal point, no bottom nav."
-
-생성 후: 결과를 `docs/mocks/warm-kr/<이름>.png`로 저장하고 위 커버리지 표를 갱신한다.
+결과는 `docs/mocks/hybrid/`에 저장된다. 생성 후 위 커버리지 표를 갱신한다.

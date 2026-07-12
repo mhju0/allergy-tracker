@@ -49,11 +49,12 @@
 ### P2 — E2E 발견 사항 fix pass
 - [ ] P1에서 나온 결함 심각도순 수정. 알레르기/DB 로직은 **런당 1슬라이스** (`/ship` 루프).
 
-### P3 — 디자인 폴리시 = warm-kr 마이그레이션 (데모 3화면 한정, token-only)
-기준 시안: `docs/mocks/warm-kr/`. 커버리지·미생성 시안·생성 절차·외부 레퍼런스는 **`docs/mocks/README.md`**.
+### P3 — 디자인 폴리시 = 하이브리드 마이그레이션 (데모 3화면 한정, token-only)
+기준 시안: **`docs/mocks/hybrid/`** (2026-07-13 오너 확정: warm-kr 셸 + 스탬프 언어는 도감·리포트 한정). 커버리지·미생성 시안·생성 스크립트·외부 레퍼런스는 **`docs/mocks/README.md`**.
 - [x] 대시보드 히어로 — warm-kr 적용 커밋됨(42f7622) [Verified]
-- [ ] 알레르기 화면(타임라인 포함) — 최대 잔여 화면. 시안 미생성 → 시안부터
-- [ ] 리포트 화면(음식 여권) — 시안 미생성 → 시안부터
+- [ ] 알레르기 화면(타임라인 포함) — 최대 잔여 화면. 시안 미생성(크레딧 소진) → `docs/mocks/generate-remaining.sh`부터
+- [ ] 리포트 화면(음식 여권, 스탬프 언어) — 시안 미생성(크레딧 소진) → 상동
+- [ ] 도감 화면을 스탬프 그리드 시안(`hybrid/ingredients.png`)에 맞게 재해석 — WIP 카드 그리드의 후속
 - [ ] 동의 다이얼로그 취소 버튼의 clinic-블루 그라디언트(`--action-soft-bg`, theme.css:60) — warm-kr 세계관과 불일치. 구 "인라인 hex 위반"은 토큰화로 해소됨 [Verified 2026-07-13]
 - [ ] BottomNav 재구성 결정 — 시안은 Home/Ingredients/Observe/Reports/Profile 5탭, 현재 `Layout.tsx`는 메뉴/일정/홈/알레르기/커뮤니티. P5 데드코드 퍼지와 함께 결정(오너 결정 사항)
 - 절차: `.claude/skills/design-polish/` (hex 하드코딩 게이트 포함), 런당 1화면.
