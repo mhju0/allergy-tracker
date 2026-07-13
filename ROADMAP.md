@@ -98,8 +98,8 @@
   - 가드레일: `.env` / JWT·OAuth·Firebase secret / `*.dump`(PII)는 이미지에 굽지 않고 커밋도 안 함 → `.dockerignore`로 제외.
   - 가드레일: Azure/AI/Android 제외는 Docker 도입과 무관하게 계속 유지.
   - 가드레일: 절대 규칙(Alembic 금지, `/api` prefix, RefreshToken 부활 금지, async/httpx/logging only)은 Docker와 무관하게 유지.
-- [ ] **프론트 정리 방향** — 전면 rebuild 안 함, delete-only. 구 웹 서비스 잔재는 라우트 단위 삭제로 정리해 iOS 중심 경험으로 좁힌다.
-  - Frontend dead-code purge 워크스트림: 데모 경로(로그인→대시보드 히어로→알레르기→리포트)에서 도달 불가능한 구 웹 서비스 페이지/라우트/컴포넌트를 식별해 라우트 단위로 삭제. 실제 삭제는 별도 READ-ONLY 인벤토리 후 진행 — 이번엔 방향만 기록.
+- [x] **프론트 dead-code purge** — read-only 인벤토리(Explore) 후 라우트 단위 삭제 완료 [Verified 2026-07-13]: 일정/커뮤니티/식단/레시피 페이지 9파일(~5,500줄) + RecipeScheduleModal + 튜토리얼 webp 16장 + 라우트 5개 삭제. `TimeDropdown`은 `components/`로 이동(Allergy가 사용). 알림 딥링크는 삭제된 라우트로 못 가게 타입 가드(`REMOVED_ROUTE_TYPES`) 추가 — 백엔드 `target_route` passthrough가 /schedule을 계속 심는 것을 리뷰어가 발견해 보강.
+  - [ ] **[백엔드 후속]** `notification_scheduler.py`의 meal_reminder 잡이 여전히 `/schedule` target_route 알림을 생성 중 — 일정 기능이 사라졌으므로 잡 제거(또는 재타깃) 슬라이스 필요. Settings의 이유식/커뮤니티 알림 토글도 이때 함께 정리(오너 결정: 잡 제거 vs 유지).
 
 ### R — GitHub 공개 체크리스트 (P4 산출물 이후, 최종 게이트)
 > 목표: 채용 담당자가 클론 없이 5분 안에 "잘 만든 프로젝트"라고 판단할 수 있는 저장소.

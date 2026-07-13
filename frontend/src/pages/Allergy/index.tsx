@@ -47,7 +47,7 @@ import { ReactionRetestConfirm } from "../../components/ReactionRetestConfirm";
 import { TestingCard } from "./TestingCard";
 import { IngredientHistoryPopup } from "./TestingModals";
 import { HospitalFinder } from "./HospitalFinder";
-import { TimeDropdown } from "../Schedule/TimeDropdown";
+import { TimeDropdown } from "../../components/TimeDropdown";
 import { dedupeRequest, readSessionCache, writeSessionCache } from "../../utils/sessionCache";
 import { saveReportFileApp } from "../../utils/reportFile";
 import { deriveIngredientStatuses, toAllergyBuckets } from "../../utils/allergyStatus";
