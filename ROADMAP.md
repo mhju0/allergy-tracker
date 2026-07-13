@@ -103,12 +103,13 @@
 
 ### R — GitHub 공개 체크리스트 (P4 산출물 이후, 최종 게이트)
 > 목표: 채용 담당자가 클론 없이 5분 안에 "잘 만든 프로젝트"라고 판단할 수 있는 저장소.
-- [ ] README 히어로 재구성 — 스크린샷 3컷 + 데모 GIF를 최상단에, 그 아래 **영어 TL;DR 1문단**(비한국어 리뷰어용) 추가, 한국어 본문은 유지
-- [ ] 아키텍처 다이어그램 1장 — README 내 mermaid 코드블록이면 충분(이미지 파일 불필요)
-- [ ] `docs/CASE_STUDY.draft.md` → `docs/CASE_STUDY.md` 마감 (P4의 정량 지표 채움과 동일 항목)
+- [x] README 히어로 재구성 — CI 배지 + 영어 TL;DR + 시뮬레이터 실캡처 3컷 + 동의 게이트 GIF를 최상단에 배치, 주요 화면 표를 새 IA(홈/도감/관찰/리포트)로 갱신 [Verified 2026-07-13]
+- [x] 아키텍처 다이어그램 — README에 mermaid 플로차트 추가 (Client → SPA → FastAPI /api → PostgreSQL/uploads) [Verified 2026-07-13]
+- [x] `docs/CASE_STUDY.draft.md` → `docs/CASE_STUDY.md` 마감 — 정량 지표·CI 줄 반영, README/CLAUDE.md 링크 갱신. 개인 동기 📌 1곳만 오너 몫으로 잔존
 - [x] 비밀값 히스토리 위생 — 전 히스토리에 `.env`/`*.dump`/`*.pem` 추가 이력 없음 [Verified 2026-07-13, `git log --all --diff-filter=A`]
 - [x] LICENSE(MIT) 존재(158ac53) + `frontend/package.json` `license: "MIT"` 필드 [Verified 2026-07-13]
 - [ ] 저장소 About 1줄 + topics 설정(fastapi, react, typescript, capacitor, allergy-tracking) — GitHub UI에서 수동
-- [ ] 공개 직전 최종 게이트 — 신규 클론에서 `SETUP.md` 그대로 재현: backend import + `pnpm build` + 데모 스파인 1회
+- [x] 공개 직전 최종 게이트 — GitHub Actions가 클린 Ubuntu 러너에서 신규 클론 재현을 매 push마다 수행(backend `import app.main` + `tsc --noEmit` + `pnpm build`, run 3124036 green [Verified 2026-07-13]). 데모 스파인은 iOS 시뮬레이터에서 1회 통과(P4). 로컬 DB 덤프 복원 절차는 CI 밖(SETUP.md 수동 경로)
+- [ ] **[오너 수동]** 1분 데모 mp4(`~/Desktop/mammacare-demo-1min.mp4`)를 GitHub Release asset으로 업로드
 
 <!-- 갱신 규칙(컨텍스트에 로드되지 않음): 마일스톤 상태 추측 금지. read-only 감사로 [Verified]된 변화만 반영. [PROPOSED CUT]은 삭제하지 말 것 — 오너가 결정한다. -->

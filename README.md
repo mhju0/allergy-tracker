@@ -52,7 +52,7 @@
 
 ## 핵심 의사결정 (하이라이트)
 
-자세한 맥락은 [`AGENTS.md`](AGENTS.md), [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md)와 [케이스 스터디 초안](docs/CASE_STUDY.draft.md) 참조.
+자세한 맥락은 [`AGENTS.md`](AGENTS.md), [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md)와 [케이스 스터디](docs/CASE_STUDY.md) 참조.
 
 1. **범위를 "이유식 알레르기 안전"으로 좁힘.** 종합 맘마케어에서 가장 심각도 높은 문제 하나로 집중해 솔로 포트폴리오로 완결성을 높임.
 2. **AI/클라우드 의존 제거(부활 금지).** Azure OpenAI·Speech·Language·Blob, AI 챗봇/식단, STT, NLP, Content Safety 제거. 이미지는 로컬 `backend/uploads/` + 보호 엔드포인트 `/api/media`. → **Azure 없이 로컬에서 완결**되어 재현·시연이 쉽다.
@@ -156,4 +156,4 @@ frontend/src/styles/theme.css 색 토큰(:root) + Tailwind @theme 매핑
 - [`AGENTS.md`](AGENTS.md) — 개발/에이전트 운영 가이드(아키텍처·규칙의 1차 진실)
 - [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) — 색 토큰·컴포넌트·원칙(신호등)
 - [`SETUP.md`](SETUP.md) — 로컬 셋업
-- [`docs/CASE_STUDY.draft.md`](docs/CASE_STUDY.draft.md) — 케이스 스터디 초안(면접용)
+- [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md) — 케이스 스터디(면접용)
