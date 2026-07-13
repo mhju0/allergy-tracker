@@ -1,23 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
-import { Baby, ChevronDown, Milestone, Smartphone, Download } from "lucide-react";
+import { Baby, ChevronDown, Milestone } from "lucide-react";
 import { useNavigate, useLocation } from "react-router";
 import { Capacitor } from "@capacitor/core";
-import { QRCodeSVG } from "qrcode.react";
 import TutorialModal from "../components/TutorialModal";
 import { tutorialSlides } from "../components/tutorialSlides";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "../components/ui/dialog";
 import homeImage1 from "../asset/home_image_1.webp";
 import homeImage2 from "../asset/home_image_2.webp";
 import homeImage3 from "../asset/home_image_3.webp";
 import homeImage4 from "../asset/home_image_7.webp";
 import About from "./About";
-
-const APK_URL = "https://mammacare.eastus2.cloudapp.azure.com/downloads/mammacare.apk";
 
 // Layout.tsx와 동일하게 모듈 레벨에서 판별
 const isApp = Capacitor.isNativePlatform();
@@ -52,7 +43,6 @@ export default function Home() {
   const [current, setCurrent] = useState(0);
   const [animated, setAnimated] = useState(true);
   const [tutorialOpen, setTutorialOpen] = useState(false);
-  const [downloadOpen, setDownloadOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -180,21 +170,6 @@ export default function Home() {
                   맘마케어 시작 가이드
                 </button>
               </div>
-              <button
-                onClick={() => setDownloadOpen(true)}
-                className="
-                  btn-primary !px-4 !py-2
-                  !text-base font-semibold whitespace-nowrap
-                  !bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#FFFAF0_100%)]
-                  hover:!bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#FEF5CC_100%)]
-                  !text-[#3D3C38]
-                  transition-all duration-300 shadow-lg
-                  flex items-center gap-2
-                "
-              >
-                <Smartphone size={18} />
-                안드로이드 앱 다운로드
-              </button>
             </div>
           )}
         </div>
@@ -206,35 +181,6 @@ export default function Home() {
           title="맘마케어 시작 가이드"
           mutedSubCaption
         />
-
-        <Dialog open={downloadOpen} onOpenChange={setDownloadOpen}>
-          <DialogContent className="max-w-sm text-center sm:max-w-sm">
-            <DialogHeader>
-              <DialogTitle className="text-center">안드로이드 앱 다운로드</DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-col items-center gap-4 py-2">
-              <p className="text-sm text-muted-foreground">QR 코드를 스캔하거나 직접 다운로드하세요</p>
-              <QRCodeSVG value={APK_URL} size={180} />
-              <a
-                href={APK_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="
-                  btn-primary !px-5 !py-2.5
-                  !text-base font-semibold
-                  !bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#FFFAF0_100%)]
-                  hover:!bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#FEF5CC_100%)]
-                  !text-[#3D3C38]
-                  transition-all duration-300 shadow-lg
-                  flex items-center gap-2
-                "
-              >
-                <Download size={18} />
-                직접 다운로드
-              </a>
-            </div>
-          </DialogContent>
-        </Dialog>
 
         {/* Dots - 웹에서만 표시 */}
         {!isApp && (
