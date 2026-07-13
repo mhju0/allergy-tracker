@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import { AuthImage } from "../../components/AuthImage";
 import { AlertTriangle, CheckCircle, X, ChevronDown, ChevronUp, Camera, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
-import { TimeDropdown } from "../Schedule/TimeDropdown";
+import { TimeDropdown } from "../../components/TimeDropdown";
 import {
   listSymptomChecks,
   createSymptomCheck,

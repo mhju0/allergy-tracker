@@ -38,17 +38,18 @@ export function emitNotificationsChanged(): void {
   window.dispatchEvent(new CustomEvent(NOTIFICATION_REFRESH_EVENT));
 }
 
+// 일정/커뮤니티 화면 삭제 후에도 백엔드가 기존/신규 알림에 /schedule·/community
+// target_route를 계속 심으므로, 타입 기준으로 passthrough 자체를 차단해야 404로 안 빠진다.
+const REMOVED_ROUTE_TYPES = new Set(["meal_reminder", "community_comment", "community_like"]);
+
 export function getNotificationTarget(notification: Pick<NotificationItem, "type" | "data">): string {
+  if (REMOVED_ROUTE_TYPES.has(notification.type)) return "/notifications";
+
   const data = notification.data ?? {};
   const targetRoute = data.target_route;
   if (typeof targetRoute === "string" && targetRoute.startsWith("/")) return targetRoute;
 
-  if (notification.type === "meal_reminder") return "/schedule";
   if (notification.type === "allergy_check") return "/allergy";
-  if (notification.type === "community_comment" || notification.type === "community_like") {
-    const postId = data.post_id;
-    return typeof postId === "string" ? `/community/posts/${postId}` : "/community";
-  }
   return "/notifications";
 }
 
