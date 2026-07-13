@@ -36,12 +36,14 @@
 | **식단/레시피/영양** | 재료·레시피 탐색과 식단 구성. 확정 알레르겐이 포함된 식단은 추가 차단·경고 |
 | **커뮤니티/프로필/설정** | 보조 기능 |
 
-<!-- 스크린샷 placeholder — iOS 시뮬레이터(iPhone 15) 캡처 권장 -->
-<!-- ![대시보드 신호등 히어로](docs/screenshots/dashboard.png) -->
-<!-- ![알레르기 테스트 타임라인](docs/screenshots/allergy-timeline.png) -->
-<!-- ![의심 재료/리포트](docs/screenshots/allergy-report.png) -->
+<!-- iOS 시뮬레이터(iPhone 17 · iOS 26.1) 실캡처 -->
+| 대시보드 (신호등 히어로) | 도감 (잉크 스탬프) | 72시간 관찰 | 리포트 |
+|---|---|---|---|
+| ![대시보드 신호등 히어로](docs/screenshots/dashboard.png) | ![식재료 도감 스탬프 그리드](docs/screenshots/ingredients.png) | ![72시간 관찰 타임라인](docs/screenshots/observe.png) | ![알레르기 리포트](docs/screenshots/reports.png) |
 
-> 📸 _스크린샷 자리._ iOS 시뮬레이터에서 대시보드·알레르기 타임라인·리포트 3컷을 `docs/screenshots/`에 넣고 위 주석을 해제한다.
+**머니 모먼트 — 반응 이력 재료 재테스트 동의 게이트** (반응 재료를 다시 테스트하려면 명시적 확인을 거친다):
+
+<img src="docs/screenshots/demo-moment.gif" width="300" alt="반응 재료 재테스트 동의 게이트 데모" />
 
 ---
 
