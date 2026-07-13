@@ -1,13 +1,15 @@
 # MammaCare — 이유식 알레르기 안전 추적 도구
 
-[![CI](https://github.com/mhju0/mammacare-personal/actions/workflows/ci.yml/badge.svg)](https://github.com/mhju0/mammacare-personal/actions/workflows/ci.yml)
+[![CI](https://github.com/mhju0/mammacare-ios/actions/workflows/ci.yml/badge.svg)](https://github.com/mhju0/mammacare-ios/actions/workflows/ci.yml)
 
 > 아기가 처음 먹는 재료 하나하나를, **안전하게 도입하고 반응을 놓치지 않도록** 돕는 모바일 우선 웹앱.
 > 알레르기 상태를 **신호등(초록·노랑·빨강)** 으로 보여 주는 것이 제품의 핵심이다.
 
 `FastAPI(async) · PostgreSQL 16 · React + TypeScript · Vite · Tailwind v4 · Capacitor(iOS)`
 
-**TL;DR (English).** MammaCare is a mobile-first app that helps parents introduce solid foods to their baby safely: start one new ingredient at a time, observe for 72 hours, and log any allergic reaction. Allergy status is always shown as a traffic light (green = safe, amber = testing, red = reaction), reactions are matched by `ingredient_id` rather than name strings, and re-testing a previously-reacted ingredient requires an explicit safety confirmation. Solo portfolio project: async FastAPI + PostgreSQL backend, React/TypeScript frontend, packaged for iOS with Capacitor, fully self-contained on localhost (no cloud keys needed). 145 seeded ingredients, 112 API endpoints, doctor-shareable PDF/JPG reports.
+**TL;DR (English).** MammaCare is a mobile-first app that helps parents introduce solid foods to their baby safely: start one new ingredient at a time, observe for 72 hours, and log any allergic reaction. Allergy status is always shown as a traffic light (green = safe, amber = testing, red = reaction), reactions are matched by `ingredient_id` rather than name strings, and re-testing a previously-reacted ingredient requires an explicit safety confirmation. Solo continuation of a bootcamp team project — scope narrowed to allergy safety, redesigned and shipped for iOS independently: async FastAPI + PostgreSQL backend, React/TypeScript frontend, packaged with Capacitor, fully self-contained on localhost (no cloud keys needed). 145 seeded ingredients, 112 API endpoints, doctor-shareable PDF/JPG reports.
+
+> **프로젝트 출처.** 부트캠프 팀 프로젝트(맘마케어)에서 출발해, 이 저장소는 **알레르기 안전 도구로 범위를 좁혀 단독으로 재설계·리빌드하고 iOS로 패키징한 개인 확장판**이다. 범위 축소 판단, 탈클라우드 재설계, 디자인 시스템, iOS 패키징이 이 저장소에서 단독으로 이뤄졌다.
 
 <!-- iOS 시뮬레이터(iPhone 17 · iOS 26.1) 실캡처 -->
 | 대시보드 (신호등 히어로) | 도감 (잉크 스탬프) | 72시간 관찰 | 재테스트 동의 게이트 |

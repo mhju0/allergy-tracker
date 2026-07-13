@@ -1,6 +1,6 @@
 # AGENTS.md — MammaCare (personal)
 
-이 문서는 `mammacare-personal`에서 작업하는 사람과 AI 코딩 에이전트를 위한 운영 가이드다.
+이 문서는 `mammacare-ios`에서 작업하는 사람과 AI 코딩 에이전트를 위한 운영 가이드다.
 코드가 동작의 1차 진실, 로컬 DB schema가 제약의 1차 진실이다. 문서가 다르면 코드+DB를 먼저 확인하고 문서를 갱신한다.
 
 ## 프로젝트 개요

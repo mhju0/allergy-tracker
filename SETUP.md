@@ -10,8 +10,8 @@
 
 ## 1. 클론 & 비밀파일
 ```bash
-git clone <your-repo-url> mammacare-personal
-cd mammacare-personal
+git clone <your-repo-url> mammacare-ios
+cd mammacare-ios
 ```
 `.env`는 git에 없다(정상). 보관해 둔 `backend/.env`, `frontend/.env`를 복사해 넣는다.
 `git status`에 `.env`가 안 보여야 한다.
