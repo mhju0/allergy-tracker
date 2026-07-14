@@ -28,7 +28,7 @@ from fastapi import HTTPException
 
 from app.db.session import AsyncSessionLocal
 from app.models.allergy.ingredient_testing import IngredientTesting
-from app.crud.allergy.ingredient_testing import _assert_no_active_overlap
+from app.crud.allergy.ingredient_testing import _assert_no_active_overlap, _status_from_dates
 
 logger = logging.getLogger("mammacare.allergy_scheduler")
 # 구 부분 unique 인덱스(ux_…)와 신 EXCLUDE 제약(ex_…) 둘 다 인식 — 마이그레이션 전후 호환
@@ -91,11 +91,9 @@ async def job_auto_register_testing() -> None:
                 if meal_at.tzinfo is None:
                     meal_at = meal_at.replace(tzinfo=timezone.utc)
 
-                elapsed = now - meal_at
-                if elapsed.total_seconds() <= 72 * 3600:
-                    initial_status = "testing"
-                else:
-                    initial_status = "completed_safe"
+                # 상태 판정을 단일 분류기(_status_from_dates)에 위임 — 스케줄러가 72h 창
+                # 규칙을 따로 재구현하지 않는다. 경계값은 분류기의 strict < 로 일관 처리된다.
+                initial_status = _status_from_dates(meal_at, meal_at + timedelta(hours=72), now)
 
                 # 단일 관문: 진행 중(testing)으로 자동 등록할 때 다른 재료와 기간이 겹치면 건너뜀
                 if initial_status == "testing":
@@ -198,7 +196,13 @@ async def job_auto_complete_testing() -> None:
                     if testing is None:
                         continue
 
-                    testing.test_status = "completed_reaction" if has_reaction else "completed_safe"
+                    # 창 경과 후 최종 판정도 단일 분류기에 위임 (반응 여부 → reaction/safe)
+                    testing.test_status = _status_from_dates(
+                        testing.test_start_date,
+                        testing.test_end_date,
+                        now,
+                        has_reaction=bool(has_reaction),
+                    )
                     await db.commit()
                     logger.info(
                         "ingredient_testing 자동 완료(%s): id=%s",
