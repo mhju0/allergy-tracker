@@ -10,14 +10,17 @@ from fastapi import HTTPException, status
 
 from app.models.allergy.ingredient_testing import IngredientTesting
 from app.models.allergy.confirmed_allergy import ConfirmedAllergy
-from app.schemas.allergy.ingredient_testing import IngredientTestingCreate
+from app.models.allergy.symptom_check import SymptomCheck
+from app.schemas.allergy.ingredient_testing import IngredientTestingCreate, IngredientTestingUpdate
 from app.crud.allergy.ingredient_testing import (
     _assert_no_active_overlap,
     _has_reaction_record,
     _is_active_testing_unique_violation,
     _status_from_dates,
     _test_end_date,
+    get_ingredient_testing,
     purge_symptom_checks_for_testing,
+    update_ingredient_testing,
 )
 
 logger = logging.getLogger("mammacare.allergy")
@@ -35,6 +38,9 @@ async def _load_testing_with_ingredient(
         select(IngredientTesting)
         .options(selectinload(IngredientTesting.ingredient))
         .where(IngredientTesting.id == testing_id)
+        # populate_existing: 편집으로 ingredient_id가 바뀌면 이미 로드된 옛 ingredient
+        # 관계가 남아 응답에 옛 재료명이 실린다. 강제 재적재로 새 재료를 반영한다.
+        .execution_options(populate_existing=True)
     )
     item = result.scalar_one()
     item.has_reaction = await _has_reaction_record(db, item.id)
@@ -232,3 +238,114 @@ async def create_testing_with_end_date(
         raise
 
     return await _load_testing_with_ingredient(db, obj.id)
+
+
+async def update_testing(
+    db: AsyncSession,
+    testing_id,
+    data: IngredientTestingUpdate,
+) -> IngredientTesting | None:
+    """PATCH 진입점.
+
+    memo / 반응확정(completed_reaction — 스키마에서 제한됨)만이면 단순 갱신 경로를 쓴다.
+    ingredient_id / test_start_date 변경이 있으면 종료일·상태를 재계산하고 겹침을
+    재검사하는 create 경로와 동일한 불변식(선검사 → mutation → flush 가드)을 따른다.
+    """
+    fields = data.model_dump(exclude_unset=True)
+    if "ingredient_id" not in fields and "test_start_date" not in fields:
+        return await update_ingredient_testing(db, testing_id, data)
+
+    row = await get_ingredient_testing(db, testing_id)
+    if row is None:
+        return None
+    now = datetime.now(timezone.utc)
+    original_ingredient_id = row.ingredient_id
+
+    # 반응이 확정/기록된 테스트는 재료·시작일을 수정할 수 없다. 날짜 재계산으로 창을 다시
+    # 열어 completed_reaction(빨강)을 testing(노랑)으로 낮추거나, 반응 기록을 다른 재료로
+    # 오귀속하는 경로를 원천 차단한다. 정정이 필요하면 삭제 후 재등록한다.
+    if row.test_status == "completed_reaction" or await _has_reaction_record(db, row.id):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="반응이 기록된 테스트는 수정할 수 없습니다.\n삭제 후 다시 등록해 주세요.",
+        )
+
+    target_ingredient_id = fields.get("ingredient_id", original_ingredient_id)
+    if "test_start_date" in fields:
+        target_start = fields["test_start_date"]
+        if target_start.tzinfo is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="test_start_date은 timezone 정보가 포함되어야 합니다. (예: 2024-01-01T00:00:00+09:00)",
+            )
+    else:
+        target_start = row.test_start_date
+        if target_start.tzinfo is None:  # DB 값 방어적 보정 (create 경로와 동일)
+            target_start = target_start.replace(tzinfo=timezone.utc)
+
+    if target_ingredient_id != original_ingredient_id:
+        # 옛 재료에 귀속된 증상 기록이 새 재료로 오귀속되지 않도록, 기록이 있으면 변경 차단.
+        has_checks = (
+            await db.execute(
+                select(SymptomCheck.id).where(SymptomCheck.testing_id == row.id).limit(1)
+            )
+        ).scalar_one_or_none() is not None
+        if has_checks:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="증상 기록이 있는 테스트는 재료를 변경할 수 없습니다.\n삭제 후 다시 등록해 주세요.",
+            )
+        # 재료당 1행 불변식: 이미 테스트 기록이 있는 재료로는 옮길 수 없음.
+        other = await _find_existing_testing(db, row.baby_id, target_ingredient_id)
+        if other is not None and other.id != row.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="해당 재료는 이미 테스트 기록이 있습니다.",
+            )
+
+    # 반응 이력은 위에서 차단됐으므로 has_reaction=False. 다만 같은 PATCH에 명시된
+    # test_status(스키마상 completed_reaction만 허용 — 항상 안전한 red 승격)는 존중해
+    # 조용히 삭제되지 않도록 requested_status로 넘긴다.
+    requested_status = fields.get("test_status")
+    requested_status = getattr(requested_status, "value", requested_status)
+    new_end = _test_end_date(target_start)
+    new_status = _status_from_dates(
+        target_start, new_end, now, requested_status=requested_status
+    )
+
+    # 확정 알레르기를 '안전 통과'로 만들 수 없다 (create 경로의 가드와 동일하게 우회 차단).
+    if new_status == "completed_safe" and await _is_confirmed_allergy(
+        db, row.baby_id, target_ingredient_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="이미 알레르기 확정된 재료는\n'안전 통과'로 추가할 수 없습니다.",
+        )
+
+    # 선검사(겹침) → mutation → flush 가드 순서를 create 경로와 동일하게 지킨다.
+    # 편집 대상 자기 자신은 아직 DB에 '옛 ingredient_id'로 있으므로 그것으로 제외해야
+    # 자기겹침 오탐(항상 409)을 피한다. 재료 미변경이면 원래 == 대상이라 그대로 동작한다.
+    if new_status in (None, "testing"):
+        await _assert_no_active_overlap(
+            db, row.baby_id, target_start, new_end,
+            exclude_ingredient_id=original_ingredient_id,
+        )
+
+    row.ingredient_id = target_ingredient_id
+    row.test_start_date = target_start
+    row.test_end_date = new_end
+    row.test_status = new_status
+    if "memo" in fields:
+        row.memo = fields["memo"]
+
+    try:
+        await db.flush()
+    except IntegrityError as exc:
+        await db.rollback()
+        if _is_active_testing_unique_violation(exc):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="이미 진행 중인 테스트와\n기간이 겹칩니다.",
+            ) from exc
+        raise
+    return await _load_testing_with_ingredient(db, row.id)

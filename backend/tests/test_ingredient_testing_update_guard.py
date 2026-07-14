@@ -36,3 +36,22 @@ def test_patch_rejects_completed_safe():
 def test_patch_rejects_testing():
     with pytest.raises(ValidationError):
         IngredientTestingUpdate(test_status="testing")
+
+
+def test_patch_accepts_ingredient_and_start_edit():
+    from datetime import datetime, timezone
+
+    m = IngredientTestingUpdate(
+        ingredient_id=42,
+        test_start_date=datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc),
+    )
+    # edit fields are accepted and don't trip the status guard (status stays unset)
+    assert m.ingredient_id == 42
+    assert m.test_start_date is not None
+    assert m.test_status is None
+
+
+def test_patch_edit_fields_excluded_when_unset():
+    # only explicitly-set fields survive model_dump — the service keys off this
+    dumped = IngredientTestingUpdate(memo="x").model_dump(exclude_unset=True)
+    assert dumped == {"memo": "x"}

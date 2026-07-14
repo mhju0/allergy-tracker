@@ -84,7 +84,7 @@ async def update_testing(
 ):
     """테스트 수정 (상태 변경, 메모 등)"""
     await crud.verify_testing_owner(db, testing_id, current_user.id)
-    result = await crud.update_ingredient_testing(db, testing_id, data)
+    result = await allergy_service.update_testing(db, testing_id, data)
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

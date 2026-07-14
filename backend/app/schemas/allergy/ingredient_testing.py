@@ -35,6 +35,10 @@ class IngredientTestingCreate(BaseModel):
 class IngredientTestingUpdate(BaseModel):
     test_status: Optional[TestStatus] = None
     memo: Optional[str] = None
+    # 진행 중 테스트의 재료/시작일 수정 — 지정 시 서비스가 종료일·상태를 재계산하고
+    # 겹침을 재검사한다(단순 setattr 아님).
+    ingredient_id: Optional[int] = None
+    test_start_date: Optional[datetime] = None
 
     @model_validator(mode="after")
     def _restrict_patch_status(self):
