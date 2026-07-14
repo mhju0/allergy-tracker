@@ -25,7 +25,6 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import AsyncSessionLocal
-from app.crud import crud_notification
 from app.models.parent_user import ParentUser
 from app.models.schedule import Schedule
 from app.models.baby_user import BabyUser
@@ -48,31 +47,6 @@ ALLERGY_INTERVALS: list[tuple[str, int]] = [
 
 # 동시 발화 시 1분 폴링 동안 발생할 수 있는 시간 오차 허용 윈도우
 _WINDOW_SECONDS = 60
-
-
-# ──────────────────────────────────────────────
-# 공용 helper
-# ──────────────────────────────────────────────
-
-async def _send_and_persist(
-    db: AsyncSession,
-    parent: ParentUser,
-    baby_id: Any,
-    type_: str,
-    title: str,
-    body: str,
-    data: dict[str, Any],
-) -> None:
-    """알림 1건 저장 + FCM 발송. 실패해도 예외를 위로 던지지 않는다."""
-    await notification_service.persist_and_push_notification(
-        db,
-        parent=parent,
-        baby_id=baby_id,
-        type_=type_,
-        title=title,
-        body=body,
-        data=data,
-    )
 
 
 # ──────────────────────────────────────────────
@@ -159,16 +133,8 @@ async def job_allergy_check_reminder() -> None:
                         continue
 
                     dedup_key = f"{testing_id_str}:{label}"
-                    try:
-                        already = await crud_notification.exists_by_type_and_data_key(
-                            db, parent.id, "allergy_check", "dedup_key", dedup_key
-                        )
-                    except Exception:
-                        logger.exception("알레르기 중복 체크 실패 key=%s", dedup_key)
-                        continue
-                    if already:
-                        continue
-
+                    # 중복 방지는 persist_and_push_notification이 단독으로 소유한다
+                    # (dedup_key 사전 조회 + unique-violation 캐치). 여기서 재검사하지 않는다.
                     message = notification_templates.allergy_check_message(
                         baby_name=baby.name,
                         ingredient_name=ingredient_name,
@@ -183,8 +149,14 @@ async def job_allergy_check_reminder() -> None:
                         "interval": label,
                         "dedup_key": dedup_key,
                     }
-                    await _send_and_persist(
-                        db, parent, baby.id, "allergy_check", message.title, message.body, data
+                    await notification_service.persist_and_push_notification(
+                        db,
+                        parent=parent,
+                        baby_id=baby.id,
+                        type_="allergy_check",
+                        title=message.title,
+                        body=message.body,
+                        data=data,
                     )
     except asyncio.CancelledError:
         logger.warning("알레르기 체크 알림 job 취소됨 (앱 재시작 중)")
