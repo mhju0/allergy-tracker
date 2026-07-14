@@ -37,10 +37,10 @@ const GROWTH_YEARS = [2025, 2026];
 
 function DefaultIcon({ gender }: { gender: BabyProfile["gender"] }) {
   const strokeColor =
-    gender === "girl" ? "#FFB7A5" : gender === "boy" ? "#B3DAF5" : "#A1A1A1";
+    gender === "girl" ? "#CF7B5E" : gender === "boy" ? "#A9C6B0" : "#A1A1A1";
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-[#FAFAFA]">
+    <div className="w-full h-full flex items-center justify-center bg-[#FDFBF5]">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
@@ -92,27 +92,27 @@ function ExpectedBirthView({
       <div className="flex items-center gap-2 self-end">
         <button
           onClick={onAdd}
-          className="flex items-center gap-1.5 text-sm font-semibold text-[#3D3C38] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
-          bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#FEF5CC_100%)]
-          hover:bg-[radial-gradient(ellipse_at_center,#FEF5CC_0%,#FFEFAB_100%)]"
+          className="flex items-center gap-1.5 text-sm font-semibold text-[#2B3A31] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
+          bg-[radial-gradient(ellipse_at_center,#FDFBF5_0%,#EFE9DA_100%)]
+          hover:bg-[radial-gradient(ellipse_at_center,#EFE9DA_0%,#A9C6B0_100%)]"
         >
           <Plus size={13} /> 프로필 추가
         </button>
         {showSwitch && (
           <button
             onClick={onSwitch}
-            className="flex items-center gap-1.5 text-sm font-semibold text-[#3D3C38] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
-            bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#FEF5CC_100%)]
-            hover:bg-[radial-gradient(ellipse_at_center,#FEF5CC_0%,#FFEFAB_100%)]"
+            className="flex items-center gap-1.5 text-sm font-semibold text-[#2B3A31] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
+            bg-[radial-gradient(ellipse_at_center,#FDFBF5_0%,#EFE9DA_100%)]
+            hover:bg-[radial-gradient(ellipse_at_center,#EFE9DA_0%,#A9C6B0_100%)]"
           >
             <RefreshCw size={13} /> 프로필 전환
           </button>
         )}
         <button
           onClick={onEdit}
-          className="flex items-center gap-1.5 text-sm font-semibold text-[#3D3C38] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
-          bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#FEF5CC_100%)]
-          hover:bg-[radial-gradient(ellipse_at_center,#FEF5CC_0%,#FFEFAB_100%)]"
+          className="flex items-center gap-1.5 text-sm font-semibold text-[#2B3A31] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
+          bg-[radial-gradient(ellipse_at_center,#FDFBF5_0%,#EFE9DA_100%)]
+          hover:bg-[radial-gradient(ellipse_at_center,#EFE9DA_0%,#A9C6B0_100%)]"
         >
           <Edit3 size={13} /> 수정
         </button>
@@ -188,27 +188,27 @@ function BabyInfoColumn({
         <div className="flex items-center gap-2">
           <button
             onClick={onAdd}
-            className={`flex items-center gap-1.5 text-sm ${isApp ? "font-bold" : "font-semibold"} text-[#3D3C38] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
-            bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#FEF5CC_100%)]
-            hover:bg-[radial-gradient(ellipse_at_center,#FEF5CC_0%,#FFEFAB_100%)]`}
+            className={`flex items-center gap-1.5 text-sm ${isApp ? "font-bold" : "font-semibold"} text-[#2B3A31] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
+            bg-[radial-gradient(ellipse_at_center,#FDFBF5_0%,#EFE9DA_100%)]
+            hover:bg-[radial-gradient(ellipse_at_center,#EFE9DA_0%,#A9C6B0_100%)]`}
           >
             <Plus size={13} /> 프로필 추가
           </button>
           {showSwitch && (
             <button
               onClick={onSwitch}
-              className={`flex items-center gap-1.5 text-sm ${isApp ? "font-bold" : "font-semibold"} text-[#3D3C38] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
-              bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#FEF5CC_100%)]
-              hover:bg-[radial-gradient(ellipse_at_center,#FEF5CC_0%,#FFEFAB_100%)]`}
+              className={`flex items-center gap-1.5 text-sm ${isApp ? "font-bold" : "font-semibold"} text-[#2B3A31] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
+              bg-[radial-gradient(ellipse_at_center,#FDFBF5_0%,#EFE9DA_100%)]
+              hover:bg-[radial-gradient(ellipse_at_center,#EFE9DA_0%,#A9C6B0_100%)]`}
             >
               <RefreshCw size={13} /> 프로필 전환
             </button>
           )}
           <button
             onClick={onEdit}
-            className={`flex items-center gap-1.5 text-sm ${isApp ? "font-bold" : "font-semibold"} text-[#3D3C38] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
-            bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#FEF5CC_100%)]
-            hover:bg-[radial-gradient(ellipse_at_center,#FEF5CC_0%,#FFEFAB_100%)]`}
+            className={`flex items-center gap-1.5 text-sm ${isApp ? "font-bold" : "font-semibold"} text-[#2B3A31] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
+            bg-[radial-gradient(ellipse_at_center,#FDFBF5_0%,#EFE9DA_100%)]
+            hover:bg-[radial-gradient(ellipse_at_center,#EFE9DA_0%,#A9C6B0_100%)]`}
           >
             <Edit3 size={13} /> 수정
           </button>
@@ -231,10 +231,10 @@ function BabyInfoColumn({
               {info.birthYear}.{String(info.birthMonth).padStart(2, "0")}.{String(info.birthDay).padStart(2, "0")}
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
-              <span className="inline-flex items-center h-7 text-base bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#FEF5CC_50%,#FFEFAB_100%)] text-foreground px-2.5 rounded-full font-semibold">
+              <span className="inline-flex items-center h-7 text-base bg-[radial-gradient(ellipse_at_center,#FDFBF5_0%,#EFE9DA_50%,#A9C6B0_100%)] text-foreground px-2.5 rounded-full font-semibold">
                 {ageText}
               </span>
-              <span className="inline-flex items-center h-7 text-base bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#E3FCEF_50%,#BEEDD4_100%)] text-foreground px-2.5 rounded-full font-semibold">
+              <span className="inline-flex items-center h-7 text-base bg-[radial-gradient(ellipse_at_center,#FDFBF5_0%,#E7F0E4_50%,#E7F0E4_100%)] text-foreground px-2.5 rounded-full font-semibold">
                 {dayCount}일차
               </span>
               {info.gender && (
@@ -242,8 +242,8 @@ function BabyInfoColumn({
                   className="inline-flex items-center gap-1 h-7 text-base text-foreground px-2.5 rounded-full font-semibold"
                   style={{
                     background: info.gender === "girl"
-                      ? "radial-gradient(ellipse at center, #FFFAF0 0%, #FFB7A5 100%)"
-                      : "radial-gradient(ellipse at center, #EBF7FF 0%, #B3DAF5 100%)",
+                      ? "radial-gradient(ellipse at center, #FDFBF5 0%, #CF7B5E 100%)"
+                      : "radial-gradient(ellipse at center, #EAF1EA 0%, #A9C6B0 100%)",
                   }}
                 >
                   {info.gender === "girl" ? <><Venus size={14} /> 여아</> : <><Mars size={14} /> 남아</>}
@@ -291,7 +291,7 @@ function BabyInfoColumn({
               <div
                 key={item.id}
                 className="flex items-center gap-1 pl-3 pr-2 py-1 rounded-full
-                bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#FFEEE8_100%)] border border-[#FF8763]/50"
+                bg-[radial-gradient(ellipse_at_center,#FDFBF5_0%,#F6E6DF_100%)] border border-[#CF7B5E]/50"
               >
                 <IngredientIcon name={item.ingredient_name ?? ""} emoji={item.ingredient_emoji} size={17} />
                 <span className="text-xs font-semibold">{item.ingredient_name}</span>
@@ -313,7 +313,7 @@ function BabyInfoColumn({
               <div
                 key={item.id}
                 className="flex items-center gap-1 pl-3 pr-2 py-1 rounded-full
-                bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#E3FFF1_100%)] border border-[#9AC6AF]/70"
+                bg-[radial-gradient(ellipse_at_center,#FDFBF5_0%,#E7F0E4_100%)] border border-[#A9C6B0]/70"
               >
                 <IngredientIcon name={item.name} emoji={item.emoji} size={17} />
                 <span className="text-xs font-semibold">{item.name}</span>
@@ -442,7 +442,7 @@ function GrowthAddModal({
                   onChange={(e) => handleHeightChange(e.target.value)}
                   min={0} max={140} step={0.1} inputMode="decimal"
                   placeholder="0.0"
-                  className="w-[110px] px-3 py-2 rounded-3xl border border-border bg-card focus:outline-none focus:ring-2 focus:ring-[#FFF5D4] text-sm font-semibold"
+                  className="w-[110px] px-3 py-2 rounded-3xl border border-border bg-card focus:outline-none focus:ring-2 focus:ring-[#EFE9DA] text-sm font-semibold"
                 />
                 <span className="text-sm shrink-0">cm</span>
               </div>
@@ -453,7 +453,7 @@ function GrowthAddModal({
                     <button
                       type="button"
                       onClick={() => setHeightYearOpen(!heightYearOpen)}
-                      className="w-full px-3 py-1.5 rounded-3xl border border-border bg-card text-sm text-left focus:outline-none focus:ring-2 focus:ring-[#FFF5D4]"
+                      className="w-full px-3 py-1.5 rounded-3xl border border-border bg-card text-sm text-left focus:outline-none focus:ring-2 focus:ring-[#EFE9DA]"
                     >
                       {hd.year}
                     </button>
@@ -503,7 +503,7 @@ function GrowthAddModal({
                   onChange={(e) => handleWeightChange(e.target.value)}
                   min={0} max={140} step={0.1} inputMode="decimal"
                   placeholder="0.0"
-                  className="w-[110px] px-3 py-2 rounded-3xl border border-border bg-card focus:outline-none focus:ring-2 focus:ring-[#FFF5D4] text-sm font-semibold"
+                  className="w-[110px] px-3 py-2 rounded-3xl border border-border bg-card focus:outline-none focus:ring-2 focus:ring-[#EFE9DA] text-sm font-semibold"
                 />
                 <span className="text-sm shrink-0">kg</span>
               </div>
@@ -514,7 +514,7 @@ function GrowthAddModal({
                     <button
                       type="button"
                       onClick={() => setWeightYearOpen(!weightYearOpen)}
-                      className="w-full px-3 py-1.5 rounded-3xl border border-border bg-card text-sm text-left focus:outline-none focus:ring-2 focus:ring-[#FFF5D4]"
+                      className="w-full px-3 py-1.5 rounded-3xl border border-border bg-card text-sm text-left focus:outline-none focus:ring-2 focus:ring-[#EFE9DA]"
                     >
                       {wd.year}
                     </button>
@@ -560,9 +560,9 @@ function GrowthAddModal({
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="w-full mt-6 py-3.5 text-[#3D3C38] text-base font-bold rounded-3xl
-          bg-[radial-gradient(ellipse_at_center,#EBF7FF_0%,#C7E9FF_100%)]
-          hover:bg-[radial-gradient(ellipse_at_center,#EBF7FF_0%,#B8E2FF_100%)]
+          className="w-full mt-6 py-3.5 text-[#2B3A31] text-base font-bold rounded-3xl
+          bg-[radial-gradient(ellipse_at_center,#EAF1EA_0%,#DDE8DD_100%)]
+          hover:bg-[radial-gradient(ellipse_at_center,#EAF1EA_0%,#CFE0D2_100%)]
           shadow-sm transition-all duration-300
           disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
@@ -697,7 +697,7 @@ function GrowthEditModal({
                         <button
                           type="button"
                           onClick={() => setEditYearOpen(!editYearOpen)}
-                          className="w-full px-3 py-1.5 rounded-3xl border border-border bg-card text-sm text-left focus:outline-none focus:ring-2 focus:ring-[#FFF5D4]"
+                          className="w-full px-3 py-1.5 rounded-3xl border border-border bg-card text-sm text-left focus:outline-none focus:ring-2 focus:ring-[#EFE9DA]"
                         >
                           {editDate ? parseDate(editDate).year : ""}
                         </button>
@@ -749,7 +749,7 @@ function GrowthEditModal({
                       onChange={(e) => setEditHeight(e.target.value)}
                       placeholder="0.0"
                       min={0} max={140} step={0.1} inputMode="decimal"
-                      className="w-24 px-3 py-1.5 rounded-xl border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-[#FFF5D4]"
+                      className="w-24 px-3 py-1.5 rounded-xl border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-[#EFE9DA]"
                     />
                     <span className="text-sm text-muted-foreground">cm</span>
                     <span className="text-sm text-muted-foreground ml-2 w-12 shrink-0">몸무게</span>
@@ -759,7 +759,7 @@ function GrowthEditModal({
                       onChange={(e) => setEditWeight(e.target.value)}
                       placeholder="0.0"
                       min={0} max={140} step={0.1} inputMode="decimal"
-                      className="w-24 px-3 py-1.5 rounded-xl border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-[#FFF5D4]"
+                      className="w-24 px-3 py-1.5 rounded-xl border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-[#EFE9DA]"
                     />
                     <span className="text-sm text-muted-foreground">kg</span>
                   </div>
@@ -768,10 +768,10 @@ function GrowthEditModal({
                       onClick={() => handleSave(r)}
                       disabled={saving}
                       className="flex-1 py-2 text-sm font-semibold rounded-xl
-                      bg-[radial-gradient(ellipse_at_center,#EBF7FF_0%,#C7E9FF_100%)]
-                      hover:bg-[radial-gradient(ellipse_at_center,#EBF7FF_0%,#B8E2FF_100%)]
+                      bg-[radial-gradient(ellipse_at_center,#EAF1EA_0%,#DDE8DD_100%)]
+                      hover:bg-[radial-gradient(ellipse_at_center,#EAF1EA_0%,#CFE0D2_100%)]
                       shadow-sm transition-all duration-300
-                      text-[#3D3C38] disabled:opacity-40 flex items-center justify-center gap-1.5"
+                      text-[#2B3A31] disabled:opacity-40 flex items-center justify-center gap-1.5"
                     >
                       <Check size={13} /> {saving ? "저장 중..." : "저장"}
                     </button>
@@ -867,17 +867,17 @@ function GrowthColumn({
         <div className="flex items-center gap-2">
           <button
             onClick={onAddRecord}
-            className="flex items-center gap-1.5 text-sm font-semibold text-[#3D3C38] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
-            bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#FEF5CC_100%)]
-            hover:bg-[radial-gradient(ellipse_at_center,#FEF5CC_0%,#FFEFAB_100%)]"
+            className="flex items-center gap-1.5 text-sm font-semibold text-[#2B3A31] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
+            bg-[radial-gradient(ellipse_at_center,#FDFBF5_0%,#EFE9DA_100%)]
+            hover:bg-[radial-gradient(ellipse_at_center,#EFE9DA_0%,#A9C6B0_100%)]"
           >
             <Plus size={13} /> 기록 추가하기
           </button>
           <button
             onClick={onEditRecord}
-            className="flex items-center gap-1.5 text-sm font-semibold text-[#3D3C38] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
-            bg-[radial-gradient(ellipse_at_center,#FFFAF0_0%,#FEF5CC_100%)]
-            hover:bg-[radial-gradient(ellipse_at_center,#FEF5CC_0%,#FFEFAB_100%)]"
+            className="flex items-center gap-1.5 text-sm font-semibold text-[#2B3A31] transition-colors px-3 py-1.5 rounded-full border border-border whitespace-nowrap
+            bg-[radial-gradient(ellipse_at_center,#FDFBF5_0%,#EFE9DA_100%)]
+            hover:bg-[radial-gradient(ellipse_at_center,#EFE9DA_0%,#A9C6B0_100%)]"
           >
             <Edit3 size={13} /> 기록 수정하기
           </button>
@@ -897,9 +897,9 @@ function GrowthColumn({
               <Line
                 type="monotone"
                 dataKey="height"
-                stroke="#FFB7A5"
+                stroke="#CF7B5E"
                 strokeWidth={2.5}
-                dot={{ r: 4, fill: "#FFB7A5" }}
+                dot={{ r: 4, fill: "#CF7B5E" }}
                 activeDot={{ r: 6 }}
                 name="신장(cm)"
               />
@@ -925,9 +925,9 @@ function GrowthColumn({
               <Line
                 type="monotone"
                 dataKey="weight"
-                stroke="#A8D5BA"
+                stroke="#A9C6B0"
                 strokeWidth={2.5}
-                dot={{ r: 4, fill: "#A8D5BA" }}
+                dot={{ r: 4, fill: "#A9C6B0" }}
                 activeDot={{ r: 6 }}
                 name="체중(kg)"
               />

@@ -109,9 +109,9 @@ nav > * {
   inset: 0;
   background: linear-gradient(
     to right,
-    rgba(255, 245, 230, 0.98) 10%,
-    rgba(255, 245, 230, 0.5) 40%,
-    rgba(255, 245, 230, 0.0) 70%
+    rgba(247, 242, 232, 0.98) 10%,
+    rgba(247, 242, 232, 0.5) 40%,
+    rgba(247, 242, 232, 0.0) 70%
   );
   z-index: 10;
 }
@@ -132,13 +132,13 @@ nav > * {
   font-size: 2rem;
   font-weight: 700;
   line-height: 1.4;
-  color: #2a2a2a;
+  color: #2B3A31;
 }
 
 .hero-sub {
   font-size: 0.95rem;
   line-height: 1.7;
-  color: #5a5a5a;
+  color: #6B6558;
 }
 
 .hero-btns {
@@ -183,8 +183,8 @@ button {
 }
 
 .btn-primary {
-  background: #FECC64;
-  color: #202020;
+  background: #6FA07A;
+  color: #FFFFFF;
   border: none;
   border-radius: 50px;
   padding: 0.67rem 1.33rem;
@@ -199,8 +199,8 @@ button {
 }
 
 .btn-secondary {
-  background: #B5D8FF;
-  color: #202020;
+  background: #A9C6B0;
+  color: #2B3A31;
   border: none;
   border-radius: 50px;
   padding: 0.67rem 1.33rem;
@@ -215,8 +215,8 @@ button {
 }
 
 .btn-tertiary {
-  background: #FBB48D;
-  color: #202020;
+  background: #EFE9DA;
+  color: #2B3A31;
   border: none;
   border-radius: 50px;
   padding: 0.67rem 1.33rem;
