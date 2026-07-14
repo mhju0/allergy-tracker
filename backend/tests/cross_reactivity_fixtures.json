@@ -1,0 +1,373 @@
+{
+ "prioritized": [
+  {
+   "confirmed": [
+    "우유"
+   ],
+   "reaction": [],
+   "out": [
+    {
+     "suspectedName": "치즈",
+     "reason": "우유 카세인·유청단백질 동일 성분",
+     "severity": "high",
+     "sourceAllergen": "우유"
+    },
+    {
+     "suspectedName": "아기치즈",
+     "reason": "우유 카세인·유청단백질 동일 성분",
+     "severity": "high",
+     "sourceAllergen": "우유"
+    },
+    {
+     "suspectedName": "버터",
+     "reason": "우유 카세인 성분 포함",
+     "severity": "high",
+     "sourceAllergen": "우유"
+    },
+    {
+     "suspectedName": "요거트",
+     "reason": "우유 카세인·유청단백질 동일 성분",
+     "severity": "high",
+     "sourceAllergen": "우유"
+    },
+    {
+     "suspectedName": "크림",
+     "reason": "우유 카세인·유청단백질 동일 성분",
+     "severity": "high",
+     "sourceAllergen": "우유"
+    },
+    {
+     "suspectedName": "분유",
+     "reason": "우유 카세인·유청단백질 동일 성분",
+     "severity": "high",
+     "sourceAllergen": "우유"
+    }
+   ]
+  },
+  {
+   "confirmed": [
+    "새우"
+   ],
+   "reaction": [],
+   "out": [
+    {
+     "suspectedName": "게",
+     "reason": "갑각류 트로포미오신(Pen a 1) 교차반응",
+     "severity": "high",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "바닷가재",
+     "reason": "갑각류 트로포미오신 교차반응",
+     "severity": "high",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "가재",
+     "reason": "갑각류 트로포미오신 교차반응",
+     "severity": "high",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "오징어",
+     "reason": "연체동물 트로포미오신 부분 교차반응",
+     "severity": "low",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "낙지",
+     "reason": "연체동물 트로포미오신 부분 교차반응",
+     "severity": "low",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "문어",
+     "reason": "연체동물 트로포미오신 부분 교차반응",
+     "severity": "low",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "전복",
+     "reason": "연체동물 트로포미오신 부분 교차반응",
+     "severity": "low",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "굴",
+     "reason": "연체동물 트로포미오신 부분 교차반응",
+     "severity": "low",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "바지락",
+     "reason": "연체동물 트로포미오신 부분 교차반응",
+     "severity": "low",
+     "sourceAllergen": "새우"
+    }
+   ]
+  },
+  {
+   "confirmed": [],
+   "reaction": [
+    "계란"
+   ],
+   "out": [
+    {
+     "suspectedName": "달걀 노른자",
+     "reason": "달걀 동일 단백질(리베틴 등)",
+     "severity": "high",
+     "sourceAllergen": "계란"
+    },
+    {
+     "suspectedName": "달걀 흰자",
+     "reason": "달걀 오발부민·오보뮤코이드 동일 성분",
+     "severity": "high",
+     "sourceAllergen": "계란"
+    },
+    {
+     "suspectedName": "메추리알",
+     "reason": "조류 난백 오보뮤코이드 교차반응",
+     "severity": "high",
+     "sourceAllergen": "계란"
+    },
+    {
+     "suspectedName": "오리알",
+     "reason": "조류 난백 오보뮤코이드 교차반응",
+     "severity": "medium",
+     "sourceAllergen": "계란"
+    }
+   ]
+  },
+  {
+   "confirmed": [
+    "밀"
+   ],
+   "reaction": [
+    "대두"
+   ],
+   "out": [
+    {
+     "suspectedName": "보리",
+     "reason": "곡류 호데인-글리아딘 교차반응",
+     "severity": "high",
+     "sourceAllergen": "밀"
+    },
+    {
+     "suspectedName": "호밀",
+     "reason": "곡류 세카린 교차반응",
+     "severity": "high",
+     "sourceAllergen": "밀"
+    },
+    {
+     "suspectedName": "귀리",
+     "reason": "곡류 아베닌 교차반응",
+     "severity": "medium",
+     "sourceAllergen": "밀"
+    },
+    {
+     "suspectedName": "오트밀",
+     "reason": "귀리 아베닌 교차반응",
+     "severity": "medium",
+     "sourceAllergen": "밀"
+    },
+    {
+     "suspectedName": "두부",
+     "reason": "대두 Gly m 단백질 동일 성분",
+     "severity": "high",
+     "sourceAllergen": "대두"
+    },
+    {
+     "suspectedName": "콩나물",
+     "reason": "대두 Gly m 단백질 동일 성분",
+     "severity": "high",
+     "sourceAllergen": "대두"
+    },
+    {
+     "suspectedName": "땅콩",
+     "reason": "두류 2S 알부민·7S 글로불린 교차반응",
+     "severity": "medium",
+     "sourceAllergen": "대두"
+    },
+    {
+     "suspectedName": "완두",
+     "reason": "두류 비씨린/레구민 교차반응",
+     "severity": "medium",
+     "sourceAllergen": "대두"
+    },
+    {
+     "suspectedName": "렌틸콩",
+     "reason": "두류 종자저장단백질 교차반응",
+     "severity": "low",
+     "sourceAllergen": "대두"
+    }
+   ]
+  },
+  {
+   "confirmed": [
+    "우유",
+    "계란"
+   ],
+   "reaction": [
+    "새우"
+   ],
+   "out": [
+    {
+     "suspectedName": "치즈",
+     "reason": "우유 카세인·유청단백질 동일 성분",
+     "severity": "high",
+     "sourceAllergen": "우유"
+    },
+    {
+     "suspectedName": "아기치즈",
+     "reason": "우유 카세인·유청단백질 동일 성분",
+     "severity": "high",
+     "sourceAllergen": "우유"
+    },
+    {
+     "suspectedName": "버터",
+     "reason": "우유 카세인 성분 포함",
+     "severity": "high",
+     "sourceAllergen": "우유"
+    },
+    {
+     "suspectedName": "요거트",
+     "reason": "우유 카세인·유청단백질 동일 성분",
+     "severity": "high",
+     "sourceAllergen": "우유"
+    },
+    {
+     "suspectedName": "크림",
+     "reason": "우유 카세인·유청단백질 동일 성분",
+     "severity": "high",
+     "sourceAllergen": "우유"
+    },
+    {
+     "suspectedName": "분유",
+     "reason": "우유 카세인·유청단백질 동일 성분",
+     "severity": "high",
+     "sourceAllergen": "우유"
+    },
+    {
+     "suspectedName": "달걀 노른자",
+     "reason": "달걀 동일 단백질(리베틴 등)",
+     "severity": "high",
+     "sourceAllergen": "계란"
+    },
+    {
+     "suspectedName": "달걀 흰자",
+     "reason": "달걀 오발부민·오보뮤코이드 동일 성분",
+     "severity": "high",
+     "sourceAllergen": "계란"
+    },
+    {
+     "suspectedName": "메추리알",
+     "reason": "조류 난백 오보뮤코이드 교차반응",
+     "severity": "high",
+     "sourceAllergen": "계란"
+    },
+    {
+     "suspectedName": "오리알",
+     "reason": "조류 난백 오보뮤코이드 교차반응",
+     "severity": "medium",
+     "sourceAllergen": "계란"
+    },
+    {
+     "suspectedName": "게",
+     "reason": "갑각류 트로포미오신(Pen a 1) 교차반응",
+     "severity": "high",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "바닷가재",
+     "reason": "갑각류 트로포미오신 교차반응",
+     "severity": "high",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "가재",
+     "reason": "갑각류 트로포미오신 교차반응",
+     "severity": "high",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "오징어",
+     "reason": "연체동물 트로포미오신 부분 교차반응",
+     "severity": "low",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "낙지",
+     "reason": "연체동물 트로포미오신 부분 교차반응",
+     "severity": "low",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "문어",
+     "reason": "연체동물 트로포미오신 부분 교차반응",
+     "severity": "low",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "전복",
+     "reason": "연체동물 트로포미오신 부분 교차반응",
+     "severity": "low",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "굴",
+     "reason": "연체동물 트로포미오신 부분 교차반응",
+     "severity": "low",
+     "sourceAllergen": "새우"
+    },
+    {
+     "suspectedName": "바지락",
+     "reason": "연체동물 트로포미오신 부분 교차반응",
+     "severity": "low",
+     "sourceAllergen": "새우"
+    }
+   ]
+  },
+  {
+   "confirmed": [
+    "존재하지않는재료"
+   ],
+   "reaction": [],
+   "out": []
+  }
+ ],
+ "suspect": [
+  {
+   "name": "게",
+   "reaction": [
+    "새우"
+   ],
+   "out": {
+    "isSuspect": true,
+    "sourceAllergen": "새우",
+    "reason": "갑각류 트로포미오신(Pen a 1) 교차반응",
+    "severity": "high"
+   }
+  },
+  {
+   "name": "오징어",
+   "reaction": [
+    "새우"
+   ],
+   "out": {
+    "isSuspect": true,
+    "sourceAllergen": "새우",
+    "reason": "연체동물 트로포미오신 부분 교차반응",
+    "severity": "low"
+   }
+  },
+  {
+   "name": "사과",
+   "reaction": [
+    "새우"
+   ],
+   "out": {
+    "isSuspect": false
+   }
+  }
+ ]
+}
