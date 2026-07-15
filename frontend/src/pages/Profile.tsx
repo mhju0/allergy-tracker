@@ -37,7 +37,7 @@ const GROWTH_YEARS = [2025, 2026];
 
 function DefaultIcon({ gender }: { gender: BabyProfile["gender"] }) {
   const strokeColor =
-    gender === "girl" ? "var(--terracotta)" : gender === "boy" ? "var(--secondary)" : "#A1A1A1";
+    gender === "girl" ? "#CF7B5E" : gender === "boy" ? "#A9C6B0" : "#A1A1A1"; // hex: SVG stroke attr can't resolve var() on WebKit
 
   return (
     <div className="w-full h-full flex items-center justify-center bg-warm-surface">
@@ -890,14 +890,14 @@ function GrowthColumn({
         {heightRecords.length >= 2 ? (
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={heightData} margin={{ top: 8, right: 20, left: 5, bottom: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#ECE5D5" />
               <XAxis dataKey="month" tick={{ fontSize: 15 }} tickMargin={10} interval={0} />
               <YAxis tick={{ fontSize: 15 }} tickMargin={4} width={48} domain={["auto", "auto"]} tickCount={4} />
               <Tooltip {...tooltipStyle} />
               <Line
                 type="monotone"
                 dataKey="height"
-                stroke="var(--terracotta)"
+                stroke="#CF7B5E"
                 strokeWidth={2.5}
                 dot={{ r: 4, fill: "var(--terracotta)" }}
                 activeDot={{ r: 6 }}
@@ -918,14 +918,14 @@ function GrowthColumn({
         {weightRecords.length >= 2 ? (
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={weightData} margin={{ top: 8, right: 20, left: 5, bottom: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#ECE5D5" />
               <XAxis dataKey="month" tick={{ fontSize: 15 }} tickMargin={10} interval={0} />
               <YAxis tick={{ fontSize: 15 }} tickMargin={4} width={48} domain={["auto", "auto"]} tickCount={4} />
               <Tooltip {...tooltipStyle} />
               <Line
                 type="monotone"
                 dataKey="weight"
-                stroke="var(--secondary)"
+                stroke="#A9C6B0"
                 strokeWidth={2.5}
                 dot={{ r: 4, fill: "var(--secondary)" }}
                 activeDot={{ r: 6 }}

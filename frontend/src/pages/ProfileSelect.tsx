@@ -11,7 +11,7 @@ import type { BabyProfile } from "../context/AppContext";
 
 function DefaultProfileIcon({ gender }: { gender: BabyProfile["gender"] }) {
   const strokeColor =
-    gender === "girl" ? "var(--terracotta)" : gender === "boy" ? "var(--secondary)" : "#A1A1A1";
+    gender === "girl" ? "#CF7B5E" : gender === "boy" ? "#A9C6B0" : "#A1A1A1"; // hex: SVG stroke attr can't resolve var() on WebKit
 
   return (
     <div className="w-full h-full flex items-center justify-center bg-warm-surface">

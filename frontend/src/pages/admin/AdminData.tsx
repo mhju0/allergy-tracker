@@ -282,9 +282,9 @@ export default function AdminData() {
                       <stop offset="95%" stopColor={CHART_PRIMARY} stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="period_label" tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
-                  <YAxis tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" allowDecimals={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ECE5D5" />
+                  <XAxis dataKey="period_label" tick={{ fontSize: 11 }} stroke="#6F6A5C" />
+                  <YAxis tick={{ fontSize: 11 }} stroke="#6F6A5C" allowDecimals={false} />
                   <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 13 }} />
                   <Area type="monotone" dataKey="count" name="신규 가입" stroke={CHART_PRIMARY} fill="url(#colorUser)" strokeWidth={2} dot={false} />
                 </AreaChart>
@@ -359,9 +359,9 @@ export default function AdminData() {
             {loading ? <Skeleton className="h-52" /> : (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={data?.testing_trend ?? []} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="period_label" tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
-                  <YAxis tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" allowDecimals={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ECE5D5" />
+                  <XAxis dataKey="period_label" tick={{ fontSize: 11 }} stroke="#6F6A5C" />
+                  <YAxis tick={{ fontSize: 11 }} stroke="#6F6A5C" allowDecimals={false} />
                   <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 13 }} />
                   <Legend iconSize={10} wrapperStyle={{ fontSize: 12 }} />
                   <Bar dataKey="created" name="생성" fill={CHART_PRIMARY} radius={[4, 4, 0, 0]} />
@@ -378,9 +378,9 @@ export default function AdminData() {
             ) : (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={scheduleChartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
-                  <YAxis tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" allowDecimals={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ECE5D5" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#6F6A5C" />
+                  <YAxis tick={{ fontSize: 11 }} stroke="#6F6A5C" allowDecimals={false} />
                   <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 13 }} />
                   <Bar dataKey="value" name="건수" fill={CHART_YELLOW} radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -401,11 +401,11 @@ export default function AdminData() {
                   layout="vertical"
                   margin={{ top: 5, right: 20, left: 10, bottom: 0 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis type="number" tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" allowDecimals={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" width={60} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ECE5D5" />
+                  <XAxis type="number" tick={{ fontSize: 11 }} stroke="#6F6A5C" allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} stroke="#6F6A5C" width={60} />
                   <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 13 }} />
-                  <Bar dataKey="count" name="확진 수" fill="var(--terracotta-200)" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="count" name="확진 수" fill="#E0A48F" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -471,11 +471,11 @@ export default function AdminData() {
             {loading ? <Skeleton className="h-52" /> : (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={data?.baby_age_distribution ?? []} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="age_group" tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
-                  <YAxis tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" allowDecimals={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ECE5D5" />
+                  <XAxis dataKey="age_group" tick={{ fontSize: 10 }} stroke="#6F6A5C" />
+                  <YAxis tick={{ fontSize: 11 }} stroke="#6F6A5C" allowDecimals={false} />
                   <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 13 }} />
-                  <Bar dataKey="count" name="아기 수" fill="var(--secondary)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" name="아기 수" fill="#A9C6B0" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -489,9 +489,9 @@ export default function AdminData() {
                   data={(data?.monthly_avg_growth ?? []).filter(g => g.avg_weight != null || g.avg_height != null)}
                   margin={{ top: 5, right: 10, left: -20, bottom: 0 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="age_group" tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
-                  <YAxis tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ECE5D5" />
+                  <XAxis dataKey="age_group" tick={{ fontSize: 10 }} stroke="#6F6A5C" />
+                  <YAxis tick={{ fontSize: 11 }} stroke="#6F6A5C" />
                   <Tooltip
                     contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 13 }}
                     formatter={(value: number, name: string) => [
@@ -501,7 +501,7 @@ export default function AdminData() {
                   />
                   <Legend iconSize={10} wrapperStyle={{ fontSize: 12 }} formatter={(v) => v === "avg_weight" ? "평균 체중(kg)" : "평균 키(cm)"} />
                   <Bar dataKey="avg_weight" name="avg_weight" fill={CHART_PRIMARY} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="avg_height" name="avg_height" fill="var(--honey)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="avg_height" name="avg_height" fill="#E3A24C" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}

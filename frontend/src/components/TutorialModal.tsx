@@ -66,7 +66,7 @@ function AnnotationLayer({ items }: { items?: Annotation[] }) {
               y1={a.y}
               x2={a.tx}
               y2={a.ty}
-              stroke="var(--warm-fg)"
+              stroke="#2B3A31"
               strokeWidth={3}
               strokeLinecap="round"
               vectorEffect="non-scaling-stroke"
