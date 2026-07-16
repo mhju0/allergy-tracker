@@ -1,150 +1,20 @@
-# ==========================================================
-# MammaCare (personal) — .gitignore
-# 원칙: 비밀값/PII/빌드 아티팩트/로컬 캐시/로컬 개발 도구 설정은 커밋 금지.
-# 주의: gitignore는 인라인 주석 불가 (# 은 줄 맨 앞에만).
-#       패턴 뒤 '# comment' 는 주석이 아니라 패턴의 일부로 처리된다.
-# ==========================================================
+# deps / build
+node_modules/
+.expo/
+dist/
+web-build/
+ios/
+android/
+*.log
 
-# ----------------------------------------------------------
-# 1. 비밀값 & 민감 데이터 (절대 커밋 금지)
-# ----------------------------------------------------------
-
-# env — 템플릿 .env.example 만 예외 허용
+# env & secrets
 .env
 .env.*
-!.env.example
 
-# 키 / 인증서 / 서명
-*.pem
-*.ppk
-*.key
-*.p12
-*.cer
-# iOS 서명 프로파일
-*.mobileprovision
-*.jks
-*.keystore
-
-# Firebase / GCP 서비스 계정 키
-firebase_credentials*.json
-firebase-credentials.json
-firebase-adminsdk*.json
-*-firebase-adminsdk-*.json
-serviceAccount*.json
-*_serviceAccount.json
-service-account*.json
-gcp-credentials.json
-GoogleService-Info.plist
-**/GoogleService-Info.plist
-
-# DB 덤프 / 데이터 사본 (PII)
-*.dump
-
-# ----------------------------------------------------------
-# 2. 앱 로컬 데이터 (커밋 금지)
-# ----------------------------------------------------------
-
-# 로컬 이미지 저장소 — 현재 디렉토리 미생성이나 방어용 유지
-backend/uploads/
-
-# AI 잔재 (chroma_db) — 제거됨이나 방어용 유지
-backend/data/chroma_db/
-
-# downloads/ 는 .gitkeep 만 추적 — 실제 파일 누출 방지
-downloads/*
-!downloads/.gitkeep
-
-# ----------------------------------------------------------
-# 3. Python / Backend (FastAPI)
-# ----------------------------------------------------------
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-venv/
-env/
-.pytest_cache/
-.coverage
-htmlcov/
-.mypy_cache/
-.ruff_cache/
-.tox/
-junit.xml
-test-results/
-*.db
-*.sqlite3
-
-# ----------------------------------------------------------
-# 4. Node / Frontend (React + Vite)
-# ----------------------------------------------------------
-node_modules/
-# dist/ 는 frontend/dist/ 포함 — 임의 깊이 매칭
-dist/
-build/
-coverage/
-.vite/
-.eslintcache
-.stylelintcache
-.prettiercache
-.node_repl_history
-*.local
-
-# ----------------------------------------------------------
-# 5. Capacitor / iOS (시뮬레이터 타깃)
-# ----------------------------------------------------------
-# capacitor.config.ts 가 frontend/ 하위에 있으므로
-# iOS 네이티브 프로젝트는 npx cap add ios 실행 시 frontend/ios/ 에 생성됨.
-# [Unknown] frontend/ios/ 는 아직 미생성 — 아래는 선제 방어 경로
-
-frontend/ios/App/Pods/
-frontend/ios/App/build/
-frontend/ios/App/output/
-# 웹 빌드에서 sync됨
-frontend/ios/App/App/public/
-# sync 시 자동 생성
-frontend/ios/App/App/capacitor.config.json
-frontend/ios/capacitor-cordova-ios-plugins/
-DerivedData/
-*.xcuserstate
-**/xcuserdata/
-
-# ----------------------------------------------------------
-# 6. 로그
-# ----------------------------------------------------------
-*.log
-logs/
-uvicorn*.log
-
-# ----------------------------------------------------------
-# 7. 에디터 & OS
-# ----------------------------------------------------------
-.vscode/
-.idea/
-**/*.iml
+# OS / editor
 .DS_Store
-Thumbs.db
-*.swp
-*.swo
 
-# ----------------------------------------------------------
-# 8. 로컬 개발 도구 설정 & 작업 문서 (공개 저장소에 올리지 않음)
-# ----------------------------------------------------------
-.claude/
+# local-only docs & config
 CLAUDE.md
-CLAUDE.local.md
-AGENTS.md
-GEMINI.md
-.codex/
-.cursor/
-.aider*
-.github/copilot-instructions.md
-.serena/
-
-# 로컬 작업 문서 / 디자인 스크래치 (공개 불필요)
-ROADMAP.md
-docs/mocks/
-
-# 로컬 엔지니어링 워크플로 설정 (공개 불필요)
 docs/agents/
-
-.tokensave/
+.claude/settings.local.json
