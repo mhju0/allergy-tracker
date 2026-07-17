@@ -18,23 +18,40 @@ Native iOS · Korean-only UI · 100% on-device — no account, no server, no net
 
 </div>
 
----
+## About
 
-<p align="center">
-  <img src="docs/screenshots/home.png" alt="Home — active trial dashboard" width="168">
-  <img src="docs/screenshots/foods.png" alt="Foods — searchable catalog with statuses" width="168">
-  <img src="docs/screenshots/detail.png" alt="Food detail — reaction history timeline" width="168">
-  <img src="docs/screenshots/calendar.png" alt="Calendar — tinted trial windows and event dots" width="168">
-  <img src="docs/screenshots/reaction.png" alt="Reaction logging — symptoms and severity" width="168">
-</p>
-
-## Why
-
-Pediatric weaning guidance (질병관리청, 대한소아청소년과학회, NHS, CDC) agrees on
-one thing: introduce **one new food at a time** and watch for reactions —
+Pediatric weaning guidance (질병관리청, 대한소아청소년과학회, NHS, CDC) agrees
+on one thing: introduce **one new food at a time** and watch for reactions —
 which can appear up to **2–3 days later** — before moving on. In practice
-that means remembering what was fed when, what happened, and what's still
-untested, across months. This app is that memory.
+that means remembering what was fed when, what happened, and what is still
+untested, across months of weaning. This app is that memory: a private,
+offline tracker that turns the food list into a traffic light.
+
+## Screenshots
+
+<table align="center">
+  <tr>
+    <th align="center">Home</th>
+    <th align="center">Foods</th>
+    <th align="center">Food detail</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/home.png" alt="Home — active trial dashboard" width="240"></td>
+    <td align="center"><img src="docs/screenshots/foods.png" alt="Foods — searchable catalog with statuses" width="240"></td>
+    <td align="center"><img src="docs/screenshots/detail.png" alt="Food detail — reaction history timeline" width="240"></td>
+  </tr>
+</table>
+
+<table align="center">
+  <tr>
+    <th align="center">Calendar</th>
+    <th align="center">Log a reaction</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/calendar.png" alt="Calendar — tinted trial windows and event dots" width="240"></td>
+    <td align="center"><img src="docs/screenshots/reaction.png" alt="Reaction logging — symptoms and severity" width="240"></td>
+  </tr>
+</table>
 
 ## Features
 
@@ -70,29 +87,43 @@ untested, across months. This app is that memory.
 지연 반응: 안전이던 재료에 반응 기록 ──▶ 반응 (red)
 ```
 
-## Architecture
+## Tech stack
+
+| Layer | Choice |
+| --- | --- |
+| App | Expo SDK 57 · React Native 0.86 · TypeScript (strict) |
+| Navigation | Expo Router — file-based, typed routes, stack-only |
+| Data | expo-sqlite + Drizzle ORM, generated migrations committed |
+| Domain logic | Pure TypeScript core, built test-first (Jest, 42 tests) |
+| Notifications | expo-notifications — all local, no push service |
+| Export | expo-print (PDF) · JSON backup, via the iOS share sheet |
+| Localization | i18next — Korean-only by design, dates pinned to `ko-KR` |
+| UI | Hand-rolled editorial design system (paper/ink/persimmon tokens) |
+
+### Engineering highlights
+
+- **Status is a function, not a column.** `deriveStatus(trials, now)` is an
+  exhaustive switch over trial history; there is no status field to corrupt.
+- **Pure domain core.** Status rules, the start-trial decision (including
+  implicit-safe autoclose), notification scheduling, and calendar math are
+  side-effect-free modules with full unit coverage — the UI is a thin layer
+  over tested logic.
+- **Accessible by construction.** Status colors always ship with an icon +
+  label, never color alone; touch targets meet the 44pt minimum.
+- **Demo fixture as code.** A deterministic, invariant-tested seed
+  (`EXPO_PUBLIC_DEMO=1`) generates 46 days of realistic history for demos
+  and screenshots — never in real builds.
+
+### Project structure
 
 ```
 app/            Expo Router screens (stack-only, typed routes)
-src/domain/     Pure logic — status derivation, trial rules, notification
-                schedule, calendar math. No I/O, fully unit-tested (TDD).
-src/data/       Mutations & live queries (drizzle + useLiveQuery)
+src/domain/     Pure logic — status, trial rules, scheduling, calendar math
+src/data/       Mutations & live queries (Drizzle + useLiveQuery)
 src/db/         Schema, generated migrations, seed catalog, demo fixture
 src/services/   Local notifications, PDF/JSON export builders
 src/ui/         Design tokens (single source of color) + shared components
 ```
-
-- **Status is a function, not a column.** `deriveStatus(trials, now)` is an
-  exhaustive switch over trial history; there is no status field to corrupt.
-- **Domain core is pure TypeScript** — 42 tests across 7 suites cover
-  status rules, the start-trial decision (including implicit-safe
-  autoclose), notification scheduling, calendar date math, export builders,
-  and the demo fixture's invariants.
-- **Editorial UI system** — paper/ink/persimmon token palette, hairline
-  lists, big-type headlines; status colors always ship with an icon + label,
-  never color alone.
-- **Korean-only by design** — every user-visible string flows through
-  i18next with `ko` as the sole locale; dates are pinned to `ko-KR`.
 
 ## Getting started
 
@@ -125,5 +156,9 @@ is explicit: a PDF or JSON file handed to the iOS share sheet.
 
 ---
 
+<div align="center">
+
 *이 앱은 기록 보조 도구이며 의학적 조언이 아닙니다 — a tracking aid, not
 medical advice. Always consult your pediatrician about allergies.*
+
+</div>
