@@ -8,7 +8,23 @@ import { addCustomFood } from '../src/data/mutations';
 import { foodLabel } from '../src/i18n';
 import type { FoodStatus } from '../src/domain/status';
 import { StatusChip } from '../src/ui/StatusChip';
-import { colors } from '../src/ui/tokens';
+import { colors, layout, radii } from '../src/ui/tokens';
+
+// Dependency-free magnifier glyph (no icon lib in the project) — a ring plus a
+// short diagonal handle, drawn in the muted token like the app's other marks.
+function SearchIcon() {
+  return (
+    <View style={{ width: 15, height: 15, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 9, height: 9, borderRadius: radii.pill, borderWidth: 1.5, borderColor: colors.muted }} />
+      <View
+        style={{
+          position: 'absolute', bottom: 1, right: 1, width: 5, height: 1.5,
+          borderRadius: 1, backgroundColor: colors.muted, transform: [{ rotate: '45deg' }],
+        }}
+      />
+    </View>
+  );
+}
 
 const ORDER: Record<FoodStatus, number> = { testing: 0, untried: 1, safe: 2, reacted: 3 };
 const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.muted, paddingBottom: 12 };
@@ -67,14 +83,24 @@ export default function Foods() {
           borderBottomWidth: 2, borderColor: colors.ink, paddingBottom: 8,
         }}
       >
+        <SearchIcon />
         <TextInput
           placeholder={t('foods.search')}
           placeholderTextColor={colors.muted}
           value={query}
           onChangeText={setQuery}
-          style={{ flex: 1, fontSize: 15, color: colors.ink }}
+          style={{ flex: 1, fontSize: 15, color: colors.ink, marginLeft: 7 }}
         />
-        <Pressable accessibilityRole="button" onPress={() => setAddOpen((v) => !v)}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setAddOpen((v) => !v)}
+          hitSlop={{ top: 9, bottom: 9, left: 8, right: 8 }}
+          style={{
+            flexDirection: 'row', alignItems: 'center',
+            borderWidth: 1, borderColor: colors.ink, borderRadius: radii.pill,
+            paddingVertical: 5, paddingHorizontal: 11,
+          }}
+        >
           <Text style={{ fontSize: 13, fontWeight: '700', color: colors.ink }}>＋ {t('foods.customAdd')}</Text>
         </Pressable>
       </View>
@@ -125,6 +151,7 @@ function FoodRow({ item }: { item: FoodWithStatus }) {
       onPress={() => router.push({ pathname: '/food/[id]', params: { id: item.food.id } })}
       style={{
         flexDirection: 'row', alignItems: 'center', paddingVertical: 11.5,
+        paddingHorizontal: layout.rowInset,
         borderBottomWidth: 1, borderColor: colors.hairline, gap: 7,
       }}
     >

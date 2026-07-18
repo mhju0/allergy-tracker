@@ -10,7 +10,7 @@ import { foodLabel } from '../src/i18n';
 import { isWindowElapsed, MS_PER_DAY, type FoodStatus } from '../src/domain/status';
 import { Button } from '../src/ui/Button';
 import { CheckinPill } from '../src/ui/CheckinPill';
-import { colors } from '../src/ui/tokens';
+import { colors, layout } from '../src/ui/tokens';
 
 const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.muted, paddingBottom: 12 };
 const labelStyle = { fontSize: 11, fontWeight: '800' as const, letterSpacing: 1.5, color: colors.muted, marginTop: 18 };
@@ -97,7 +97,7 @@ function Dashboard() {
             <View style={{ height: 3, width: `${fraction * 100}%`, backgroundColor: colors.amber }} />
           </View>
           {elapsed ? (
-            <View style={{ gap: 10, marginBottom: 20 }}>
+            <View style={{ gap: 10, marginBottom: 10 }}>
               <Button label={t('home.markSafe')} onPress={() => confirmSafe(latest.id, new Date())} />
               <Button
                 label={t('home.logReaction')}
@@ -106,7 +106,7 @@ function Dashboard() {
               />
             </View>
           ) : (
-            <View style={{ marginBottom: 20 }}>
+            <View style={{ marginBottom: 10 }}>
               <CheckinPill foodId={active.food.id} trialId={latest.id} />
             </View>
           )}
@@ -123,7 +123,8 @@ function Dashboard() {
             key={s}
             style={{
               flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',
-              paddingVertical: 12, borderBottomWidth: 1, borderColor: colors.hairline,
+              paddingVertical: 12, paddingHorizontal: layout.rowInset,
+              borderBottomWidth: 1, borderColor: colors.hairline,
             }}
           >
             <Text style={{ fontSize: 14, fontWeight: '700', color: colors.status[s].fg }}>{t(`status.${s}`)}</Text>
@@ -141,7 +142,8 @@ function Dashboard() {
           onPress={() => router.push('/calendar')}
           style={{
             flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-            paddingVertical: 15, borderTopWidth: 1, borderColor: colors.hairline,
+            paddingVertical: 15, paddingHorizontal: layout.rowInset,
+            borderTopWidth: 1, borderColor: colors.hairline,
           }}
         >
           <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }}>{t('home.calendar')}</Text>
@@ -153,7 +155,8 @@ function Dashboard() {
           onPress={() => router.push('/settings')}
           style={{
             flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-            paddingVertical: 15, borderTopWidth: 1, borderColor: colors.hairline,
+            paddingVertical: 15, paddingHorizontal: layout.rowInset,
+            borderTopWidth: 1, borderColor: colors.hairline,
           }}
         >
           <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }}>{t('settings.title')}</Text>

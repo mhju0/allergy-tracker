@@ -13,15 +13,15 @@ export function StatusChip({ status }: { status: FoodStatus }) {
     <View accessible accessibilityLabel={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
       <View
         style={{
-          width: outlined ? 5 : 7,
-          height: outlined ? 5 : 7,
+          width: 7,
+          height: 7,
           borderRadius: radii.pill,
           backgroundColor: outlined ? 'transparent' : fg,
           borderWidth: outlined ? 1.5 : 0,
           borderColor: fg,
         }}
       />
-      <Text style={{ color: fg, fontSize: 12, fontWeight: '800' }}>{label}</Text>
+      <Text style={{ color: fg, fontSize: 12, fontWeight: outlined ? '500' : '800' }}>{label}</Text>
     </View>
   );
 }

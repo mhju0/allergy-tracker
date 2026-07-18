@@ -53,3 +53,8 @@ export const statusIcon: Record<FoodStatus, string> = {
 
 // Reused across pills/chips/dots — not a full scale, just the one radius that recurs everywhere.
 export const radii = { pill: 999 };
+
+// Single source for the horizontal inset of row content inside full-width
+// divider lines. Dividers/buttons stay flush to the screen padding; labels and
+// values sit this far inside. Used across home, calendar, and the foods list.
+export const layout = { rowInset: 10 };

@@ -7,10 +7,12 @@ import { useCheckins, useFoodsWithStatus, useReactions } from '../src/data/queri
 import { dayMark, monthMatrix, sameLocalDay } from '../src/domain/calendar';
 import { foodLabel } from '../src/i18n';
 import type { Food } from '../src/db/schema';
-import { colors } from '../src/ui/tokens';
+import { colors, layout } from '../src/ui/tokens';
 
 const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.muted, paddingBottom: 12 };
-const navBtnStyle = { minWidth: 44, minHeight: 44, alignItems: 'center' as const, justifyContent: 'center' as const };
+// alignItems flex-end right-hugs the ‹ › glyphs so the next control lands on the
+// grid's right edge (the tap targets stay 44pt; only the glyph shifts within).
+const navBtnStyle = { minWidth: 44, minHeight: 44, alignItems: 'flex-end' as const, justifyContent: 'center' as const };
 const weekdayKeys = ['w0', 'w1', 'w2', 'w3', 'w4', 'w5', 'w6'] as const;
 
 type EventRow = { key: string; at: Date; color: string; outline: boolean; text: string };
@@ -102,7 +104,7 @@ export default function Calendar() {
       </Pressable>
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <Text style={{ fontSize: 30, fontWeight: '900', color: colors.ink, letterSpacing: -0.3 }}>
+        <Text style={{ fontSize: 30, fontWeight: '900', color: colors.ink, letterSpacing: -0.3, paddingLeft: layout.rowInset }}>
           {t('calendar.monthTitle', { year: display.year, month: display.month0 + 1 })}
         </Text>
         <View style={{ flexDirection: 'row' }}>
@@ -149,7 +151,9 @@ export default function Calendar() {
                   {mark.dot && (
                     <View
                       style={{
-                        position: 'absolute', bottom: 4, width: 4, height: 4, borderRadius: 999,
+                        // bottom tuned to sit the dot midway between the centered
+                        // date and the cell floor at current cell sizes (~46pt).
+                        position: 'absolute', bottom: 6, width: 4, height: 4, borderRadius: 999,
                         backgroundColor: mark.dot === 'red' ? colors.red : colors.green,
                       }}
                     />
@@ -161,16 +165,16 @@ export default function Calendar() {
         ))}
       </View>
 
-      <Text style={{ fontSize: 11, fontWeight: '800', letterSpacing: 1.5, color: colors.muted, marginTop: 18, marginBottom: 4 }}>
+      <Text style={{ fontSize: 11, fontWeight: '800', letterSpacing: 1.5, color: colors.muted, marginTop: 18, marginBottom: 4, paddingLeft: layout.rowInset }}>
         {selectedDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}
       </Text>
       {events.length === 0 ? (
-        <Text style={{ fontSize: 14, color: colors.muted, paddingVertical: 12 }}>{t('calendar.noEvents')}</Text>
+        <Text style={{ fontSize: 14, color: colors.muted, paddingVertical: 12, paddingLeft: layout.rowInset }}>{t('calendar.noEvents')}</Text>
       ) : (
         events.map((ev) => (
           <View
             key={ev.key}
-            style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, paddingVertical: 9, borderBottomWidth: 1, borderColor: colors.hairline }}
+            style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, paddingVertical: 9, paddingHorizontal: layout.rowInset, borderBottomWidth: 1, borderColor: colors.hairline }}
           >
             <View
               style={
