@@ -11,13 +11,13 @@ import { useBaby, useFoodsWithStatus, useReactions } from '../src/data/queries';
 import { updateBabySettings } from '../src/data/mutations';
 import { foodLabel } from '../src/i18n';
 import { Button } from '../src/ui/Button';
-import { colors } from '../src/ui/tokens';
+import { colors, layout } from '../src/ui/tokens';
 import { buildBackup, buildReportHtml } from '../src/services/export';
 
-const labelStyle = { fontSize: 11, fontWeight: '800' as const, letterSpacing: 1.5, color: colors.muted, marginTop: 18, marginBottom: 4 };
+const labelStyle = { fontSize: 11, fontWeight: '800' as const, letterSpacing: 1.5, color: colors.muted, marginTop: 18, marginBottom: 4, paddingLeft: layout.rowInset };
 const rowStyle = {
   flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const,
-  paddingVertical: 14, borderBottomWidth: 1, borderColor: colors.hairline,
+  paddingVertical: 14, paddingHorizontal: layout.rowInset, borderBottomWidth: 1, borderColor: colors.hairline,
 };
 const rowLabelText = { fontSize: 15, fontWeight: '600' as const, color: colors.ink };
 
@@ -121,7 +121,7 @@ export default function Settings() {
         <Button label={t('settings.exportJson')} variant="secondary" onPress={exportJson} />
       </View>
 
-      <Text style={{ fontSize: 11.5, color: colors.muted, lineHeight: 17, marginTop: 18 }}>
+      <Text style={{ fontSize: 11.5, color: colors.muted, lineHeight: 17, marginTop: 18, paddingLeft: layout.rowInset }}>
         {t('settings.privacy')}{'\n'}{t('settings.disclaimer')}
       </Text>
     </ScrollView>

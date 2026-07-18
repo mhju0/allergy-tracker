@@ -13,6 +13,7 @@ const ink = '#26241F';
 const muted = '#8B8578';
 const hairline = '#E4DED2';
 const accent = '#D96C3D';
+const onAccent = '#FFFFFF'; // text/icon on the persimmon primary fill
 const dayOutMonth = '#C9C2B4'; // calendar grid: muted out-of-month day number
 
 export const colors = {
@@ -21,6 +22,7 @@ export const colors = {
   muted,
   hairline,
   accent,
+  onAccent,
   amber,
   green,
   red,

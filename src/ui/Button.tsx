@@ -7,7 +7,7 @@ export function Button({ label, onPress, variant = 'primary', disabled }: Props)
   const isPrimary = variant === 'primary';
   const isDanger = variant === 'danger';
   const borderColor = isDanger ? colors.red : colors.ink;
-  const fg = isPrimary ? '#FFFFFF' : isDanger ? colors.red : colors.ink;
+  const fg = isPrimary ? colors.onAccent : isDanger ? colors.red : colors.ink;
 
   return (
     <Pressable
