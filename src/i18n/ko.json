@@ -44,7 +44,8 @@
     "startedOn": "{{date}} 시작",
     "outcome": { "safe": "안전 확인", "reacted": "반응 발생", "cancelled": "취소됨" },
     "checkinClear": "이상 없음",
-    "checkinDone": "오늘 이상 없음 기록됨"
+    "checkinDone": "이상 없음 기록됨 · {{time}}",
+    "checkinHint": "하루 한 번이면 충분해요"
   },
   "reaction": {
     "title": "반응 기록",

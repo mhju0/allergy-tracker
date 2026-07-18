@@ -97,7 +97,7 @@ delayed reaction: log a reaction on an already-safe food ──▶ reacted (red)
 | App | Expo SDK 57 · React Native 0.86 · TypeScript (strict) |
 | Navigation | Expo Router — file-based, typed routes, stack-only |
 | Data | expo-sqlite + Drizzle ORM, generated migrations committed |
-| Domain logic | Pure TypeScript core, built test-first (Jest, 42 tests) |
+| Domain logic | Pure TypeScript core, built test-first (Jest, 43 tests) |
 | Notifications | expo-notifications — all local, no push service |
 | Export | expo-print (PDF) · JSON backup, via the iOS share sheet |
 | Localization | i18next — Korean-only by design, dates pinned to `ko-KR` |

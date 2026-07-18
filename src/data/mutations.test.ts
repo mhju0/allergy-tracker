@@ -24,6 +24,6 @@ test('cancelTrial SQL only targets a still-open trial', async () => {
   await cancelTrial('t1', new Date('2026-07-18T03:00:00Z'));
   const update = mockCaptured.find((c) => c.sql.toLowerCase().startsWith('update'));
   expect(update).toBeDefined();
-  expect(update!.sql.toLowerCase()).toContain('"outcome" is null');
+  expect(update!.sql.toLowerCase()).toContain('("trial"."id" = ? and "trial"."outcome" is null)');
   expect(update!.params).toContain('t1');
 });

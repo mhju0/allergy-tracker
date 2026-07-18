@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Alert, Pressable, Text } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { logCheckin } from '../data/mutations';
 import { useCheckins } from '../data/queries';
@@ -13,13 +13,19 @@ export function CheckinPill({ foodId, trialId }: { foodId: string; trialId: stri
   const { t } = useTranslation();
   const checkins = useCheckins();
   const checkingIn = useRef(false);
-  const doneToday = checkins.some((c) => c.trialId === trialId && isSameLocalDay(c.occurredAt, new Date()));
+  const doneToday = checkins.find((c) => c.trialId === trialId && isSameLocalDay(c.occurredAt, new Date()));
 
   if (doneToday) {
+    const time = doneToday.occurredAt.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
     return (
-      <Text style={{ fontSize: 13, fontWeight: '700', color: colors.muted, textAlign: 'center' }}>
-        ✓ {t('food.checkinDone')}
-      </Text>
+      <View style={{ alignItems: 'center', gap: 3 }}>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: colors.muted, textAlign: 'center' }}>
+          ✓ {t('food.checkinDone', { time })}
+        </Text>
+        <Text style={{ fontSize: 11, color: colors.muted, textAlign: 'center' }}>
+          {t('food.checkinHint')}
+        </Text>
+      </View>
     );
   }
 
