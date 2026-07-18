@@ -41,7 +41,7 @@ and scope decisions — lives at [docs/design-spec.md](docs/design-spec.md).
   <tr>
     <td align="center"><img src="docs/screenshots/home.png" alt="Home — active trial dashboard" width="240"></td>
     <td align="center"><img src="docs/screenshots/foods.png" alt="Foods — searchable catalog with statuses" width="240"></td>
-    <td align="center"><img src="docs/screenshots/detail.png" alt="Food detail — reaction history timeline" width="240"></td>
+    <td align="center"><img src="docs/screenshots/detail.png" alt="Food detail — chronological record of every trial event" width="240"></td>
   </tr>
 </table>
 
