@@ -41,7 +41,6 @@
     "cancelConfirmTitle": "{{food}} 테스트를 취소할까요?",
     "cancelConfirmBody": "기록은 남고 이전 상태로 돌아가요.",
     "close": "닫기",
-    "startedOn": "{{date}} 시작",
     "outcome": { "safe": "안전 확인", "reacted": "반응 발생", "cancelled": "취소됨" },
     "checkinClear": "이상 없음",
     "checkinDone": "이상 없음 기록됨 · {{time}}",
