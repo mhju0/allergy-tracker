@@ -1,4 +1,4 @@
-import { eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { db } from '../db/client';
 import { baby, checkin, food, reaction, trial, type Trial } from '../db/schema';
 import { decideStartTrial, isWindowElapsed, latestTrial } from '../domain/status';
@@ -71,7 +71,10 @@ export async function confirmSafe(
 }
 
 export async function cancelTrial(trialId: string, now: Date): Promise<void> {
-  await db.update(trial).set({ outcome: 'cancelled', endedAt: now }).where(eq(trial.id, trialId));
+  // never overwrite a finished outcome (safe/reacted) via a stale id
+  await db.update(trial)
+    .set({ outcome: 'cancelled', endedAt: now })
+    .where(and(eq(trial.id, trialId), isNull(trial.outcome)));
   await cancelTrialNotifications(trialId);
 }
 
