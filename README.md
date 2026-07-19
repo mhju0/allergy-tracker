@@ -16,6 +16,10 @@ Native iOS · Korean-only UI · 100% on-device — no account, no server, no net
 [![CI](https://github.com/mhju0/allergy-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/mhju0/allergy-tracker/actions/workflows/ci.yml)
 ![License](https://img.shields.io/badge/license-MIT-8B8578)
 
+<br>
+
+<img src="docs/screenshots/demo.gif" alt="Demo — logging a no-reaction check-in, the traffic-light food list, a food's reaction timeline, and the calendar history" width="300">
+
 </div>
 
 ## About
@@ -32,20 +36,17 @@ and scope decisions — lives at [docs/design-spec.md](docs/design-spec.md).
 
 ## Screenshots
 
+The home dashboard is in the demo above; these are the rest of the screens up close.
+
 <table align="center">
   <tr>
-    <th align="center">Home</th>
     <th align="center">Foods</th>
     <th align="center">Food detail</th>
   </tr>
   <tr>
-    <td align="center"><img src="docs/screenshots/home.png" alt="Home — active trial dashboard" width="240"></td>
     <td align="center"><img src="docs/screenshots/foods.png" alt="Foods — searchable catalog with statuses" width="240"></td>
     <td align="center"><img src="docs/screenshots/detail.png" alt="Food detail — chronological record of every trial event" width="240"></td>
   </tr>
-</table>
-
-<table align="center">
   <tr>
     <th align="center">Calendar</th>
     <th align="center">Log a reaction</th>
