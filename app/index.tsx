@@ -3,8 +3,8 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFoodsWithStatus } from '../src/data/queries';
-import { confirmSafe } from '../src/data/mutations';
+import { useBaby, useFoodsWithStatus } from '../src/data/queries';
+import { confirmSafe, updateBabySettings } from '../src/data/mutations';
 import { foodLabel } from '../src/i18n';
 import { isWindowElapsed, MS_PER_DAY, type FoodStatus } from '../src/domain/status';
 import { Button } from '../src/ui/Button';
@@ -14,7 +14,50 @@ import { colors, layout } from '../src/ui/tokens';
 const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.muted, paddingBottom: 12, paddingLeft: layout.rowInset };
 
 export default function Home() {
+  const baby = useBaby();
+  if (!baby) return null; // seed hasn't landed yet (first frame)
+  if (!baby.welcomedAt) return <WelcomeCard />;
   return <Dashboard />;
+}
+
+// One-time first-run explainer (Apple "welcome sheet" idiom: title, three
+// rows, one button). Info only — no input; dismissal persists in the DB.
+function WelcomeCard() {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  return (
+    <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 22, paddingTop: insets.top + 4, backgroundColor: colors.paper }}>
+      <Text style={eyebrowStyle}>{t('home.title')}</Text>
+      <Text style={{ fontSize: 44, fontWeight: '900', color: colors.ink, letterSpacing: -0.5 }}>{t('welcome.title')}</Text>
+      <Text style={{ fontSize: 14, color: colors.muted, lineHeight: 20, marginTop: 10, paddingLeft: layout.rowInset }}>
+        {t('welcome.intro')}
+      </Text>
+
+      <View style={{ gap: 18, marginTop: 28, marginBottom: 28 }}>
+        {([1, 2, 3] as const).map((n) => (
+          <View key={n} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: layout.rowInset }}>
+            <View
+              style={{
+                width: 26, height: 26, borderRadius: 999, borderWidth: 1.5, borderColor: colors.ink,
+                alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '800', color: colors.ink }}>{n}</Text>
+            </View>
+            <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: colors.ink, lineHeight: 21 }}>
+              {t(`welcome.step${n}`)}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      <Button label={t('welcome.start')} onPress={() => updateBabySettings({ welcomedAt: new Date() })} />
+
+      <Text style={{ fontSize: 11.5, color: colors.muted, lineHeight: 17, marginTop: 18, paddingLeft: layout.rowInset }}>
+        {t('settings.privacy')}{'\n'}{t('settings.disclaimer')}
+      </Text>
+    </ScrollView>
+  );
 }
 
 function Dashboard() {

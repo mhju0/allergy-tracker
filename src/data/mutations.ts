@@ -85,7 +85,7 @@ export async function addCustomFood(name: string): Promise<string> {
 }
 
 export async function updateBabySettings(
-  patch: Partial<{ name: string | null; birthdate: Date | null }>,
+  patch: Partial<{ name: string | null; birthdate: Date | null; welcomedAt: Date }>,
 ): Promise<void> {
   const rows = await db.select().from(baby);
   if (rows[0]) await db.update(baby).set(patch).where(eq(baby.id, rows[0].id));

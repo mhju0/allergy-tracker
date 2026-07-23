@@ -8,6 +8,7 @@ export const baby = sqliteTable('baby', {
   name: text('name'),
   birthdate: integer('birthdate', { mode: 'timestamp' }),
   defaultWindowDays: integer('default_window_days').notNull().default(3),
+  welcomedAt: integer('welcomed_at', { mode: 'timestamp' }), // null = show first-run welcome card
 });
 
 export const food = sqliteTable('food', {

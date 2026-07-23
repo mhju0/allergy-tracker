@@ -1,0 +1,1 @@
+ALTER TABLE `baby` ADD `welcomed_at` integer;
