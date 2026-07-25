@@ -16,7 +16,10 @@
     "calendar": "캘린더",
     "autoclosed": "✓ {{food}} 안전으로 기록됨",
     "short": "홈",
-    "viewRecord": "기록 보기"
+    "viewRecord": "기록 보기",
+    "idleTitle": "{{count}}가지 안전",
+    "idleBody": "다음 재료를 시작해 보세요.",
+    "lastConfirmed": "{{food}} 안전 확인"
   },
   "setup": {
     "babyName": "아기 이름",
@@ -219,5 +222,16 @@
     "chicken": "닭고기",
     "pork": "돼지고기",
     "greenbean": "그린빈"
+  },
+  "ledger": {
+    "day": "{{n}}일",
+    "notYet": "기록 전",
+    "state": {
+      "cleared": "이상 없음",
+      "today": "오늘",
+      "reacted": "반응 발생",
+      "pending": "—",
+      "stopped": "관찰 중단"
+    }
   }
 }

@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, AppState, Pressable, ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import { foodLabel } from '../../src/i18n';
 import { isWindowElapsed, MS_PER_DAY } from '../../src/domain/status';
 import { Button } from '../../src/ui/Button';
 import { CheckinPill } from '../../src/ui/CheckinPill';
+import { buildLedger, DayLedger } from '../../src/ui/DayLedger';
 import { press } from '../../src/ui/pressable';
 import { colors, layout, statusIcon } from '../../src/ui/tokens';
 
@@ -25,7 +26,16 @@ export default function FoodDetail() {
   const reactions = useReactions();
   const checkins = useCheckins();
   const [, setTick] = useState(0);
-  useFocusEffect(useCallback(() => setTick((x) => x + 1), []));
+  const bump = useCallback(() => setTick((x) => x + 1), []);
+  useFocusEffect(bump);
+  // Same staleness as Home: `isWindowElapsed` reads a render-time clock, and
+  // returning from the background does not re-run the focus effect.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') bump();
+    });
+    return () => sub.remove();
+  }, [bump]);
 
   const entry = foods.find((f) => f.food.id === id);
   const startFlow = useStartTrialFlow(foods, baby?.defaultWindowDays ?? 3);
@@ -44,7 +54,6 @@ export default function FoodDetail() {
   const testingDay = latest && status === 'testing'
     ? Math.min(latest.windowDays, Math.floor((now.getTime() - latest.startedAt.getTime()) / MS_PER_DAY) + 1)
     : 0;
-  const fraction = status === 'testing' && latest ? Math.min(1, testingDay / latest.windowDays) : 1;
 
   const latestReaction = latest ? reactions.find((r) => r.trialId === latest.id) : undefined;
   const subline =
@@ -113,10 +122,19 @@ export default function FoodDetail() {
             </Text>
           )}
         </View>
-        <View style={{ height: 3, backgroundColor: colors.hairline, borderRadius: 2, marginTop: 13, overflow: 'hidden' }}>
-          <View style={{ height: 3, width: `${fraction * 100}%`, backgroundColor: fg }} />
-        </View>
       </View>
+
+      {latest && (
+        <DayLedger
+          days={buildLedger(
+            latest,
+            checkins.filter((c) => c.trialId === latest.id).map((c) => c.occurredAt),
+            latestReaction?.occurredAt ?? null,
+            now,
+            t,
+          )}
+        />
+      )}
 
       {activeHere ? (
         <View style={{ gap: 10 }}>

@@ -10,7 +10,11 @@ import { colors, radii } from './tokens';
 // One-tap "이상 없음" observation for an active trial. Never touches trial
 // outcome — just logs a checkin row. Collapses to a done-state line once one
 // exists for today (local calendar date).
-export function CheckinPill({ foodId, trialId }: { foodId: string; trialId: string }) {
+// `filled` makes this the screen's primary action. On the two days out of three
+// when the app is asking for a check-in, this IS the thing to do — it used to be
+// a green outline sitting under a filled persimmon button for an action the
+// one-active-trial rule blocks.
+export function CheckinPill({ foodId, trialId, filled }: { foodId: string; trialId: string; filled?: boolean }) {
   const { t } = useTranslation();
   const checkins = useCheckins();
   const checkingIn = useRef(false);
@@ -47,11 +51,17 @@ export function CheckinPill({ foodId, trialId }: { foodId: string; trialId: stri
       accessibilityRole="button"
       onPress={onPress}
       style={press({
-        borderWidth: 1.5, borderColor: colors.green, borderRadius: radii.pill,
-        paddingVertical: 12.5, alignItems: 'center',
+        backgroundColor: filled ? colors.accent : 'transparent',
+        borderWidth: filled ? 0 : 1.5,
+        borderColor: colors.green,
+        borderRadius: radii.pill,
+        paddingVertical: filled ? 14 : 12.5,
+        alignItems: 'center',
       })}
     >
-      <Text style={{ color: colors.green, fontSize: 15, fontWeight: '700' }}>{t('food.checkinClear')}</Text>
+      <Text style={{ color: filled ? colors.onAccent : colors.green, fontSize: 15, fontWeight: '700' }}>
+        {t('food.checkinClear')}
+      </Text>
     </Pressable>
   );
 }
