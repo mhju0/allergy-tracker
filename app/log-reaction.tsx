@@ -11,7 +11,7 @@ import { colors } from '../src/ui/tokens';
 
 const SYMPTOMS = ['hives', 'rash', 'vomiting', 'diarrhea', 'swelling', 'cough', 'breathing', 'other'] as const;
 const SEVERITIES = ['mild', 'moderate', 'severe'] as const;
-const labelStyle = { fontSize: 11, fontWeight: '800' as const, letterSpacing: 1.5, color: colors.muted, marginTop: 18, marginBottom: 8 };
+const labelStyle = { fontSize: 11, fontWeight: '800' as const, letterSpacing: 1.5, color: colors.inkSecondary, marginTop: 18, marginBottom: 8 };
 const underlineBorder = { borderBottomWidth: 2, borderColor: colors.hairline, paddingVertical: 10 };
 
 export default function LogReaction() {
@@ -32,7 +32,7 @@ export default function LogReaction() {
     // Reachable only via a stale deep link — still deserves an exit, not a blank sheet.
     return (
       <View style={{ flex: 1, justifyContent: 'center', padding: 22, gap: 16, backgroundColor: colors.paper }}>
-        <Text style={{ fontSize: 15, color: colors.muted, textAlign: 'center' }}>{t('reaction.missing')}</Text>
+        <Text style={{ fontSize: 15, color: colors.inkSecondary, textAlign: 'center' }}>{t('reaction.missing')}</Text>
         <Button label={t('food.close')} variant="secondary" onPress={() => router.back()} />
       </View>
     );
@@ -74,7 +74,7 @@ export default function LogReaction() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
     <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 22, paddingTop: 12, backgroundColor: colors.paper }}>
       <View style={{ justifyContent: 'center', paddingBottom: 12 }}>
-        <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 2.2, color: colors.muted, textAlign: 'center' }}>
+        <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 2.2, color: colors.inkSecondary, textAlign: 'center' }}>
           {t('reaction.title')}
         </Text>
         <Pressable
@@ -84,7 +84,7 @@ export default function LogReaction() {
           hitSlop={12}
           style={{ position: 'absolute', right: 0, top: -6, minWidth: 32, minHeight: 32, alignItems: 'flex-end', justifyContent: 'center' }}
         >
-          <Text style={{ fontSize: 17, color: colors.muted }}>✕</Text>
+          <Text style={{ fontSize: 17, color: colors.inkSecondary }}>✕</Text>
         </Pressable>
       </View>
       <Text style={{ fontSize: 40, fontWeight: '900', color: colors.ink, letterSpacing: -0.5 }}>

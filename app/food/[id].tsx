@@ -12,7 +12,7 @@ import { Button } from '../../src/ui/Button';
 import { CheckinPill } from '../../src/ui/CheckinPill';
 import { colors, layout, statusIcon } from '../../src/ui/tokens';
 
-const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.muted, paddingBottom: 12 };
+const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.inkSecondary, paddingBottom: 12 };
 
 export default function FoodDetail() {
   const { t } = useTranslation();
@@ -59,11 +59,11 @@ export default function FoodDetail() {
   const trialIds = new Set(trials.map((tr) => tr.id));
   const historyRows: { key: string; at: Date; color: string; outline: boolean; label: string; detail?: string }[] = [];
   for (const tr of trials) {
-    historyRows.push({ key: `start-${tr.id}`, at: tr.startedAt, color: colors.amber, outline: false, label: t('calendar.trialStart') });
+    historyRows.push({ key: `start-${tr.id}`, at: tr.startedAt, color: colors.amberText, outline: false, label: t('calendar.trialStart') });
     if (tr.outcome === 'safe' && tr.endedAt) {
       historyRows.push({ key: `end-${tr.id}`, at: tr.endedAt, color: colors.green, outline: false, label: t('food.outcome.safe') });
     } else if (tr.outcome === 'cancelled' && tr.endedAt) {
-      historyRows.push({ key: `end-${tr.id}`, at: tr.endedAt, color: colors.muted, outline: true, label: t('food.outcome.cancelled') });
+      historyRows.push({ key: `end-${tr.id}`, at: tr.endedAt, color: colors.inkSecondary, outline: true, label: t('food.outcome.cancelled') });
     }
   }
   for (const r of reactions) {
@@ -88,7 +88,7 @@ export default function FoodDetail() {
         style={{ minHeight: 44, justifyContent: 'center' }}
       >
         <Text style={eyebrowStyle}>
-          <Text style={{ color: colors.muted }}>‹ </Text>
+          <Text style={{ color: colors.inkSecondary }}>‹ </Text>
           {t('foods.title')}
         </Text>
       </Pressable>
@@ -155,11 +155,11 @@ export default function FoodDetail() {
       )}
 
       <View>
-        <Text style={{ fontSize: 11, fontWeight: '800', letterSpacing: 1.5, color: colors.muted, marginBottom: 4, paddingLeft: layout.rowInset }}>
+        <Text style={{ fontSize: 11, fontWeight: '800', letterSpacing: 1.5, color: colors.inkSecondary, marginBottom: 4, paddingLeft: layout.rowInset }}>
           {t('food.history')}
         </Text>
         {historyRows.length === 0 ? (
-          <Text style={{ fontSize: 14, color: colors.muted, paddingLeft: layout.rowInset }}>{t('food.noHistory')}</Text>
+          <Text style={{ fontSize: 14, color: colors.inkSecondary, paddingLeft: layout.rowInset }}>{t('food.noHistory')}</Text>
         ) : (
           historyRows.map((ev) => (
             <View
@@ -174,7 +174,7 @@ export default function FoodDetail() {
                 }
               />
               <View style={{ flexShrink: 1 }}>
-                <Text style={{ fontSize: 11.5, color: colors.muted }}>
+                <Text style={{ fontSize: 11.5, color: colors.inkSecondary }}>
                   {ev.at.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} · {ev.at.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}
                 </Text>
                 <Text style={{ fontSize: 15, fontWeight: '700', color: ev.color, marginTop: 2 }}>{ev.label}</Text>

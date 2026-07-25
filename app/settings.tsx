@@ -16,7 +16,7 @@ import { Button } from '../src/ui/Button';
 import { colors, layout } from '../src/ui/tokens';
 import { buildBackup, buildReportHtml } from '../src/services/export';
 
-const labelStyle = { fontSize: 11, fontWeight: '800' as const, letterSpacing: 1.5, color: colors.muted, marginTop: 18, marginBottom: 4, paddingLeft: layout.rowInset };
+const labelStyle = { fontSize: 11, fontWeight: '800' as const, letterSpacing: 1.5, color: colors.inkSecondary, marginTop: 18, marginBottom: 4, paddingLeft: layout.rowInset };
 const rowStyle = {
   flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const,
   paddingVertical: 14, paddingHorizontal: layout.rowInset, borderBottomWidth: 1, borderColor: colors.hairline,
@@ -100,7 +100,7 @@ export default function Settings() {
   return (
     <ScrollView contentContainerStyle={{ padding: 22, paddingTop: 12, backgroundColor: colors.paper }}>
       <View style={{ justifyContent: 'center', paddingBottom: 12 }}>
-        <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 2.2, color: colors.muted, textAlign: 'center' }}>
+        <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 2.2, color: colors.inkSecondary, textAlign: 'center' }}>
           {t('settings.title')}
         </Text>
         <Pressable
@@ -110,7 +110,7 @@ export default function Settings() {
           hitSlop={12}
           style={{ position: 'absolute', right: 0, top: -6, minWidth: 32, minHeight: 32, alignItems: 'flex-end', justifyContent: 'center' }}
         >
-          <Text style={{ fontSize: 17, color: colors.muted }}>✕</Text>
+          <Text style={{ fontSize: 17, color: colors.inkSecondary }}>✕</Text>
         </Pressable>
       </View>
 
@@ -120,9 +120,11 @@ export default function Settings() {
         <TextInput
           defaultValue={baby.name ?? ''}
           placeholder={t('settings.optional')}
-          placeholderTextColor={colors.muted}
+          placeholderTextColor={colors.inkSecondary}
           onEndEditing={(e) => updateBabySettings({ name: e.nativeEvent.text.trim() || null })}
-          style={{ fontSize: 15, color: colors.muted, textAlign: 'right', flex: 1, marginLeft: 12 }}
+          // A stored value must not look like the 미입력 placeholder — that was
+          // the one screen where you could not tell saved from unsaved.
+          style={{ fontSize: 15, color: colors.ink, textAlign: 'right', flex: 1, marginLeft: 12 }}
         />
       </View>
       <View style={rowStyle}>
@@ -145,7 +147,7 @@ export default function Settings() {
         style={rowStyle}
       >
         <Text style={rowLabelText}>{t('settings.notifications')}</Text>
-        <Text style={{ fontSize: 14, color: notifOn === false ? colors.red : colors.muted }}>
+        <Text style={{ fontSize: 14, color: notifOn === false ? colors.red : colors.inkSecondary }}>
           {notifOn === null ? '' : notifOn ? t('settings.notifOn') : t('settings.notifOff')}
         </Text>
       </Pressable>
@@ -158,7 +160,7 @@ export default function Settings() {
         style={rowStyle}
       >
         <Text style={rowLabelText}>{t('settings.showGuide')}</Text>
-        <Text style={{ fontSize: 15, color: colors.muted }}>→</Text>
+        <Text style={{ fontSize: 15, color: colors.inkSecondary }}>→</Text>
       </Pressable>
 
       <Text style={labelStyle}>{t('settings.exportSection')}</Text>
@@ -167,7 +169,7 @@ export default function Settings() {
         <Button label={t('settings.exportJson')} variant="secondary" onPress={exportJson} />
       </View>
 
-      <Text style={{ fontSize: 11.5, color: colors.muted, lineHeight: 17, marginTop: 18, paddingLeft: layout.rowInset }}>
+      <Text style={{ fontSize: 11.5, color: colors.inkSecondary, lineHeight: 17, marginTop: 18, paddingLeft: layout.rowInset }}>
         {t('settings.privacy')}{'\n'}{t('settings.disclaimer')}
       </Text>
     </ScrollView>

@@ -9,7 +9,7 @@ import { foodLabel } from '../src/i18n';
 import type { Food } from '../src/db/schema';
 import { colors, layout } from '../src/ui/tokens';
 
-const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.muted, paddingBottom: 12 };
+const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.inkSecondary, paddingBottom: 12 };
 // alignItems flex-end right-hugs the ‹ › glyphs so the next control lands on the
 // grid's right edge (the tap targets stay 44pt; only the glyph shifts within).
 const navBtnStyle = { minWidth: 44, minHeight: 44, alignItems: 'flex-end' as const, justifyContent: 'center' as const };
@@ -77,7 +77,7 @@ export default function Calendar() {
       for (const tr of trials) {
         if (tr.outcome === 'cancelled') continue;
         if (sameLocalDay(tr.startedAt, selectedDate)) {
-          rows.push({ key: `start-${tr.id}`, at: tr.startedAt, color: colors.amber, text: `${label} — ${t('calendar.trialStart')}` });
+          rows.push({ key: `start-${tr.id}`, at: tr.startedAt, color: colors.amberText, text: `${label} — ${t('calendar.trialStart')}` });
         }
         // outcome 'reacted' is skipped here — the matching reaction row below already covers that moment.
         if (tr.outcome === 'safe' && tr.endedAt && sameLocalDay(tr.endedAt, selectedDate)) {
@@ -111,7 +111,7 @@ export default function Calendar() {
         style={{ minHeight: 44, justifyContent: 'center' }}
       >
         <Text style={eyebrowStyle}>
-          <Text style={{ color: colors.muted }}>‹ </Text>
+          <Text style={{ color: colors.inkSecondary }}>‹ </Text>
           {t('calendar.title')}
         </Text>
       </Pressable>
@@ -124,10 +124,10 @@ export default function Calendar() {
         </Pressable>
         <View style={{ flexDirection: 'row' }}>
           <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.prevMonth')} onPress={() => goMonth(-1)} style={navBtnStyle}>
-            <Text style={{ fontSize: 18, color: colors.muted }}>‹</Text>
+            <Text style={{ fontSize: 18, color: colors.inkSecondary }}>‹</Text>
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.nextMonth')} onPress={() => goMonth(1)} style={navBtnStyle}>
-            <Text style={{ fontSize: 18, color: colors.muted }}>›</Text>
+            <Text style={{ fontSize: 18, color: colors.inkSecondary }}>›</Text>
           </Pressable>
         </View>
       </View>
@@ -136,7 +136,7 @@ export default function Calendar() {
         {weekdayKeys.map((wk, i) => (
           <Text
             key={wk}
-            style={{ flex: 1, textAlign: 'center', fontSize: 10.5, fontWeight: '800', color: i === 0 ? colors.red : colors.muted }}
+            style={{ flex: 1, textAlign: 'center', fontSize: 10.5, fontWeight: '800', color: i === 0 ? colors.red : colors.inkSecondary }}
           >
             {t(`calendar.weekday.${wk}`)}
           </Text>
@@ -150,7 +150,10 @@ export default function Calendar() {
               const mark = dayMark(cell.date, allTrials, reactionDays, checkinDays);
               const isSelected = sameLocalDay(cell.date, selectedDate);
               const bg = mark.tint === 'amber' ? colors.amberTint : mark.tint === 'red' ? colors.redTint : 'transparent';
-              const fg = !cell.inMonth ? colors.dayOutMonth : mark.tint === 'amber' ? colors.amber : mark.tint === 'red' ? colors.red : colors.ink;
+              // The tint already states the day's status and the dot states its
+              // events, so the date itself stays ink — tinting it too put amber
+              // on amberTint at 3.09:1, the worst contrast in the app.
+              const fg = cell.inMonth ? colors.ink : colors.dayOutMonth;
               return (
                 <Pressable
                   key={cell.date.toISOString()}
@@ -186,23 +189,23 @@ export default function Calendar() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 10, paddingLeft: layout.rowInset }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
           <View style={{ width: 12, height: 12, borderRadius: 4, backgroundColor: colors.amberTint }} />
-          <Text style={{ fontSize: 11, color: colors.muted }}>{t('calendar.legendWindow')}</Text>
+          <Text style={{ fontSize: 11, color: colors.inkSecondary }}>{t('calendar.legendWindow')}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
           <View style={{ width: 12, height: 12, borderRadius: 4, backgroundColor: colors.redTint }} />
-          <Text style={{ fontSize: 11, color: colors.muted }}>{t('calendar.legendReaction')}</Text>
+          <Text style={{ fontSize: 11, color: colors.inkSecondary }}>{t('calendar.legendReaction')}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
           <View style={{ width: 5, height: 5, borderRadius: 999, backgroundColor: colors.green }} />
-          <Text style={{ fontSize: 11, color: colors.muted }}>{t('calendar.legendRecord')}</Text>
+          <Text style={{ fontSize: 11, color: colors.inkSecondary }}>{t('calendar.legendRecord')}</Text>
         </View>
       </View>
 
-      <Text style={{ fontSize: 11, fontWeight: '800', letterSpacing: 1.5, color: colors.muted, marginTop: 18, marginBottom: 4, paddingLeft: layout.rowInset }}>
+      <Text style={{ fontSize: 11, fontWeight: '800', letterSpacing: 1.5, color: colors.inkSecondary, marginTop: 18, marginBottom: 4, paddingLeft: layout.rowInset }}>
         {selectedDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}
       </Text>
       {events.length === 0 ? (
-        <Text style={{ fontSize: 14, color: colors.muted, paddingVertical: 12, paddingLeft: layout.rowInset }}>{t('calendar.noEvents')}</Text>
+        <Text style={{ fontSize: 14, color: colors.inkSecondary, paddingVertical: 12, paddingLeft: layout.rowInset }}>{t('calendar.noEvents')}</Text>
       ) : (
         events.map((ev) => (
           <View
@@ -211,7 +214,7 @@ export default function Calendar() {
           >
             <View style={{ width: 7, height: 7, borderRadius: 999, backgroundColor: ev.color }} />
             <Text style={{ fontSize: 13.5, fontWeight: '600', color: ev.color, flexShrink: 1 }}>{ev.text}</Text>
-            <Text style={{ fontSize: 12, color: colors.muted, marginLeft: 'auto' }}>
+            <Text style={{ fontSize: 12, color: colors.inkSecondary, marginLeft: 'auto' }}>
               {ev.at.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}
             </Text>
           </View>

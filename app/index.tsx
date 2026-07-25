@@ -11,7 +11,7 @@ import { Button } from '../src/ui/Button';
 import { CheckinPill } from '../src/ui/CheckinPill';
 import { colors, layout } from '../src/ui/tokens';
 
-const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.muted, paddingBottom: 12, paddingLeft: layout.rowInset };
+const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.inkSecondary, paddingBottom: 12, paddingLeft: layout.rowInset };
 
 export default function Home() {
   const baby = useBaby();
@@ -29,7 +29,7 @@ function WelcomeCard() {
     <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 22, paddingTop: insets.top + 4, paddingBottom: insets.top + 22, backgroundColor: colors.paper }}>
       <Text style={eyebrowStyle}>{t('home.title')}</Text>
       <Text style={{ fontSize: 44, fontWeight: '900', color: colors.ink, letterSpacing: -0.5 }}>{t('welcome.title')}</Text>
-      <Text style={{ fontSize: 14, color: colors.muted, lineHeight: 20, marginTop: 10, paddingLeft: layout.rowInset }}>
+      <Text style={{ fontSize: 14, color: colors.inkSecondary, lineHeight: 20, marginTop: 10, paddingLeft: layout.rowInset }}>
         {t('welcome.intro')}
       </Text>
 
@@ -53,7 +53,7 @@ function WelcomeCard() {
 
       <Button label={t('welcome.start')} onPress={() => updateBabySettings({ welcomedAt: new Date() })} />
 
-      <Text style={{ fontSize: 11.5, color: colors.muted, lineHeight: 17, marginTop: 18, paddingLeft: layout.rowInset }}>
+      <Text style={{ fontSize: 11.5, color: colors.inkSecondary, lineHeight: 17, marginTop: 18, paddingLeft: layout.rowInset }}>
         {t('settings.privacy')}{'\n'}{t('settings.disclaimer')}
       </Text>
     </ScrollView>
@@ -96,7 +96,7 @@ function Dashboard() {
               {foodLabel(active.food)}
             </Text>
           </Pressable>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: colors.amber, marginTop: 9, paddingLeft: layout.rowInset }}>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: colors.amberText, marginTop: 9, paddingLeft: layout.rowInset }}>
             {elapsed ? t('home.readyToConfirm') : `${t('status.testing')} · ${t('home.dayOf', { day, total: latest.windowDays })}`}
           </Text>
           <View style={{ height: 3, backgroundColor: colors.hairline, borderRadius: 2, marginTop: 13, marginBottom: 20, overflow: 'hidden' }}>
@@ -123,7 +123,7 @@ function Dashboard() {
           )}
         </View>
       ) : !hasAnyTrial ? (
-        <Text style={{ fontSize: 14, color: colors.muted, marginBottom: 20 }}>{t('home.empty')}</Text>
+        <Text style={{ fontSize: 14, color: colors.inkSecondary, marginBottom: 20 }}>{t('home.empty')}</Text>
       ) : null}
 
       <Button label={t('home.tryNewFood')} onPress={() => router.push({ pathname: '/foods', params: { pick: '1' } })} />
@@ -161,7 +161,7 @@ function Dashboard() {
           }}
         >
           <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }}>{t('home.calendar')}</Text>
-          <Text style={{ fontSize: 15, color: colors.muted }}>→</Text>
+          <Text style={{ fontSize: 15, color: colors.inkSecondary }}>→</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -174,7 +174,7 @@ function Dashboard() {
           }}
         >
           <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }}>{t('settings.title')}</Text>
-          <Text style={{ fontSize: 15, color: colors.muted }}>→</Text>
+          <Text style={{ fontSize: 15, color: colors.inkSecondary }}>→</Text>
         </Pressable>
       </View>
     </ScrollView>

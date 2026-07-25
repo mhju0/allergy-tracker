@@ -29,7 +29,7 @@ function SearchIcon() {
 
 const ORDER: Record<FoodStatus, number> = { testing: 0, untried: 1, safe: 2, reacted: 3 };
 const ROW_H = 44; // fixed row height (matches the previous content-sized height) — required for getItemLayout/scrollToIndex
-const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.muted, paddingBottom: 12 };
+const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.inkSecondary, paddingBottom: 12 };
 
 export default function Foods() {
   const { t, i18n } = useTranslation();
@@ -98,7 +98,7 @@ export default function Foods() {
         style={{ minHeight: 44, justifyContent: 'center' }}
       >
         <Text style={eyebrowStyle}>
-          <Text style={{ color: colors.muted }}>‹ </Text>
+          <Text style={{ color: colors.inkSecondary }}>‹ </Text>
           {t('foods.title')}
         </Text>
       </Pressable>
@@ -112,7 +112,7 @@ export default function Foods() {
         <SearchIcon />
         <TextInput
           placeholder={t('foods.search')}
-          placeholderTextColor={colors.muted}
+          placeholderTextColor={colors.inkSecondary}
           value={query}
           onChangeText={setQuery}
           style={{ flex: 1, fontSize: 15, color: colors.ink, marginLeft: 7 }}
@@ -132,7 +132,7 @@ export default function Foods() {
       </View>
 
       {pick === '1' && (
-        <Text style={{ fontSize: 12, color: colors.muted, paddingTop: 8, paddingLeft: layout.rowInset }}>
+        <Text style={{ fontSize: 12, color: colors.inkSecondary, paddingTop: 8, paddingLeft: layout.rowInset }}>
           {t('foods.pickHint')}
         </Text>
       )}
@@ -147,7 +147,7 @@ export default function Foods() {
           <TextInput
             autoFocus
             placeholder={t('foods.addPlaceholder')}
-            placeholderTextColor={colors.muted}
+            placeholderTextColor={colors.inkSecondary}
             value={newName}
             onChangeText={setNewName}
             onSubmitEditing={submitNew}
@@ -175,7 +175,7 @@ export default function Foods() {
           />
         )}
         ListEmptyComponent={
-          <Text style={{ color: colors.muted, fontSize: 14, textAlign: 'center', paddingVertical: 24 }}>
+          <Text style={{ color: colors.inkSecondary, fontSize: 14, textAlign: 'center', paddingVertical: 24 }}>
             {t('foods.empty')}
           </Text>
         }

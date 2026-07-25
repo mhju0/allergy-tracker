@@ -19,10 +19,10 @@ export function CheckinPill({ foodId, trialId }: { foodId: string; trialId: stri
     const time = doneToday.occurredAt.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
     return (
       <View style={{ alignItems: 'center', gap: 3 }}>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: colors.muted, textAlign: 'center' }}>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: colors.inkSecondary, textAlign: 'center' }}>
           ✓ {t('food.checkinDone', { time })}
         </Text>
-        <Text style={{ fontSize: 11, color: colors.muted, textAlign: 'center' }}>
+        <Text style={{ fontSize: 11, color: colors.inkSecondary, textAlign: 'center' }}>
           {t('food.checkinHint')}
         </Text>
       </View>
