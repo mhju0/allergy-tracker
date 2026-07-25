@@ -64,7 +64,7 @@ The home dashboard is in the demo above; these are the rest of the screens up cl
   record trustworthy.
 - **Fixed 3-day observation window** with gentle local check-in
   notifications (daytime, 09:00) and a window-end reminder.
-- **Traffic-light statuses** — 안전 (green) / 테스트 중 (amber) /
+- **Traffic-light statuses** — 안전 (green) / 관찰 중 (amber) /
   반응 (red) / 안 먹어봄 — always **derived from the trial history at read
   time, never stored**, so the list can't drift out of sync.
 - **이상 없음 one-tap check-ins** log "no reaction observed" during a trial
@@ -99,7 +99,7 @@ delayed reaction: log a reaction on an already-safe food ──▶ reacted (red)
 | App | Expo SDK 57 · React Native 0.86 · TypeScript (strict) |
 | Navigation | Expo Router — file-based, typed routes, stack-only |
 | Data | expo-sqlite + Drizzle ORM, generated migrations committed |
-| Domain logic | Pure TypeScript core, built test-first (Jest, 50 tests) |
+| Domain logic | Pure TypeScript core, built test-first (Jest, 94 tests) |
 | Notifications | expo-notifications — all local, no push service |
 | Export | expo-print (PDF) · JSON backup, via the iOS share sheet |
 | Localization | i18next — Korean-only by design, dates pinned to `ko-KR` |
