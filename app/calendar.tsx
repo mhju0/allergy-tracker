@@ -8,13 +8,30 @@ import { dayMark, monthMatrix, sameLocalDay, sortDayEvents } from '../src/domain
 import { foodLabel } from '../src/i18n';
 import type { Food } from '../src/db/schema';
 import { press } from '../src/ui/pressable';
-import { colors, layout } from '../src/ui/tokens';
+import { colors, layout, statusIcon } from '../src/ui/tokens';
 
 const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.inkSecondary, paddingBottom: 12 };
 // alignItems flex-end right-hugs the ‹ › glyphs so the next control lands on the
 // grid's right edge (the tap targets stay 44pt; only the glyph shifts within).
 const navBtnStyle = { minWidth: 44, minHeight: 44, alignItems: 'flex-end' as const, justifyContent: 'center' as const };
 const weekdayKeys = ['w0', 'w1', 'w2', 'w3', 'w4', 'w5', 'w6'] as const;
+
+const TINT_BG = {
+  amber: colors.amberTint,
+  green: colors.greenTint,
+  red: colors.redTint,
+  none: 'transparent',
+} as const;
+
+// Icons are ink, not the status colour: the swatch behind them already carries
+// the hue, and a status colour on its own tint measures as low as 4.19:1 — an
+// icon that exists so colour isn't the sole carrier has to be legible itself.
+const LEGEND = [
+  { key: 'legendWindow', bg: colors.amberTint, icon: statusIcon.testing },
+  { key: 'legendSafe', bg: colors.greenTint, icon: statusIcon.safe },
+  { key: 'legendReaction', bg: colors.redTint, icon: statusIcon.reacted },
+  { key: 'legendRecord', bg: 'transparent', icon: '•' },
+] as const;
 
 type EventRow = { key: string; at: Date; color: string; text: string };
 
@@ -31,6 +48,7 @@ export default function Calendar() {
     return { year: d.getFullYear(), month0: d.getMonth() };
   });
   const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const today = new Date();
 
   // Month nav moves the selection to the 1st of the shown month so the day
   // list below never silently shows a day from a month that's off-screen.
@@ -148,24 +166,43 @@ export default function Calendar() {
         {weeks.map((week, wi) => (
           <View key={wi} style={{ flexDirection: 'row' }}>
             {week.map((cell) => {
-              const mark = dayMark(cell.date, allTrials, reactionDays, checkinDays);
+              const mark = dayMark(cell.date, allTrials, reactionDays, checkinDays, today);
               const isSelected = sameLocalDay(cell.date, selectedDate);
-              const bg = mark.tint === 'amber' ? colors.amberTint : mark.tint === 'red' ? colors.redTint : 'transparent';
+              const isToday = sameLocalDay(cell.date, today);
+              const bg = TINT_BG[mark.tint ?? 'none'];
               // The tint already states the day's status and the dot states its
               // events, so the date itself stays ink — tinting it too put amber
               // on amberTint at 3.09:1, the worst contrast in the app.
               const fg = cell.inMonth ? colors.ink : colors.dayOutMonth;
+              // VoiceOver used to hear the date and nothing else — neither the
+              // tint nor the dot was announced, on the one screen whose entire
+              // information layer is colour.
+              const marks = [
+                mark.tint === 'amber' ? t('calendar.a11yObserving') : null,
+                mark.tint === 'green' ? t('calendar.a11ySafe') : null,
+                mark.tint === 'red' ? t('calendar.a11yReaction') : null,
+                mark.dot ? t('calendar.a11yRecord') : null,
+                isToday ? t('calendar.todayLabel') : null,
+              ].filter(Boolean);
               return (
                 <Pressable
                   key={cell.date.toISOString()}
                   accessibilityRole="button"
-                  accessibilityLabel={cell.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}
+                  accessibilityLabel={[
+                    cell.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }),
+                    ...marks,
+                  ].join(', ')}
                   accessibilityState={{ selected: isSelected }}
                   onPress={() => setSelectedDate(cell.date)}
                   style={press({
                     flex: 1, aspectRatio: 1, margin: 1.5, borderRadius: 9,
                     backgroundColor: bg, alignItems: 'center', justifyContent: 'center',
-                    borderWidth: isSelected ? 2 : 0, borderColor: colors.ink,
+                    // Today is ringed; the selected day is filled-outline. Nothing
+                    // marked today before, and one month-nav tap moves the
+                    // selection to the 1st, so today lost all identity.
+                    borderWidth: isSelected ? 2 : isToday ? 1 : 0,
+                    borderColor: isSelected ? colors.ink : colors.inkSecondary,
+                    borderStyle: isSelected || !isToday ? 'solid' : 'dashed',
                   })}
                 >
                   <Text style={{ fontSize: 12.5, fontWeight: '700', color: fg }}>{cell.date.getDate()}</Text>
@@ -187,19 +224,17 @@ export default function Calendar() {
         ))}
       </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 10, paddingLeft: layout.rowInset }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-          <View style={{ width: 12, height: 12, borderRadius: 4, backgroundColor: colors.amberTint }} />
-          <Text style={{ fontSize: 11, color: colors.inkSecondary }}>{t('calendar.legendWindow')}</Text>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-          <View style={{ width: 12, height: 12, borderRadius: 4, backgroundColor: colors.redTint }} />
-          <Text style={{ fontSize: 11, color: colors.inkSecondary }}>{t('calendar.legendReaction')}</Text>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-          <View style={{ width: 5, height: 5, borderRadius: 999, backgroundColor: colors.green }} />
-          <Text style={{ fontSize: 11, color: colors.inkSecondary }}>{t('calendar.legendRecord')}</Text>
-        </View>
+      {/* CLAUDE.md: icon + label always accompany status colours. This was the
+          one screen that shipped bare swatches. */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginTop: 10, paddingLeft: layout.rowInset }}>
+        {LEGEND.map(({ key, bg, icon }) => (
+          <View key={key} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <View style={{ width: 14, height: 14, borderRadius: 4, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 9, fontWeight: '800', color: colors.ink }}>{icon}</Text>
+            </View>
+            <Text style={{ fontSize: 11, color: colors.inkSecondary }}>{t(`calendar.${key}`)}</Text>
+          </View>
+        ))}
       </View>
 
       <Text style={{ fontSize: 11, fontWeight: '800', letterSpacing: 1.5, color: colors.inkSecondary, marginTop: 18, marginBottom: 4, paddingLeft: layout.rowInset }}>

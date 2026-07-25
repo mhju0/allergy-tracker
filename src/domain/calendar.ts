@@ -1,4 +1,4 @@
-import { windowEnd, isSameLocalDay, type TrialLike } from './status';
+import { MS_PER_DAY, isSameLocalDay, type TrialLike } from './status';
 
 export type DayCell = { date: Date; inMonth: boolean };
 
@@ -18,14 +18,27 @@ function localDayStart(d: Date): number {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 }
 
-function isInTrialWindow(date: Date, t: TrialLike): boolean {
+// The last calendar day a window covers. A 3-day window covers the start day
+// and the two after it. `windowEnd` is the INSTANT the window closes — i.e. the
+// start of the 4th day — so using it as an inclusive day bound painted one cell
+// too many, which is how a month of 3-day trials came to tint almost every day.
+function lastScheduledDay(t: TrialLike): number {
+  return localDayStart(new Date(t.startedAt.getTime() + (t.windowDays - 1) * MS_PER_DAY));
+}
+
+// The last day this trial has actually been observed through.
+function coveredThrough(t: TrialLike, today: Date): number {
+  const scheduled = lastScheduledDay(t);
+  // An active trial has observed up to today and no further — tinting tomorrow
+  // the same as today claims observations that have not happened.
+  if (t.outcome === null) return Math.min(scheduled, localDayStart(today));
+  // A reaction ends the window early; a late safe-confirm never extends it.
+  return t.endedAt ? Math.min(scheduled, localDayStart(t.endedAt)) : scheduled;
+}
+
+function isInTrialWindow(date: Date, t: TrialLike, today: Date): boolean {
   const day = localDayStart(date);
-  // Tint only days the test actually covered: an early end (reaction) stops
-  // the window, while a late safe-confirm never stretches past the scheduled
-  // end — so the bound is whichever of endedAt/windowEnd comes first.
-  const scheduled = windowEnd(t);
-  const end = t.endedAt && t.endedAt.getTime() < scheduled.getTime() ? t.endedAt : scheduled;
-  return day >= localDayStart(t.startedAt) && day <= localDayStart(end);
+  return day >= localDayStart(t.startedAt) && day <= coveredThrough(t, today);
 }
 
 // Order a single day's calendar events chronologically. At the same instant a
@@ -37,13 +50,23 @@ export function sortDayEvents<T extends { at: Date; key: string }>(rows: T[]): T
   return [...rows].sort((a, b) => a.at.getTime() - b.at.getTime() || startsLast(a.key) - startsLast(b.key));
 }
 
-export type DayMark = { tint: 'amber' | 'red' | null; dot: 'red' | 'green' | null };
+export type DayMark = { tint: 'amber' | 'green' | 'red' | null; dot: 'red' | 'green' | null };
 
-export function dayMark(date: Date, trials: TrialLike[], reactionDays: Date[], checkinDays: Date[]): DayMark {
+// Tint states the day's status, the dot states that a record exists on it.
+// Precedence: a reaction outranks everything; an observation still running
+// outranks one already cleared (on an autoclose handoff day both cover it, and
+// "watching now" is the more urgent fact).
+export function dayMark(
+  date: Date, trials: TrialLike[], reactionDays: Date[], checkinDays: Date[], today: Date,
+): DayMark {
   if (reactionDays.some((d) => sameLocalDay(d, date))) return { tint: 'red', dot: 'red' };
 
-  const checkedIn = checkinDays.some((d) => sameLocalDay(d, date));
-  const inWindow = trials.some((t) => t.outcome !== 'cancelled' && isInTrialWindow(date, t));
-  if (inWindow) return { tint: 'amber', dot: checkedIn ? 'green' : null };
-  return { tint: null, dot: checkedIn ? 'green' : null };
+  const dot = checkinDays.some((d) => sameLocalDay(d, date)) ? ('green' as const) : null;
+  const covering = trials.filter((t) => t.outcome !== 'cancelled' && isInTrialWindow(date, t, today));
+  if (covering.some((t) => t.outcome === null || t.outcome === 'reacted')) return { tint: 'amber', dot };
+  // greenTint was defined in the token file with zero consumers, so a confirmed
+  // safe outcome — the thing a parent is actually working toward — left no mark
+  // on the calendar at all.
+  if (covering.some((t) => t.outcome === 'safe')) return { tint: 'green', dot };
+  return { tint: null, dot };
 }

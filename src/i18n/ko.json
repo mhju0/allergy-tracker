@@ -147,7 +147,13 @@
       "w4": "목",
       "w5": "금",
       "w6": "토"
-    }
+    },
+    "legendSafe": "안전 확인",
+    "todayLabel": "오늘",
+    "a11yObserving": "관찰 중",
+    "a11ySafe": "안전 확인",
+    "a11yReaction": "반응",
+    "a11yRecord": "기록 있음"
   },
   "errors": {
     "generic": "문제가 발생했어요. 잠시 후 다시 시도해 주세요.",

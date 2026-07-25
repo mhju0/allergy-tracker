@@ -48,54 +48,88 @@ describe('sameLocalDay', () => {
 });
 
 describe('dayMark', () => {
-  const trial = mk({ startedAt: D('2026-07-16T09:00:00'), windowDays: 3, outcome: null }); // window 16-19 inclusive
+  // A 3-day window covers the start day and the two after it: 16, 17, 18.
+  // windowEnd (startedAt + 3 days) is the INSTANT the window closes, i.e. the
+  // start of the 4th day — using it as an inclusive day bound painted 4 cells.
+  const LATER = D('2026-07-25T12:00:00'); // "today" well after the window
+  const trial = mk({ startedAt: D('2026-07-16T09:00:00'), windowDays: 3, outcome: null });
 
-  test('reaction on the day → red tint + red dot, even inside a trial window (red beats amber)', () => {
-    const mark = dayMark(D('2026-07-16T12:00:00'), [trial], [D('2026-07-16T20:00:00')], []);
+  test('reaction on the day → red tint + red dot, even inside a trial window (red beats everything)', () => {
+    const mark = dayMark(D('2026-07-16T12:00:00'), [trial], [D('2026-07-16T20:00:00')], [], LATER);
     expect(mark).toEqual({ tint: 'red', dot: 'red' });
   });
 
-  test('day inside non-cancelled trial window, no reaction, no checkin → amber tint, no dot', () => {
-    const mark = dayMark(D('2026-07-18T12:00:00'), [trial], [], []);
+  test('day inside an active trial window → amber tint, no dot', () => {
+    const mark = dayMark(D('2026-07-18T12:00:00'), [trial], [], [], LATER);
     expect(mark).toEqual({ tint: 'amber', dot: null });
   });
 
   test('day inside trial window with a checkin that day → amber tint, green dot', () => {
-    const mark = dayMark(D('2026-07-17T12:00:00'), [trial], [], [D('2026-07-17T08:00:00')]);
+    const mark = dayMark(D('2026-07-17T12:00:00'), [trial], [], [D('2026-07-17T08:00:00')], LATER);
     expect(mark).toEqual({ tint: 'amber', dot: 'green' });
   });
 
-  test('trial end-of-window day (startedAt + windowDays) is included in the tinted range', () => {
-    const mark = dayMark(D('2026-07-19T00:00:01'), [trial], [], []);
-    expect(mark.tint).toBe('amber');
+  test('a 3-day window covers exactly 3 days — the 4th is NOT tinted', () => {
+    for (const d of ['2026-07-16', '2026-07-17', '2026-07-18']) {
+      expect(dayMark(D(`${d}T12:00:00`), [trial], [], [], LATER).tint).toBe('amber');
+    }
+    expect(dayMark(D('2026-07-19T00:00:01'), [trial], [], [], LATER).tint).toBe(null);
+  });
+
+  test('an active trial does not tint days that have not happened yet', () => {
+    const running = mk({ startedAt: D('2026-07-24T09:00:00'), windowDays: 3, outcome: null });
+    const today = D('2026-07-25T12:00:00');
+    expect(dayMark(D('2026-07-24T12:00:00'), [running], [], [], today).tint).toBe('amber');
+    expect(dayMark(D('2026-07-25T12:00:00'), [running], [], [], today).tint).toBe('amber');
+    expect(dayMark(D('2026-07-26T12:00:00'), [running], [], [], today).tint).toBe(null); // tomorrow
+  });
+
+  test('a safe-confirmed trial tints its days green — the outcome the parent cares about', () => {
+    const safe = mk({ startedAt: D('2026-07-16T09:00:00'), windowDays: 3, outcome: 'safe', endedAt: D('2026-07-19T09:00:00') });
+    expect(dayMark(D('2026-07-16T12:00:00'), [safe], [], [], LATER).tint).toBe('green');
+    expect(dayMark(D('2026-07-18T12:00:00'), [safe], [], [], LATER).tint).toBe('green');
+    expect(dayMark(D('2026-07-19T12:00:00'), [safe], [], [], LATER).tint).toBe(null);
+  });
+
+  test('an active trial outranks a safe one on a handoff day (amber beats green)', () => {
+    const closed = mk({ startedAt: D('2026-07-16T09:00:00'), windowDays: 3, outcome: 'safe', endedAt: D('2026-07-18T09:00:00') });
+    const started = mk({ startedAt: D('2026-07-18T09:00:00'), windowDays: 3, outcome: null });
+    expect(dayMark(D('2026-07-18T12:00:00'), [closed, started], [], [], LATER).tint).toBe('amber');
   });
 
   test('day outside any trial window, no reaction, no checkin → no tint, no dot', () => {
-    const mark = dayMark(D('2026-07-25T12:00:00'), [trial], [], []);
+    const mark = dayMark(D('2026-07-25T12:00:00'), [trial], [], [], LATER);
     expect(mark).toEqual({ tint: null, dot: null });
   });
 
   test('early-ended trial (reaction day 1) stops tinting at its actual end, not the scheduled window', () => {
     const reacted = mk({ startedAt: D('2026-07-16T09:00:00'), windowDays: 3, outcome: 'reacted', endedAt: D('2026-07-16T14:00:00') });
-    expect(dayMark(D('2026-07-16T12:00:00'), [reacted], [], []).tint).toBe('amber'); // day it ran
-    expect(dayMark(D('2026-07-17T12:00:00'), [reacted], [], []).tint).toBe(null); // test already over
+    expect(dayMark(D('2026-07-16T12:00:00'), [reacted], [], [], LATER).tint).toBe('amber'); // day it ran
+    expect(dayMark(D('2026-07-17T12:00:00'), [reacted], [], [], LATER).tint).toBe(null); // test already over
   });
 
-  test('safe confirmed after the window elapsed does not stretch the tint past the scheduled end', () => {
+  test('safe confirmed late does not stretch the tint past the days it covered', () => {
     const lateSafe = mk({ startedAt: D('2026-07-16T09:00:00'), windowDays: 3, outcome: 'safe', endedAt: D('2026-07-21T10:00:00') });
-    expect(dayMark(D('2026-07-19T12:00:00'), [lateSafe], [], []).tint).toBe('amber'); // scheduled end day
-    expect(dayMark(D('2026-07-20T12:00:00'), [lateSafe], [], []).tint).toBe(null); // between window end and confirm
+    expect(dayMark(D('2026-07-18T12:00:00'), [lateSafe], [], [], LATER).tint).toBe('green'); // last covered day
+    expect(dayMark(D('2026-07-19T12:00:00'), [lateSafe], [], [], LATER).tint).toBe(null); // window already closed
+    expect(dayMark(D('2026-07-20T12:00:00'), [lateSafe], [], [], LATER).tint).toBe(null); // before the late confirm
   });
 
   test('cancelled trial does not tint its window', () => {
     const cancelled = mk({ startedAt: D('2026-07-16T09:00:00'), windowDays: 3, outcome: 'cancelled' });
-    const mark = dayMark(D('2026-07-17T12:00:00'), [cancelled], [], []);
+    const mark = dayMark(D('2026-07-17T12:00:00'), [cancelled], [], [], LATER);
     expect(mark).toEqual({ tint: null, dot: null });
   });
 
   test('checkin day outside any window still surfaces a green dot with no tint', () => {
-    const mark = dayMark(D('2026-08-01T12:00:00'), [trial], [], [D('2026-08-01T08:00:00')]);
+    const mark = dayMark(D('2026-08-01T12:00:00'), [trial], [], [D('2026-08-01T08:00:00')], LATER);
     expect(mark).toEqual({ tint: null, dot: 'green' });
+  });
+
+  test('a 1-day window covers exactly its start day', () => {
+    const oneDay = mk({ startedAt: D('2026-07-16T09:00:00'), windowDays: 1, outcome: null });
+    expect(dayMark(D('2026-07-16T12:00:00'), [oneDay], [], [], LATER).tint).toBe('amber');
+    expect(dayMark(D('2026-07-17T12:00:00'), [oneDay], [], [], LATER).tint).toBe(null);
   });
 });
 
