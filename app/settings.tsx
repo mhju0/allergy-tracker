@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -28,6 +29,7 @@ export default function Settings() {
   const { t } = useTranslation();
   const router = useRouter();
   const baby = useBaby();
+  const insets = useSafeAreaInsets();
   const foods = useFoodsWithStatus();
   const reactions = useReactions();
   const exporting = useRef(false);
@@ -99,7 +101,7 @@ export default function Settings() {
   };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 22, paddingTop: 12, backgroundColor: colors.paper }}>
+    <ScrollView contentContainerStyle={{ padding: 22, paddingTop: 12, paddingBottom: 22 + insets.bottom, backgroundColor: colors.paper }}>
       <View style={{ justifyContent: 'center', paddingBottom: 12 }}>
         <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 2.2, color: colors.inkSecondary, textAlign: 'center' }}>
           {t('settings.title')}

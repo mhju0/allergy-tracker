@@ -14,7 +14,9 @@
     "logReaction": "반응 기록",
     "empty": "아직 관찰 기록이 없어요. “새 재료 시작하기”를 눌러보세요.",
     "calendar": "캘린더",
-    "autoclosed": "✓ {{food}} 안전으로 기록됨"
+    "autoclosed": "✓ {{food}} 안전으로 기록됨",
+    "short": "홈",
+    "viewRecord": "기록 보기"
   },
   "setup": {
     "babyName": "아기 이름",

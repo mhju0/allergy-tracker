@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFoodsWithStatus } from '../src/data/queries';
 import { logReaction } from '../src/data/mutations';
@@ -20,6 +21,7 @@ export default function LogReaction() {
   const router = useRouter();
   const navigation = useNavigation();
   const { foodId } = useLocalSearchParams<{ foodId: string }>();
+  const insets = useSafeAreaInsets();
   const entry = useFoodsWithStatus().find((f) => f.food.id === foodId);
 
   const [symptoms, setSymptoms] = useState<string[]>([]);
@@ -80,7 +82,7 @@ export default function LogReaction() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-    <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 22, paddingTop: 12, backgroundColor: colors.paper }}>
+    <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 22, paddingTop: 12, paddingBottom: 22 + insets.bottom, backgroundColor: colors.paper }}>
       <View style={{ justifyContent: 'center', paddingBottom: 12 }}>
         <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 2.2, color: colors.inkSecondary, textAlign: 'center' }}>
           {t('reaction.title')}

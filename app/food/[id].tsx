@@ -18,7 +18,7 @@ const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 
 export default function FoodDetail() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
   const insets = useSafeAreaInsets();
   const baby = useBaby();
   const foods = useFoodsWithStatus();
@@ -90,7 +90,9 @@ export default function FoodDetail() {
       >
         <Text style={eyebrowStyle}>
           <Text style={{ color: colors.inkSecondary }}>‹ </Text>
-          {t('foods.title')}
+          {/* back went to Home whenever the hero was tapped, while the label
+              always said 재료 — name wherever we actually came from. */}
+          {from === 'foods' ? t('foods.title') : t('home.short')}
         </Text>
       </Pressable>
 

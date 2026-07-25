@@ -27,7 +27,7 @@ function WelcomeCard({ windowDays }: { windowDays: number }) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 22, paddingTop: insets.top + 4, paddingBottom: insets.top + 22, backgroundColor: colors.paper }}>
+    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 22, paddingTop: insets.top + 4, paddingBottom: (insets.bottom > 0 ? insets.bottom : 12) + 22, backgroundColor: colors.paper }}>
       <Text style={eyebrowStyle}>{t('home.title')}</Text>
       <Text style={{ fontSize: 44, fontWeight: '900', color: colors.ink, letterSpacing: -0.5 }}>{t('welcome.title')}</Text>
       <Text style={{ fontSize: 14, color: colors.inkSecondary, lineHeight: 20, marginTop: 10, paddingLeft: layout.rowInset }}>
@@ -88,21 +88,28 @@ function Dashboard() {
 
       {active && latest ? (
         <View>
+          {/* Name + status line are ONE target. The 58px headline navigated with
+              no affordance of any kind, so the 기록 보기 → label has to sit
+              inside the same Pressable it describes. */}
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={foodLabel(active.food)}
-            onPress={() => router.push({ pathname: '/food/[id]', params: { id: active.food.id } })}
+            accessibilityHint={t('home.viewRecord')}
+            onPress={() => router.push({ pathname: '/food/[id]', params: { id: active.food.id, from: 'home' } })}
             style={press()}
           >
             <Text style={{ fontSize: 58, fontWeight: '900', color: colors.ink, letterSpacing: -1, lineHeight: 60 }}>
               {foodLabel(active.food)}
             </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 9, paddingLeft: layout.rowInset }}>
+              <Text style={{ flex: 1, fontSize: 13, fontWeight: '700', color: colors.amberText }}>
+                {elapsed
+                  ? t('home.readyToConfirm', { total: latest.windowDays })
+                  : `${t('status.testing')} · ${t('home.dayOf', { day, total: latest.windowDays })}`}
+              </Text>
+              <Text style={{ fontSize: 12, color: colors.inkSecondary }}>{t('home.viewRecord')} →</Text>
+            </View>
           </Pressable>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: colors.amberText, marginTop: 9, paddingLeft: layout.rowInset }}>
-            {elapsed
-              ? t('home.readyToConfirm', { total: latest.windowDays })
-              : `${t('status.testing')} · ${t('home.dayOf', { day, total: latest.windowDays })}`}
-          </Text>
           <View style={{ height: 3, backgroundColor: colors.hairline, borderRadius: 2, marginTop: 13, marginBottom: 20, overflow: 'hidden' }}>
             <View style={{ height: 3, width: `${fraction * 100}%`, backgroundColor: colors.amber }} />
           </View>
@@ -138,11 +145,15 @@ function Dashboard() {
             key={s}
             accessibilityRole="button"
             accessibilityLabel={`${t(`status.${s}`)} ${counts[s]}`}
+            // A 0 count used to be a live target that navigated and then did
+            // nothing (the focus effect no-ops when the status isn't present).
+            disabled={counts[s] === 0}
             onPress={() => router.push({ pathname: '/foods', params: { focus: s } })}
             style={press({
               flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',
               paddingVertical: 12, paddingHorizontal: layout.rowInset,
               borderBottomWidth: 1, borderColor: colors.hairline,
+              opacity: counts[s] === 0 ? 0.4 : 1,
             })}
           >
             <Text style={{ fontSize: 14, fontWeight: '700', color: colors.status[s].fg }}>{t(`status.${s}`)}</Text>

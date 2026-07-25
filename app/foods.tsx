@@ -89,7 +89,7 @@ export default function Foods() {
         // Keep the picker's promise: a custom food starts its test right away too.
         await startFlow({ id, name, isCustom: true, allergenGroup: null }, () => router.back());
       } else {
-        router.push({ pathname: '/food/[id]', params: { id } });
+        router.push({ pathname: '/food/[id]', params: { id, from: 'foods' } });
       }
     } catch {
       Alert.alert(t('errors.generic'));
@@ -189,14 +189,33 @@ export default function Foods() {
             onPress={
               pick === '1'
                 ? () => startFlow(item.food, () => router.back())
-                : () => router.push({ pathname: '/food/[id]', params: { id: item.food.id } })
+                : () => router.push({ pathname: '/food/[id]', params: { id: item.food.id, from: 'foods' } })
             }
           />
         )}
         ListEmptyComponent={
-          <Text style={{ color: colors.inkSecondary, fontSize: 14, textAlign: 'center', paddingVertical: 24 }}>
-            {query.trim() ? t('foods.emptySearch') : t('foods.empty')}
-          </Text>
+          query.trim() ? (
+            // A search that finds nothing used to be a dead end: the 직접 추가
+            // control is a separate pill at the top, and it opened empty, so the
+            // parent had to notice it and retype the word they just typed.
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setNewName(query.trim());
+                setAddOpen(true);
+              }}
+              style={press({ paddingVertical: 24, alignItems: 'center', gap: 6 })}
+            >
+              <Text style={{ color: colors.inkSecondary, fontSize: 14 }}>{t('foods.emptySearch')}</Text>
+              <Text style={{ color: colors.accent, fontSize: 15, fontWeight: '700' }}>
+                {t('foods.emptyAdd', { name: query.trim() })}
+              </Text>
+            </Pressable>
+          ) : (
+            <Text style={{ color: colors.inkSecondary, fontSize: 14, textAlign: 'center', paddingVertical: 24 }}>
+              {t('foods.empty')}
+            </Text>
+          )
         }
       />
     </View>
