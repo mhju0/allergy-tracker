@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Allergy Tracker — design audit</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════════
+   PROOF SHEET — a design audit of Allergy Tracker (Expo / React Native).
+
+   Identity note: this document is deliberately NOT dressed in the app's
+   warm paper-and-persimmon palette. The ground is a cool proof stock so
+   the app's own colors read as samples pinned to a board rather than as
+   the report's decoration. Severity is carried by rule weight, not by a
+   colour badge — the only chromatic ink in this document is the product's
+   own, and it only ever appears as evidence.
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root{
+  --ground:#E6E7E3;
+  --ground-2:#DDDFD9;
+  --ink:#16181A;
+  --ink-2:#565A55;
+  --ink-3:#83877F;
+  --rule:#C7C9C2;
+  --rule-2:#B0B3AB;
+
+  /* the product's palette — quoted as evidence only */
+  --p-paper:#FAF7F0; --p-ink:#26241F; --p-muted:#8B8578; --p-hair:#E4DED2;
+  --p-accent:#D96C3D; --p-amber:#B0761F; --p-green:#2E7D4F; --p-red:#A8432B;
+  --p-amberT:#F3E5C9; --p-greenT:#DFEEDF; --p-redT:#F3DED7; --p-out:#C9C2B4;
+  /* proposed replacements */
+  --n-accent:#BE4F26; --n-amber:#96631A; --n-ink2:#6E675A;
+
+  --mono:ui-monospace,"SF Mono",Menlo,"DejaVu Sans Mono",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",
+         "Segoe UI",system-ui,sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+body{
+  background:var(--ground);color:var(--ink);
+  font:400 14px/1.62 var(--sans);
+  -webkit-font-smoothing:antialiased;
+  padding:0 24px 120px;
+}
+.wrap{max-width:1080px;margin:0 auto}
+.wide{max-width:1320px;margin:0 auto}
+
+/* ─── masthead ────────────────────────────────────────────────────── */
+.mast{padding:72px 0 0}
+.mast .lockup{
+  font:700 10px/1 var(--mono);letter-spacing:.34em;text-transform:uppercase;
+  color:var(--ink-2);padding-bottom:22px;border-bottom:1px solid var(--rule-2);
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;
+}
+.mast h1{
+  font:900 clamp(42px,8vw,86px)/.95 var(--sans);letter-spacing:-.035em;
+  margin:34px 0 0;max-width:14ch;
+}
+.mast .sub{
+  font:400 clamp(16px,2vw,20px)/1.5 var(--sans);color:var(--ink-2);
+  max-width:56ch;margin-top:22px;
+}
+.mast .sub b{color:var(--ink);font-weight:700}
+.facts{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));
+  gap:0;margin-top:46px;border-top:1px solid var(--rule-2);
+}
+.facts div{padding:16px 16px 16px 0;border-right:1px solid var(--rule)}
+.facts div:last-child{border-right:0}
+.facts dt{font:700 9.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.facts dd{font:600 14px/1.4 var(--sans);margin-top:8px}
+
+/* ─── section scaffolding ─────────────────────────────────────────── */
+section{padding-top:96px}
+.shead{display:flex;align-items:baseline;gap:18px;border-bottom:3px solid var(--ink);padding-bottom:12px}
+.shead .num{font:700 11px/1 var(--mono);letter-spacing:.2em;color:var(--ink-3);flex:none}
+.shead h2{font:900 clamp(26px,4vw,40px)/1.05 var(--sans);letter-spacing:-.025em}
+.lede{font:400 17px/1.6 var(--sans);color:var(--ink-2);max-width:62ch;margin-top:22px}
+.lede b,.lede strong{color:var(--ink);font-weight:700}
+h3{font:800 19px/1.3 var(--sans);letter-spacing:-.012em;margin:44px 0 14px}
+h4{font:700 11px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin:34px 0 12px}
+p{max-width:66ch;margin-top:12px}
+p + p{margin-top:14px}
+code,.m{font:500 12.5px/1.5 var(--mono);background:var(--ground-2);padding:1px 5px;border-radius:2px}
+a{color:inherit}
+
+/* ─── definition grid (phase 0) ───────────────────────────────────── */
+.dg{border-top:1px solid var(--rule-2);margin-top:26px}
+.dg > div{
+  display:grid;grid-template-columns:180px 1fr;gap:24px;
+  padding:15px 0;border-bottom:1px solid var(--rule);
+}
+.dg dt{font:700 10px/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.dg dd{font-size:14.5px}
+.dg dd b{font-weight:700}
+@media (max-width:640px){.dg > div{grid-template-columns:1fr;gap:6px}}
+
+/* ─── interaction map ─────────────────────────────────────────────── */
+.tablewrap{overflow-x:auto;margin-top:26px;border-top:2px solid var(--ink);-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:960px}
+th{
+  font:700 9.5px/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);text-align:left;padding:12px 14px 12px 0;vertical-align:bottom;
+  border-bottom:1px solid var(--rule-2);
+}
+td{padding:11px 14px 11px 0;border-bottom:1px solid var(--rule);vertical-align:top;font-size:13px;line-height:1.5}
+tr.grp td{
+  background:var(--ground-2);font:700 10px/1 var(--mono);letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-2);padding:9px 14px 9px 10px;
+}
+td.el{font:600 13px/1.45 var(--sans);white-space:nowrap}
+td.ty{font:500 11px/1.5 var(--mono);color:var(--ink-2);white-space:nowrap}
+td.de{font:500 11.5px/1.5 var(--mono);color:var(--ink-2)}
+.v{font:700 9.5px/1 var(--mono);letter-spacing:.08em;white-space:nowrap;
+   border:1px solid var(--rule-2);padding:4px 6px;display:inline-block}
+.v.ok{color:var(--ink-3);border-color:var(--rule)}
+.v.bad{border-color:var(--ink);border-width:2px;font-weight:800}
+.v.mid{border-color:var(--rule-2);border-left-width:3px;border-left-color:var(--ink)}
+
+/* ─── findings: severity is rule weight, never colour ─────────────── */
+.find{border-left:1px dashed var(--rule-2);padding:0 0 0 22px;margin-top:30px}
+.find.p1{border-left:2px solid var(--rule-2)}
+.find.p0{border-left:5px solid var(--ink)}
+.find .tag{font:700 9.5px/1 var(--mono);letter-spacing:.16em;color:var(--ink-3)}
+.find .tag b{color:var(--ink)}
+.find h5{font:800 18px/1.32 var(--sans);letter-spacing:-.012em;margin:9px 0 0;max-width:52ch}
+.find dl{margin-top:14px;display:grid;grid-template-columns:104px 1fr;gap:7px 20px}
+.find dt{font:700 9.5px/1.6 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.find dd{font-size:13.5px;line-height:1.58;max-width:64ch}
+.find dd.src{font:500 11.5px/1.7 var(--mono);color:var(--ink-2);max-width:none}
+@media (max-width:640px){.find dl{grid-template-columns:1fr;gap:2px 0}.find dd{margin-bottom:9px}}
+
+/* ─── scorecard ───────────────────────────────────────────────────── */
+.score{border-top:2px solid var(--ink);margin-top:28px}
+.score .row{
+  display:grid;grid-template-columns:52px 1fr 132px 74px;gap:20px;align-items:start;
+  padding:20px 0;border-bottom:1px solid var(--rule);
+}
+.score .n{font:900 34px/.85 var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.score .n small{font:700 11px/1 var(--mono);color:var(--ink-3);display:block;margin-top:7px}
+.score .ttl{font:800 16px/1.3 var(--sans)}
+.score .txt{font-size:13.5px;line-height:1.55;color:var(--ink-2);margin-top:6px;max-width:60ch}
+.score .txt b{color:var(--ink);font-weight:700}
+.bars{display:flex;gap:3px;padding-top:9px}
+.bars i{flex:1;height:11px;border:1px solid var(--rule-2)}
+.bars i.on{background:var(--ink);border-color:var(--ink)}
+.score .pr{font:700 10px/1 var(--mono);letter-spacing:.12em;color:var(--ink-3);padding-top:11px;text-align:right}
+@media (max-width:720px){.score .row{grid-template-columns:44px 1fr;gap:14px}.score .pr,.bars{grid-column:2}}
+
+/* ─── THE SIGNATURE: live contrast specimens ──────────────────────── */
+.spec{border-top:2px solid var(--ink);margin-top:26px}
+.spec .r{
+  display:grid;grid-template-columns:1fr 128px 86px;gap:0;align-items:stretch;
+  border-bottom:1px solid var(--rule);
+}
+.spec .sample{
+  padding:15px 18px;font-family:var(--sans);display:flex;
+  flex-direction:column;justify-content:center;min-height:74px;
+}
+.spec .sample .kr{display:block}
+.spec .sample .use{
+  font:500 10px/1.4 var(--mono);opacity:.85;margin-top:6px;letter-spacing:.02em;
+}
+.spec .num{
+  padding:15px 14px;border-left:1px solid var(--rule);
+  font:700 21px/1 var(--mono);font-variant-numeric:tabular-nums;
+  display:flex;flex-direction:column;justify-content:center;letter-spacing:-.02em;
+}
+.spec .num small{font:500 9.5px/1.4 var(--mono);color:var(--ink-3);margin-top:6px;letter-spacing:.1em}
+.spec .vd{
+  padding:15px 0 15px 14px;border-left:1px solid var(--rule);
+  font:800 11px/1 var(--mono);letter-spacing:.1em;
+  display:flex;align-items:center;
+}
+.spec .vd.fail{border-left-width:5px;border-left-color:var(--ink)}
+.spec .vd.pass{color:var(--ink-3)}
+@media (max-width:700px){
+  .spec .r{grid-template-columns:1fr 96px}
+  .spec .vd{grid-column:1/-1;border-left:0;border-top:1px solid var(--rule);padding:9px 0 11px}
+  .spec .vd.fail{border-left:0;border-top-width:4px}
+}
+
+/* ─── swatch board (directions) ───────────────────────────────────── */
+.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(126px,1fr));gap:2px;margin-top:16px}
+.sw figure{border:1px solid var(--rule-2)}
+.sw .chip{height:66px}
+.sw figcaption{padding:8px 9px;background:#fff;font:500 10px/1.45 var(--mono)}
+.sw figcaption b{display:block;font:700 10.5px/1.3 var(--mono);letter-spacing:.04em;margin-bottom:3px}
+
+/* type specimen ladder */
+.ladder{border-top:1px solid var(--rule-2);margin-top:16px}
+.ladder .l{
+  display:grid;grid-template-columns:1fr 210px;gap:20px;align-items:baseline;
+  padding:13px 0;border-bottom:1px solid var(--rule);
+}
+.ladder .g{font-family:var(--sans);color:var(--ink);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ladder .s{font:500 11px/1.5 var(--mono);color:var(--ink-2);text-align:right}
+@media (max-width:640px){.ladder .l{grid-template-columns:1fr}.ladder .s{text-align:left}}
+
+/* ─── direction blocks ────────────────────────────────────────────── */
+.dir{margin-top:60px;padding-top:34px;border-top:1px solid var(--rule-2)}
+.dir.rec{border-top:5px solid var(--ink)}
+.dir .hd{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.dir .idx{font:700 11px/1 var(--mono);letter-spacing:.2em;color:var(--ink-3)}
+.dir h3{margin:0;font:900 clamp(24px,3.4vw,34px)/1.06 var(--sans);letter-spacing:-.028em}
+.dir .verdict{font:700 9.5px/1 var(--mono);letter-spacing:.14em;border:2px solid var(--ink);padding:5px 8px}
+.dir .verdict.no{border:1px solid var(--rule-2);color:var(--ink-3)}
+.thesis{font:400 clamp(17px,2.3vw,22px)/1.45 var(--sans);max-width:46ch;margin-top:18px;letter-spacing:-.012em}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0 44px;margin-top:12px}
+
+pre.ascii{
+  font:500 11.5px/1.62 var(--mono);background:#fff;border:1px solid var(--rule-2);
+  padding:18px 20px;overflow-x:auto;margin-top:14px;white-space:pre;
+}
+
+ul{margin:12px 0 0 0;padding-left:0;list-style:none;max-width:66ch}
+ul li{padding:7px 0 7px 22px;position:relative;font-size:13.5px;line-height:1.56;border-bottom:1px solid var(--rule)}
+ul li::before{content:"—";position:absolute;left:0;color:var(--ink-3)}
+ul li b{font-weight:700}
+ol.seq{margin:14px 0 0;padding-left:0;list-style:none;counter-reset:s;max-width:66ch}
+ol.seq li{
+  counter-increment:s;padding:11px 0 11px 40px;position:relative;
+  border-bottom:1px solid var(--rule);font-size:13.5px;line-height:1.56;
+}
+ol.seq li::before{
+  content:counter(s,decimal-leading-zero);position:absolute;left:0;top:12px;
+  font:700 10px/1 var(--mono);letter-spacing:.1em;color:var(--ink-3);
+}
+
+.note{
+  border-left:3px solid var(--ink);padding:14px 0 14px 18px;margin-top:26px;
+  font-size:13.5px;line-height:1.6;max-width:64ch;
+}
+.note b{font-weight:800}
+
+.method{
+  margin-top:80px;padding:24px 0 0;border-top:1px solid var(--rule-2);
+  font:500 11.5px/1.75 var(--mono);color:var(--ink-2);max-width:78ch;
+}
+.method b{color:var(--ink);font-weight:700}
+
+::selection{background:var(--ink);color:var(--ground)}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════ MASTHEAD ══════════════════════ -->
+<header class="mast wrap">
+  <div class="lockup">
+    <span>Design audit · Allergy Tracker · 알레르기 트래커</span>
+    <span>2026-07-25 · read-only</span>
+  </div>
+  <h1>The loudest button is the one you can't press.</h1>
+  <p class="sub">This app has a real visual identity and a genuinely tested domain core. What it does not have is <b>dynamics</b>: every row is a hairline, every action is a full-width pill, and the one loud colour lands on whichever button happens to be first in the JSX — which, while a food trial is running, is the one action the app's own rule blocks.</p>
+
+  <dl class="facts">
+    <div><dt>Stack</dt><dd>Expo SDK 57 · RN 0.86 · TS strict</dd></div>
+    <div><dt>Surface</dt><dd>6 screens · 3 shared components</dd></div>
+    <div><dt>Design system</dt><dd>Token-based, partial</dd></div>
+    <div><dt>Overall</dt><dd>2.5 / 5</dd></div>
+    <div><dt>Claims verified</dt><dd>26 adversarial · 4 corrected</dd></div>
+  </dl>
+</header>
+
+<!-- ══════════════════════ PHASE 0 ══════════════════════ -->
+<section class="wrap" id="p0">
+  <div class="shead"><span class="num">PHASE 0</span><h2>Inspect</h2></div>
+
+  <dl class="dg">
+    <div><dt>Product</dt><dd>A private notebook for introducing a baby's first foods one at a time, so a parent can tell at a glance which foods are safe, which caused a reaction, and which is being watched right now.</dd></div>
+    <div><dt>Primary user</dt><dd>A Korean-speaking parent weaning one baby, on one iPhone, alone. No account, no second device, no partner sync.</dd></div>
+    <div><dt>Main user job</dt><dd>“Feed one new food, watch three days, record what happened, move on — and still be able to answer the paediatrician six months later.”</dd></div>
+    <div><dt>Main flows</dt><dd><b>Daily loop</b> — open, tap 이상 없음, close (≈4 s, twice per 3-day window).<br><b>Start loop</b> — 새 재료 시작하기 → pick a food → trial begins.<br><b>Close loop</b> — window elapses → 안전으로 표시, <em>or</em> reaction → 반응 기록 modal.<br><b>Recall</b> — 캘린더 / food detail / PDF export before a doctor visit.</dd></div>
+    <div><dt>Stack</dt><dd>Expo SDK 57, React Native 0.86, TypeScript strict, Expo Router (file-based, stack-only), expo-sqlite + Drizzle, i18next (ko only), expo-notifications, expo-print. <b>npm</b> (<code>package-lock.json</code>, no yarn/pnpm/bun lockfile).</dd></div>
+    <div><dt>UI architecture</dt><dd>Six route files under <code>app/</code>, each a single default-exported screen holding all of its own layout as <b>inline style objects</b> — there is no StyleSheet, no theme provider, no styled-components. Three shared components (<code>Button</code>, <code>StatusChip</code>, <code>CheckinPill</code>) and one token module (<code>src/ui/tokens.ts</code>) exporting <code>colors</code>, <code>statusIcon</code>, <code>radii</code>, <code>layout</code>. Domain logic is pure and unit-tested; the UI is a thin layer over it.</dd></div>
+    <div><dt>Design-system maturity</dt><dd><b>Token-based, partial.</b> Colour is fully centralised and genuinely disciplined — zero hardcoded hex outside <code>tokens.ts</code>. Everything else is not: <b>17 distinct font sizes</b> (10, 11, 11.5, 12, 12.5, 13, 13.5, 14, 15, 17, 18, 30, 40, 44, 52, 58 …) and <b>13 distinct spacing values</b> appear as literals across the screens, with no scale to snap to. <code>radii</code> exports one value; there is no elevation ramp (correctly — the app has no shadows) and no motion vocabulary at all.</dd></div>
+    <div><dt>Risky files — do not touch</dt><dd><code>src/domain/*.ts</code> (pure, fully unit-tested; status derivation is the product's correctness guarantee) · <code>src/db/schema.ts</code> + <code>drizzle/**</code> (schema change means a generated migration) · <code>src/data/mutations.ts</code> and <code>src/data/useStartTrialFlow.ts</code> (the one-active-trial invariant and the implicit-safe autoclose live here) · <code>src/services/notify.ts</code> · <code>plugins/with-no-push-entitlement.js</code>. Everything proposed in this report stays inside <code>app/**</code>, <code>src/ui/**</code> and <code>src/i18n/ko.json</code>.</dd></div>
+  </dl>
+</section>
+
+<!-- ══════════════════════ PHASE 1 ══════════════════════ -->
+<section class="wide" id="p1">
+  <div class="shead"><span class="num">PHASE 1</span><h2>Interaction map</h2></div>
+  <p class="lede">Every interactive element in the product, and what actually happens when it is used. This is the evidence base for everything below it — each finding in Phase&nbsp;2 points back to a row here.</p>
+
+  <div class="tablewrap">
+  <table>
+    <thead><tr>
+      <th style="width:14%">Element</th><th style="width:8%">Type</th>
+      <th style="width:24%">What the user expects</th><th style="width:30%">What actually happens</th>
+      <th style="width:12%">Destination</th><th style="width:12%">Verdict</th>
+    </tr></thead>
+    <tbody>
+
+    <tr class="grp"><td colspan="6">Home — first run (WelcomeCard, index.tsx:25)</td></tr>
+    <tr><td class="el">시작하기</td><td class="ty">Button</td><td>Dismiss the guide, start using the app</td><td>Fire-and-forget <code>updateBabySettings</code> — not awaited, not caught, no in-flight guard. A failed write leaves the card up forever with zero feedback; a double tap issues two writes.</td><td class="de">Dashboard</td><td><span class="v mid">UNGUARDED</span></td></tr>
+
+    <tr class="grp"><td colspan="6">Home — dashboard, trial active (index.tsx:63)</td></tr>
+    <tr><td class="el">두부 (hero name)</td><td class="ty">Pressable</td><td>A headline. Not a control.</td><td>Navigates to the food detail page. 58 px/900 text with no chevron, underline or border — while every other navigating row on the same screen carries a <code>→</code>.</td><td class="de">/food/[id]</td><td><span class="v bad">HIDDEN</span></td></tr>
+    <tr><td class="el">이상 없음</td><td class="ty">Pressable</td><td>Log today's check-in</td><td>Correct — inserts a checkin row. Rendered as a <b>green outline</b>, i.e. visually subordinate to the persimmon button below it, although this is the action the 09:00 notification asks for.</td><td class="de">— (in place)</td><td><span class="v mid">DEMOTED</span></td></tr>
+    <tr><td class="el">이상 없음 (done state)</td><td class="ty">Text</td><td>Confirmation that it registered</td><td>Correct, but the control collapses from ≈47 pt to ≈33 pt at the instant of the tap, so 반응 기록 jumps ~14 pt upward under the finger.</td><td class="de">—</td><td><span class="v mid">SHIFTS</span></td></tr>
+    <tr><td class="el">안전으로 표시</td><td class="ty">Button</td><td>Close this food as safe</td><td>Writes <code>outcome:'safe'</code> and returns. Fire-and-forget: no await, no confirmation, no toast. The hero unmounts and Home's primary slot renders <b>nothing</b>.</td><td class="de">— (hero vanishes)</td><td><span class="v bad">DEAD END</span></td></tr>
+    <tr><td class="el">반응 기록</td><td class="ty">Button</td><td>Open the reaction sheet</td><td>Correct.</td><td class="de">/log-reaction</td><td><span class="v ok">OK</span></td></tr>
+    <tr><td class="el">새 재료 시작하기</td><td class="ty">Button</td><td>The main thing to do — it is the only filled button on the screen</td><td>Pushes the picker. Two taps later, if a trial is running, the only way forward is an alert whose destructive option cancels the trial in progress.</td><td class="de">/foods?pick=1</td><td><span class="v bad">MISLEADING</span></td></tr>
+    <tr><td class="el">안전 / 테스트 중 / 반응 / 안 먹어봄 ×4</td><td class="ty">Pressable</td><td>A statistics readout</td><td>Each is a navigation target — no chevron, no underline, no pressed state. Lands on an unfiltered list <em>scrolled</em> to that status, which is not the “show me my 8 safe foods” the label implies.</td><td class="de">/foods?focus=…</td><td><span class="v mid">UNCLEAR</span></td></tr>
+    <tr><td class="el">테스트 중 0 (zero count)</td><td class="ty">Pressable</td><td>Nothing to see, probably inert</td><td>Fully live and undimmed. Navigates, the focus effect no-ops, and the user gets an unscrolled full list with no explanation.</td><td class="de">/foods?focus=testing</td><td><span class="v mid">NO-OP</span></td></tr>
+    <tr><td class="el">캘린더 →</td><td class="ty">Pressable</td><td>Month history</td><td>Correct. The app's only calendar entry point.</td><td class="de">/calendar</td><td><span class="v ok">OK</span></td></tr>
+    <tr><td class="el">설정 →</td><td class="ty">Pressable</td><td>Settings sheet</td><td>Correct. The app's only settings entry point.</td><td class="de">/settings</td><td><span class="v ok">OK</span></td></tr>
+
+    <tr class="grp"><td colspan="6">Foods — 재료 (foods.tsx)</td></tr>
+    <tr><td class="el">‹ 재료</td><td class="ty">Pressable</td><td>Go back</td><td>Correct (44 pt target) — but the <em>visual</em> affordance is a 10 px letterspaced glyph in a colour that measures 3.43:1.</td><td class="de">back</td><td><span class="v mid">FAINT</span></td></tr>
+    <tr><td class="el">재료 검색…</td><td class="ty">TextInput</td><td>Filter the list; clear it easily</td><td>Filters correctly. No <code>clearButtonMode</code>, no <code>returnKeyType</code>, no <code>autoCorrect</code> control; clearing means backspacing.</td><td class="de">— (in place)</td><td><span class="v mid">THIN</span></td></tr>
+    <tr><td class="el">＋ 직접 추가</td><td class="ty">Pressable</td><td>Add a food not in the catalogue</td><td>Toggles an inline field. Does <b>not</b> carry over the term already typed into search — <code>query</code> and <code>newName</code> are independent state, so the user retypes. Target ≈41 pt incl. hitSlop.</td><td class="de">— (expands)</td><td><span class="v mid">RETYPE</span></td></tr>
+    <tr><td class="el">추가</td><td class="ty">Pressable</td><td>Save the typed food</td><td>Correct, guarded, and in pick mode it also starts the trial — the promise the picker made.</td><td class="de">detail <em>or</em> back</td><td><span class="v ok">OK</span></td></tr>
+    <tr><td class="el">Food row — browse mode</td><td class="ty">Pressable</td><td>Open this food</td><td>Opens the detail page.</td><td class="de">/food/[id]</td><td><span class="v ok">OK</span></td></tr>
+    <tr><td class="el">Food row — pick mode</td><td class="ty">Pressable</td><td>Open this food</td><td><b>Immediately starts a 3-day trial and pops back to Home.</b> Byte-identical row, same screen title; the only tell is one 12 px muted hint line.</td><td class="de">back (trial started)</td><td><span class="v bad">MODE ERROR</span></td></tr>
+    <tr><td class="el">Food row — pick mode, second path</td><td class="ty">Pressable</td><td>Inspect before committing</td><td>Impossible. The detail branch is unreachable while <code>pick==='1'</code>; there is no long-press, no chevron, no secondary target.</td><td class="de">—</td><td><span class="v bad">NO ESCAPE</span></td></tr>
+    <tr><td class="el">Empty list</td><td class="ty">Text</td><td>An offer to add what I typed</td><td>Bare text “검색 결과가 없어요”, no action — and it is the unconditional <code>ListEmptyComponent</code>, so a user who never searched is told their search found nothing.</td><td class="de">—</td><td><span class="v bad">DEAD END</span></td></tr>
+
+    <tr class="grp"><td colspan="6">Food detail — food/[id].tsx</td></tr>
+    <tr><td class="el">‹ 재료</td><td class="ty">Pressable</td><td>Back to the food list</td><td>Goes back to wherever you came from — which is Home when you arrived by tapping the hero. The label names a screen that is not the destination.</td><td class="de">back (varies)</td><td><span class="v bad">MISLABELLED</span></td></tr>
+    <tr><td class="el">3일 테스트 시작 / 재테스트 (3일)</td><td class="ty">Button</td><td>Start watching this food</td><td>Correct — and it lands you on Home (<code>dismissAll</code>) where the new trial lives. Good.</td><td class="de">Home</td><td><span class="v ok">OK</span></td></tr>
+    <tr><td class="el">안전으로 표시</td><td class="ty">Button</td><td>Close as safe</td><td>Same silent write as Home. Here at least the history list gains a 안전 확인 row, so there is <em>some</em> evidence.</td><td class="de">— (in place)</td><td><span class="v mid">QUIET</span></td></tr>
+    <tr><td class="el">이상 없음</td><td class="ty">Pressable</td><td>Log a check-in</td><td>Correct — but this screen keeps offering it after the window has elapsed, while Home removes it in the same state. Two screens, one trial, different affordances.</td><td class="de">— (in place)</td><td><span class="v mid">DIVERGENT</span></td></tr>
+    <tr><td class="el">테스트 취소</td><td class="ty">Button (danger)</td><td>Abandon this trial</td><td>Opens a confirm alert whose <b>destructive</b> button reads 테스트 취소 and whose <b>dismissive</b> button reads 닫기. On iOS the word 취소 is conventionally the safe escape; here it is the one that ends the trial.</td><td class="de">alert</td><td><span class="v bad">COLLISION</span></td></tr>
+    <tr><td class="el">History rows</td><td class="ty">View</td><td>Tap to see or edit the record</td><td>Inert. Nothing in the app can edit or delete any record — a mis-tapped reaction is permanent and reaches the exported PDF.</td><td class="de">—</td><td><span class="v mid">INERT</span></td></tr>
+
+    <tr class="grp"><td colspan="6">Calendar — calendar.tsx</td></tr>
+    <tr><td class="el">‹ 캘린더</td><td class="ty">Pressable</td><td>Back</td><td>Correct.</td><td class="de">back</td><td><span class="v ok">OK</span></td></tr>
+    <tr><td class="el">2026년 7월</td><td class="ty">Pressable</td><td>A heading</td><td>It is the “jump to today” button. No underline, chevron, border or background — the only cue is a screen-reader label.</td><td class="de">— (jumps)</td><td><span class="v bad">HIDDEN</span></td></tr>
+    <tr><td class="el">‹ / ›</td><td class="ty">Pressable</td><td>Previous / next month</td><td>Correct, 44 pt, and it moves the selection to the 1st so the day list can't show an off-screen day. Good detail.</td><td class="de">— (in place)</td><td><span class="v ok">OK</span></td></tr>
+    <tr><td class="el">Day cell</td><td class="ty">Pressable</td><td>Show that day's events</td><td>Correct. But <b>33 of the 34 days</b> the demo history spans carry the amber “테스트 기간” tint, so the tint discriminates almost nothing; today has no marker at all; and a confirmed-safe outcome leaves no mark anywhere on the grid.</td><td class="de">— (selects)</td><td><span class="v bad">SATURATED</span></td></tr>
+    <tr><td class="el">Legend</td><td class="ty">View</td><td>Explain the marks</td><td>Three bare colour swatches. Cell accessibility labels announce the date only — no tint, no dot. This is the one screen that breaks the project's own “icon + label always accompany status colours” rule.</td><td class="de">—</td><td><span class="v bad">COLOUR-ONLY</span></td></tr>
+    <tr><td class="el">Event rows</td><td class="ty">View</td><td>Tap through to the food</td><td>Inert. The calendar names a food and offers no route to it.</td><td class="de">—</td><td><span class="v mid">INERT</span></td></tr>
+
+    <tr class="grp"><td colspan="6">Log reaction — modal (log-reaction.tsx)</td></tr>
+    <tr><td class="el">✕</td><td class="ty">Pressable</td><td>Close without saving</td><td>Correct; ≈56 pt with hitSlop. No unsaved-changes guard.</td><td class="de">back</td><td><span class="v ok">OK</span></td></tr>
+    <tr><td class="el">Symptom chips ×8</td><td class="ty">Pressable</td><td>Multi-select</td><td>Correct, with <code>accessibilityState.selected</code>. Good.</td><td class="de">—</td><td><span class="v ok">OK</span></td></tr>
+    <tr><td class="el">가벼움 / 중간 / 심각</td><td class="ty">Segmented</td><td>Pick a severity</td><td>가벼움 is <b>pre-selected and rendered as chosen</b>. Save is gated only on symptoms, so the fastest path records a severity the parent never picked — permanently, into the doctor's PDF.</td><td class="de">—</td><td><span class="v bad">PRESUMED</span></td></tr>
+    <tr><td class="el">발생 시각</td><td class="ty">DateTimePicker</td><td>When it happened</td><td>Correct — defaults to now, capped at now, ko-KR locale.</td><td class="de">—</td><td><span class="v ok">OK</span></td></tr>
+    <tr><td class="el">메모</td><td class="ty">TextInput</td><td>Free note</td><td>Correct, inside a KeyboardAvoidingView.</td><td class="de">—</td><td><span class="v ok">OK</span></td></tr>
+    <tr><td class="el">반응 저장</td><td class="ty">Button</td><td>Save</td><td>Disabled at 40 % opacity until a symptom is chosen, with no text at the button saying why and no <code>accessibilityHint</code> anywhere in the codebase. Sits with no bottom safe-area inset — 22 pt of padding inside a ~34 pt home-indicator zone.</td><td class="de">back + alert</td><td><span class="v bad">UNEXPLAINED</span></td></tr>
+    <tr><td class="el">Save confirmation alert</td><td class="ty">Alert</td><td>Tell me what changed</td><td>Says “the test has ended and this food is now 반응” — unconditionally, including on the delayed-reaction path where the trial closed weeks ago. It never says the food just went 안전 → 반응.</td><td class="de">—</td><td><span class="v bad">INACCURATE</span></td></tr>
+
+    <tr class="grp"><td colspan="6">Settings — modal (settings.tsx)</td></tr>
+    <tr><td class="el">✕</td><td class="ty">Pressable</td><td>Close</td><td>Correct.</td><td class="de">back</td><td><span class="v ok">OK</span></td></tr>
+    <tr><td class="el">아기 이름</td><td class="ty">TextInput</td><td>Type it; it saves</td><td>Uncontrolled, commits on <code>onEndEditing</code> only. No Save button, no dirty state, no confirmation. Worse: the value is drawn in the same colour as the 미입력 placeholder, so saved and unsaved look identical.</td><td class="de">— (writes)</td><td><span class="v bad">INVISIBLE</span></td></tr>
+    <tr><td class="el">생년월일</td><td class="ty">DateTimePicker</td><td>Set, and unset</td><td>Write-once. Unset renders as today, and there is no clear path — while the name field four lines above <em>can</em> be cleared to null.</td><td class="de">— (writes)</td><td><span class="v mid">ONE-WAY</span></td></tr>
+    <tr><td class="el">알림</td><td class="ty">Pressable</td><td>Show and fix permission state</td><td>Opens iOS Settings. Read once on mount with no focus or AppState refresh — grant permission, come back, and the row still says 꺼짐. Renders an empty value while checking. Carries no <code>→</code> although the row below it does.</td><td class="de">iOS Settings</td><td><span class="v bad">STALE</span></td></tr>
+    <tr><td class="el">사용 안내 다시 보기</td><td class="ty">Pressable</td><td>Re-read the guide, then come back</td><td>Nulls <code>welcomedAt</code> and pops. Home now renders the WelcomeCard <em>instead of</em> the dashboard — which has no ✕ and no back, and is the root route. An active trial, the check-in and the calendar entry are all hidden until the user commits the write again.</td><td class="de">Home (locked)</td><td><span class="v bad">ONE-WAY DOOR</span></td></tr>
+    <tr><td class="el">진료용 리포트 (PDF)</td><td class="ty">Button</td><td>Make a PDF for the doctor</td><td>Correct, guarded, share-sheet handoff. The single best-executed flow in the app.</td><td class="de">share sheet</td><td><span class="v ok">OK</span></td></tr>
+    <tr><td class="el">데이터 백업 (JSON)</td><td class="ty">Button</td><td>A backup I can restore from</td><td>Exports correctly — but there is no import path anywhere in the codebase. On a device-only app with no second copy, 백업 promises restorability the app cannot deliver.</td><td class="de">share sheet</td><td><span class="v bad">OVERPROMISE</span></td></tr>
+
+    <tr class="grp"><td colspan="6">System-level</td></tr>
+    <tr><td class="el">iOS edge-swipe back</td><td class="ty">Gesture</td><td>Go back</td><td>Works on the three pushed screens (native stack, <code>headerShown:false</code>).</td><td class="de">back</td><td><span class="v ok">OK</span></td></tr>
+    <tr><td class="el">Modal swipe-down</td><td class="ty">Gesture</td><td>Dismiss the sheet</td><td>Works — and on Settings it is the exact gesture that can tear down a focused, uncommitted name field.</td><td class="de">back</td><td><span class="v mid">RISKY</span></td></tr>
+    <tr><td class="el">09:00 check-in notification</td><td class="ty">Notification</td><td>Tap → log the check-in</td><td>Foregrounds the app. If already checked in that morning, it lands on a pill that says you already did — check-in is the only mutation that does not cancel its trial's pending notifications.</td><td class="de">Home</td><td><span class="v mid">REDUNDANT</span></td></tr>
+    <tr><td class="el">Window-end notification</td><td class="ty">Notification</td><td>Tap → mark it safe</td><td><b>Home does not update.</b> <code>elapsed</code> is computed from a render-time <code>new Date()</code>, and there is no AppState listener, interval or timer anywhere in the app — foregrounding an already-focused Home re-runs nothing. The user is told to confirm and shown no confirm button.</td><td class="de">Home (stale)</td><td><span class="v bad">BROKEN</span></td></tr>
+    <tr><td class="el">DB init failure</td><td class="ty">Screen</td><td>A way out</td><td>Centred red text with the raw exception appended, no retry control, no safe-area inset, and it returns before the navigator mounts.</td><td class="de">— (bricked)</td><td><span class="v bad">DEAD END</span></td></tr>
+
+    </tbody>
+  </table>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <h4>Dead ends</h4>
+      <ul>
+        <li><b>DB init failure</b> — raw error, no retry, no navigation. The app is bricked.</li>
+        <li><b>Home after 안전으로 표시</b> — the hero unmounts and the primary slot renders <code>null</code>. Nothing confirms what just happened.</li>
+        <li><b>Home between trials</b> — the same <code>null</code> branch. This is the app's steady state after week one.</li>
+        <li><b>Empty search</b> — “검색 결과가 없어요” with no offer to add the term as a custom food.</li>
+        <li><b>사용 안내 다시 보기</b> — the WelcomeCard has no close and is the root route; the only exit re-commits the write.</li>
+        <li><b>Calendar event rows</b> — name a food, offer no route to it.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Duplicate paths</h4>
+      <ul>
+        <li><b>Start a trial</b> ×3 — picker row, food-detail button, and the cancel-and-start alert. All reach the same mutation; only the picker skips the detail page.</li>
+        <li><b>Log a reaction</b> ×3 — Home (two branches) and food detail. Consistent, and defensible.</li>
+        <li><b>Mark safe</b> ×3 — Home, detail, <em>and</em> the silent implicit-safe autoclose fired by starting the next food.</li>
+      </ul>
+      <h4>Back / close problems</h4>
+      <ul>
+        <li>Food detail's back label always reads 재료 even when back goes to Home.</li>
+        <li>The only back affordance on pushed screens is a 10 px glyph at 3.43:1.</li>
+        <li>Destructive alerts put 취소 on the destroying button and 닫기 on the safe one.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h4>Orphan surfaces &amp; buried actions</h4>
+  <ul>
+    <li><b>No orphan routes.</b> All six are reachable from the UI — a genuinely clean graph for a stack-only app.</li>
+    <li><b>Active food's detail page</b> — reachable only by tapping a 58 px headline with no affordance. Effectively orphaned by styling rather than by routing.</li>
+    <li><b><code>defaultWindowDays</code></b> — a live per-install DB column, consumed in three places, with no UI anywhere. Three strings hardcode “3일” while their siblings interpolate the value; they disagree the moment that column is not 3.</li>
+    <li><b><code>colors.greenTint</code></b> — defined and exported, <b>zero consumers</b>. A safe outcome leaves no mark on the calendar at all.</li>
+    <li><b>Buried &gt; 2 taps:</b> reaction history for a specific food (Home → 반응 count → scroll → row → detail = 4). Calendar (2, behind an unlabelled bottom row). Nothing critical is deeper than 4.</li>
+  </ul>
+</section>
+
+<!-- ══════════════════════ PHASE 2 ══════════════════════ -->
+<section class="wrap" id="p2">
+  <div class="shead"><span class="num">PHASE 2</span><h2>Audit</h2></div>
+  <p class="lede">Six categories, scored 1–5. The pattern: <b>the parts built test-first are strong; the parts that were never given a scale, a state model or a vocabulary are weak.</b> Colour is centralised and disciplined. Type, spacing, motion, feedback and terminology are not.</p>
+
+  <div class="score">
+    <div class="row">
+      <div class="n">3<small>A</small></div>
+      <div>
+        <div class="ttl">First-run clarity</div>
+        <div class="txt">The welcome card is a real design decision and a good one — title, three numbered steps, one button, disclaimer, dismissal persisted. A parent understands the product in well under ten seconds. It loses points for what happens <b>after</b>: the first dashboard has an empty hero, 고위험 is asserted on a dozen foods with no definition anywhere in <code>ko.json</code>, and the 시작하기 write is unguarded so a failure traps the user on the card.</div>
+        <div class="bars"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+      </div>
+      <div><div class="txt" style="margin:0"><code>app/index.tsx:25–61</code><br><code>src/i18n/ko.json:17–24, 32</code></div></div>
+      <div class="pr">P1</div>
+    </div>
+
+    <div class="row">
+      <div class="n">2<small>B</small></div>
+      <div>
+        <div class="ttl">Navigation &amp; IA</div>
+        <div class="txt">Labels are written for users, the route graph has no orphans, and six screens for this product is the right number. The failures are all <b>state made invisible</b>: the same food row does two different things depending on a query param; the back label names the wrong screen; the status counts are navigation dressed as statistics; 사용 안내 다시 보기 is a one-way door that hides an active trial.</div>
+        <div class="bars"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+      </div>
+      <div><div class="txt" style="margin:0"><code>app/foods.tsx:39,167–176</code><br><code>app/food/[id].tsx:92</code><br><code>app/settings.tsx:152–157</code></div></div>
+      <div class="pr">P0</div>
+    </div>
+
+    <div class="row">
+      <div class="n">2<small>C</small></div>
+      <div>
+        <div class="ttl">Screen hierarchy &amp; flow completion</div>
+        <div class="txt"><b>The weakest category, and the reason for this audit's headline.</b> Every screen has one clear purpose, but on Home the visually dominant control is the one action the domain rule blocks. The close-loop — the whole point of a 3-day window — cannot be completed from the notification that prompts it, because nothing re-renders when time passes. And when it <em>is</em> completed, nothing acknowledges it. The app has no success state.</div>
+        <div class="bars"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+      </div>
+      <div><div class="txt" style="margin:0"><code>app/index.tsx:70,78,88,107,129</code><br><code>src/domain/status.ts:17</code><br>no <code>AppState</code> in repo</div></div>
+      <div class="pr">P0</div>
+    </div>
+
+    <div class="row">
+      <div class="n">2<small>D</small></div>
+      <div>
+        <div class="ttl">States &amp; inputs</div>
+        <div class="txt">Error handling in the <em>mutation</em> layer is careful — ref guards, try/catch, honest failure alerts, idempotent <code>confirmSafe</code>. The <em>presentation</em> of state is not. Loading is a blank screen in four places and a false “no results” empty state in two more. The DB error is a dead end. Save is disabled with no stated reason and there is no <code>accessibilityHint</code> in the codebase. Settings commits invisibly and shows values in placeholder grey.</div>
+        <div class="bars"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+      </div>
+      <div><div class="txt" style="margin:0"><code>app/_layout.tsx:30–37</code><br><code>app/log-reaction.tsx:169</code><br><code>app/settings.tsx:120–126</code></div></div>
+      <div class="pr">P0</div>
+    </div>
+
+    <div class="row">
+      <div class="n">3<small>E</small></div>
+      <div>
+        <div class="ttl">Craft &amp; consistency</div>
+        <div class="txt">Real quality here: no cards, no shadows, no gradients, rules instead of containers, semantic <code>accessibilityRole</code> everywhere, 44 pt targets nearly everywhere, and zero hardcoded hex outside the token file. The ceiling is set by three systematic gaps — <b>17 ad-hoc font sizes with no scale</b>, <b>zero pressed-state feedback on all 22 interactive elements</b>, and <b>four palette entries that fail WCAG AA as text</b>, including the primary button. Fixed 44 pt rows with <code>numberOfLines={1}</code> also mean large Dynamic Type overflows rather than reflows.</div>
+        <div class="bars"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+      </div>
+      <div><div class="txt" style="margin:0"><code>src/ui/tokens.ts</code><br><code>src/ui/Button.tsx:18</code><br><code>app/foods.tsx:31,166,200</code></div></div>
+      <div class="pr">P0</div>
+    </div>
+
+    <div class="row">
+      <div class="n">3<small>F</small></div>
+      <div>
+        <div class="ttl">Copy &amp; tone</div>
+        <div class="txt">The Korean is natural, concise and consistently 해요체 — no developer wording, no machine-translation smell, and the privacy and disclaimer lines are honestly earned. Every user-visible string goes through i18next; a Hangul grep over the screens finds literals only in comments. What is unmanaged is <b>vocabulary</b>: 테스트 and 관찰 name the same span in different strings (one sentence uses both), 백업 promises a restore that does not exist, 취소 sits on the destroying button, “3일” is hardcoded in three strings whose siblings interpolate, and the save alert states an outcome that is wrong on the delayed-reaction path.</div>
+        <div class="bars"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+      </div>
+      <div><div class="txt" style="margin:0"><code>src/i18n/ko.json:7,30,41,62,81,88,104</code></div></div>
+      <div class="pr">P1</div>
+    </div>
+  </div>
+
+  <!-- ─── the specimen strip: the signature of this document ─── -->
+  <h3>Colour, measured</h3>
+  <p>Every row below is the product's real token, at the real size, on the real background, with the ratio computed from the hex values in <code>src/ui/tokens.ts</code>. Nothing here is an opinion.</p>
+
+  <div class="spec">
+    <div class="r">
+      <div class="sample" style="background:var(--p-accent);color:#fff">
+        <span class="kr" style="font-size:15px;font-weight:700">새 재료 시작하기</span>
+        <span class="use">#FFFFFF on #D96C3D · 15/700 · the primary Button, every screen</span>
+      </div>
+      <div class="num">3.41<small>NEEDS 4.5</small></div>
+      <div class="vd fail">FAIL AA</div>
+    </div>
+    <div class="r">
+      <div class="sample" style="background:var(--p-paper);color:var(--p-muted)">
+        <span class="kr" style="font-size:14px">아직 테스트 기록이 없어요.</span>
+        <span class="use">#8B8578 on #FAF7F0 · eyebrows, timestamps, hints, empty states, disclaimer, placeholders, 안 먹어봄</span>
+      </div>
+      <div class="num">3.43<small>NEEDS 4.5</small></div>
+      <div class="vd fail">FAIL AA</div>
+    </div>
+    <div class="r">
+      <div class="sample" style="background:var(--p-paper);color:var(--p-amber)">
+        <span class="kr" style="font-size:13px;font-weight:700">테스트 중 · 3일 중 2일째</span>
+        <span class="use">#B0761F on #FAF7F0 · the active-trial subline — the most-read line in the app</span>
+      </div>
+      <div class="num">3.60<small>NEEDS 4.5</small></div>
+      <div class="vd fail">FAIL AA</div>
+    </div>
+    <div class="r">
+      <div class="sample" style="background:var(--p-amberT);color:var(--p-amber)">
+        <span class="kr" style="font-size:12.5px;font-weight:700">16 &nbsp; 17 &nbsp; 18 &nbsp; 19 &nbsp; 20</span>
+        <span class="use">#B0761F on #F3E5C9 · calendar day numbers — 33 of 34 days in the demo month</span>
+      </div>
+      <div class="num">3.09<small>NEEDS 4.5</small></div>
+      <div class="vd fail">FAIL AA</div>
+    </div>
+    <div class="r">
+      <div class="sample" style="background:var(--p-paper);color:var(--p-out)">
+        <span class="kr" style="font-size:12.5px;font-weight:700">28 &nbsp; 29 &nbsp; 30</span>
+        <span class="use">#C9C2B4 on #FAF7F0 · out-of-month calendar days</span>
+      </div>
+      <div class="num">1.65<small>NEEDS 4.5</small></div>
+      <div class="vd fail">FAIL AA</div>
+    </div>
+    <div class="r">
+      <div class="sample" style="background:var(--p-paper);color:var(--p-green)">
+        <span class="kr" style="font-size:14px;font-weight:800">✓ 안전 &nbsp;· &nbsp;이상 없음</span>
+        <span class="use">#2E7D4F on #FAF7F0 · safe status, check-in pill</span>
+      </div>
+      <div class="num">4.72<small>NEEDS 4.5</small></div>
+      <div class="vd pass">PASS AA</div>
+    </div>
+    <div class="r">
+      <div class="sample" style="background:var(--p-paper);color:var(--p-red)">
+        <span class="kr" style="font-size:14px;font-weight:800">✕ 반응 &nbsp;· &nbsp;고위험</span>
+        <span class="use">#A8432B on #FAF7F0 · reacted status, high-risk badge, emergency line</span>
+      </div>
+      <div class="num">5.60<small>NEEDS 4.5</small></div>
+      <div class="vd pass">PASS AA</div>
+    </div>
+    <div class="r">
+      <div class="sample" style="background:var(--p-paper);color:var(--p-ink)">
+        <span class="kr" style="font-size:15px;font-weight:700">두부 &nbsp;· &nbsp;재료 &nbsp;· &nbsp;캘린더</span>
+        <span class="use">#26241F on #FAF7F0 · all primary text</span>
+      </div>
+      <div class="num">14.5<small>NEEDS 4.5</small></div>
+      <div class="vd pass">PASS AAA</div>
+    </div>
+    <div class="r">
+      <div class="sample" style="background:var(--p-paper);color:var(--p-hair);border-bottom:6px solid var(--p-hair)">
+        <span class="kr" style="font-size:13px;font-weight:700;color:var(--p-ink)">Hairline rule — the app's only structural device</span>
+        <span class="use" style="color:var(--p-muted)">#E4DED2 on #FAF7F0 · every list separator on every screen</span>
+      </div>
+      <div class="num">1.25<small>UI NEEDS 3.0</small></div>
+      <div class="vd fail">DECORATIVE ONLY</div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>Two of the four status colours fail as text.</b> The project's stated rule — “icon + label always accompany status colours” — is what keeps this from being a comprehension failure. It is still a legibility failure, and it lands hardest on 테스트 중, which is the status a parent reads twice a day for three days straight.
+  </div>
+
+  <!-- ─── top 10 ─── -->
+  <h3 style="margin-top:76px">The ten issues worth fixing</h3>
+  <p>Ranked by user impact × frequency. Severity is carried by the rule on the left: <b>five-weight = P0</b>, two-weight = P1, dashed = P2.</p>
+
+  <div class="find p0">
+    <div class="tag">01 · <b>P0</b> · HIERARCHY · risk: LOW</div>
+    <h5>The only filled button on Home is the one action the app blocks</h5>
+    <dl>
+      <dt>Problem</dt><dd>While a trial runs, 새 재료 시작하기 is the sole persimmon-filled control; the daily check-in and 반응 기록 are both outlines. Tapping it navigates to the picker, and only <em>after</em> the user taps a food does the one-active-trial rule fire — surfacing an alert whose only forward option cancels the trial in progress.</dd>
+      <dt>Why it matters</dt><dd>Visual dominance is a promise. This one leads a parent two taps down a path that ends in a destructive dialog, on the screen they open twice a day. It also teaches them that the app's loudest button is the wrong one.</dd>
+      <dt>Where</dt><dd class="src">app/index.tsx:129 · src/ui/Button.tsx:18–19 · src/data/useStartTrialFlow.ts:35–62 · src/domain/status.ts:53–58</dd>
+      <dt>User impact</dt><dd>Two wasted taps per occurrence and a destructive prompt presented as the normal path; in the worst case a clean trial is cancelled to satisfy the button.</dd>
+      <dt>Fix</dt><dd>Make <code>variant</code> a function of trial state. Trial running → the check-in is primary, 새 재료 시작하기 becomes a nav row. Trial closed → 새 재료 시작하기 reclaims the fill. The button never moves; its weight follows the state.</dd>
+    </dl>
+  </div>
+
+  <div class="find p0">
+    <div class="tag">02 · <b>P0</b> · ACCESSIBILITY · risk: LOW</div>
+    <h5>The primary button, and every piece of secondary text, fails WCAG AA</h5>
+    <dl>
+      <dt>Problem</dt><dd>White 15/700 on <code>#D96C3D</code> measures <b>3.41:1</b>. <code>colors.muted</code> at <b>3.43:1</b> carries every eyebrow, timestamp, hint, placeholder, empty state and the 안 먹어봄 status. <code>colors.amber</code> is <b>3.60:1</b> on paper and <b>3.09:1</b> on its own tint.</dd>
+      <dt>Why it matters</dt><dd>This app is used one-handed, at 3 a.m., by someone holding a baby, often outdoors. It is also the app you hand to a paediatrician. Four failures in a nine-colour palette is a token problem, not a screen problem — which is why it is cheap.</dd>
+      <dt>Where</dt><dd class="src">src/ui/tokens.ts:4,13,15 · src/ui/Button.tsx:10,18,27 · 20+ call sites</dd>
+      <dt>User impact</dt><dd>Every non-headline word in the app is below the legibility floor for normal text.</dd>
+      <dt>Fix</dt><dd>Three hex values in one file. <code>accent</code> → <code>#BE4F26</code> (4.84:1, same hue), <code>muted</code> → <code>#6E675A</code> for text (5.23:1), <code>amber</code> → <code>#96631A</code> for text (4.79:1) with <code>#B0761F</code> retained for marks and fills. No component changes. <b>Resolved 2026-07-25:</b> darken the accent and keep white labels, rather than the alternative of holding <code>#D96C3D</code> and switching the label to ink (which also passes, at 4.55:1, but visibly changes the control).</dd>
+    </dl>
+  </div>
+
+  <div class="find p0">
+    <div class="tag">03 · <b>P0</b> · FLOW COMPLETION · risk: MEDIUM</div>
+    <h5>The window-end notification tells you to confirm, and Home doesn't offer the button</h5>
+    <dl>
+      <dt>Problem</dt><dd><code>elapsed</code> is derived from a render-time <code>new Date()</code>. Re-renders come only from live-query changes and a focus tick. There is <b>no AppState listener, interval or timer anywhere in the repo</b>. Foregrounding an already-focused Home from the 09:00 window-end notification re-runs nothing, so Home still shows the check-in pill and 3일 중 3일째 instead of 안전으로 표시.</dd>
+      <dt>Why it matters</dt><dd>This is the app's own scheduled prompt failing to deliver its own action. The parent taps a notification that says “mark it safe”, sees no way to mark it safe, and has to guess that navigating away and back will fix it.</dd>
+      <dt>Where</dt><dd class="src">app/index.tsx:70,78 · app/food/[id].tsx:34,42 · src/services/notify.ts:34–37 · src/ui/CheckinPill.tsx:16</dd>
+      <dt>User impact</dt><dd>The close-loop — the entire reason for a 3-day window — is unreachable from the prompt designed to trigger it.</dd>
+      <dt>Fix</dt><dd>One <code>AppState</code> 'change' → <code>active</code> listener bumping the same <code>tick</code> the focus effect already bumps. ~6 lines in <code>app/index.tsx</code>; the same tick also fixes the check-in pill's midnight staleness.</dd>
+    </dl>
+  </div>
+
+  <div class="find p0">
+    <div class="tag">04 · <b>P0</b> · TRUST · risk: LOW</div>
+    <h5>Starting a new food silently records the previous one as 안전</h5>
+    <dl>
+      <dt>Problem</dt><dd>When the active window has elapsed, <code>startTrial</code> writes <code>outcome:'safe'</code> to the previous trial before inserting the new one. From the picker that is <b>one tap</b>: 두부 is selected, 소고기 is permanently recorded as safe, and the app pops to Home where the 안전 count silently increments. <code>ko.json</code> contains no string describing this.</dd>
+      <dt>Why it matters</dt><dd>This is the most consequential write in a medical-adjacent record, it is undisclosed, and the record goes into the PDF a parent hands to an allergist. The rule itself is sound and documented in the spec — the silence is the defect.</dd>
+      <dt>Where</dt><dd class="src">src/domain/status.ts:53–58 · src/data/mutations.ts:20–25 · app/foods.tsx:172</dd>
+      <dt>User impact</dt><dd>A parent can accumulate safe verdicts they never consciously gave.</dd>
+      <dt>Fix</dt><dd><b>Resolved 2026-07-25: copy only, no logic change</b> — the alternative, a confirm dialog before the autoclose, was rejected for putting a second tap on the app's most common action. Name it in the picker hint when a trial is elapsed (“소고기는 안전으로 기록돼요”), and surface it in the post-start Home state alongside the new hero (“✓ 소고기 안전으로 기록됨”).</dd>
+    </dl>
+  </div>
+
+  <div class="find p0">
+    <div class="tag">05 · <b>P0</b> · FLOW COMPLETION · risk: LOW</div>
+    <h5>The app has no success state</h5>
+    <dl>
+      <dt>Problem</dt><dd>Tap 안전으로 표시 and the hero unmounts; <code>active</code> is undefined, <code>hasAnyTrial</code> is true, and the conditional falls to <code>: null</code>. Home renders an eyebrow sitting directly on a button. The same empty branch is Home's <b>steady state between trials</b> — the most common state after week one.</dd>
+      <dt>Why it matters</dt><dd>“This food is safe” is the emotional payload of the entire product. Three days of watching resolve into a screen going blank.</dd>
+      <dt>Where</dt><dd class="src">app/index.tsx:88,107,125–127 · src/data/mutations.ts:59–69</dd>
+      <dt>User impact</dt><dd>No closure on the core loop, and no headline on the screen the user opens most often.</dd>
+      <dt>Fix</dt><dd>Give the <code>null</code> branch content: the just-confirmed food in green with its completed ledger, or — between trials — “안전 9개 확인됨 · 다음 재료를 시작해 보세요”. See Direction A.</dd>
+    </dl>
+  </div>
+
+  <div class="find p1">
+    <div class="tag">06 · <b>P1</b> · FEEDBACK · risk: LOW</div>
+    <h5>Nothing in the app responds to being touched</h5>
+    <dl>
+      <dt>Problem</dt><dd>All 22 interactive elements use a static style object. No <code>({pressed}) =&gt;</code> callback, no <code>activeOpacity</code>, no <code>android_ripple</code>, no <code>TouchableOpacity</code> — repo-wide. Selection states change <em>after</em> a press resolves; nothing changes <em>during</em> it.</dd>
+      <dt>Why it matters</dt><dd>On a screen built entirely from hairline rules at 1.25:1, press feedback is the main signal that a row is a control at all. It is also the cheapest possible way to fix the count rows, the hero name and the calendar month title all at once.</dd>
+      <dt>Where</dt><dd class="src">src/ui/Button.tsx:13 · src/ui/CheckinPill.tsx:45 · app/index.tsx:90,133,153,166 · app/foods.tsx:94,120,156,191 · app/calendar.tsx:107,120,126,129,155 · app/food/[id].tsx:84 · app/settings.tsx:106,142,152 · app/log-reaction.tsx:80,99,125</dd>
+      <dt>User impact</dt><dd>Every tap in the app feels like it may not have registered.</dd>
+      <dt>Fix</dt><dd>One shared <code>pressable</code> style helper, applied at 22 call sites. <code>opacity: pressed ? 0.55 : 1</code>. Pure addition, no layout change.</dd>
+    </dl>
+  </div>
+
+  <div class="find p1">
+    <div class="tag">07 · <b>P1</b> · MODE ERROR · risk: MEDIUM</div>
+    <h5>The same food row starts a 3-day trial or opens a detail page, depending on an invisible flag</h5>
+    <dl>
+      <dt>Problem</dt><dd><code>pick=1</code> rewires every row from “open” to “commit”. Same title, same rows, same chips; the only tell is one 12 px muted hint at 3.43:1. In pick mode there is <b>no route to the detail page at all</b> — no long-press, no chevron, no secondary target — so a parent cannot check a food's history before starting it.</dd>
+      <dt>Why it matters</dt><dd>A textbook mode error on the app's only irreversible-feeling action, and it removes the one thing a cautious parent would want: a look before they commit.</dd>
+      <dt>Where</dt><dd class="src">app/foods.tsx:39,134–138,167–176 · app/index.tsx:129</dd>
+      <dt>User impact</dt><dd>Accidental trial starts, and no way to inspect a high-risk food from the screen that flags it 고위험.</dd>
+      <dt>Fix</dt><dd>Make the mode visible: swap the screen title to 시작할 재료 선택, put the hint at body size in ink, and give the row a trailing 시작 → affordance. Add a chevron target that opens detail without committing.</dd>
+    </dl>
+  </div>
+
+  <div class="find p1">
+    <div class="tag">08 · <b>P1</b> · DATA DISPLAY · risk: MEDIUM</div>
+    <h5>The calendar tints 33 of 34 days the same colour and never shows an outcome</h5>
+    <dl>
+      <dt>Problem</dt><dd>Every day inside every non-cancelled window gets the amber tint, and the window's end day is inclusive — so each 3-day trial paints <b>4</b> cells. Replaying the shipped demo history gives 33 tinted days out of the 34 the history spans. Meanwhile <code>colors.greenTint</code> has <b>zero consumers</b>: a confirmed-safe outcome leaves no mark on the grid. Today has no marker. Tint and dot are never announced to VoiceOver, and the legend is three bare swatches — the one screen that breaks the project's own icon-plus-label rule.</dd>
+      <dt>Why it matters</dt><dd>The calendar exists to answer “what happened, and when”. A field of undifferentiated amber answers “something was in progress, always”.</dd>
+      <dt>Where</dt><dd class="src">src/domain/calendar.ts:42–49 · app/calendar.tsx:150–199 · src/ui/tokens.ts:8,30</dd>
+      <dt>User impact</dt><dd>The history screen carries almost no information at a glance, and none of it at all without colour vision.</dd>
+      <dt>Fix</dt><dd>Tint only observed days (clamp to <code>min(today, endedAt)</code>), give safe outcomes the unused <code>greenTint</code>, ring today, add an icon to each legend entry, and extend the day cell's accessibility label with its marks.</dd>
+    </dl>
+  </div>
+
+  <div class="find p1">
+    <div class="tag">09 · <b>P1</b> · INPUT · risk: LOW</div>
+    <h5>Settings saves invisibly, and shows saved values in placeholder grey</h5>
+    <dl>
+      <dt>Problem</dt><dd>The name field is uncontrolled and commits on <code>onEndEditing</code> only, inside a modal whose swipe-down can tear down a focused input. There is no Save button, no dirty indicator and no confirmation, so a dropped write is invisible until the user reopens Settings. Independently and certainly: the field's value uses <code>colors.muted</code> — the same colour as its 미입력 placeholder.</dd>
+      <dt>Why it matters</dt><dd>This is the one screen whose job is “show me what is stored”, and it gives no way to tell stored from unstored. Also: 백업 promises a restore the app has no code for, and 생년월일 is write-once while 아기 이름 four lines above is clearable.</dd>
+      <dt>Where</dt><dd class="src">app/settings.tsx:120–126,128–139,167 · app/_layout.tsx:54</dd>
+      <dt>User impact</dt><dd>Silent data loss on the doctor-report fields, and a backup label the app cannot honour.</dd>
+      <dt>Fix</dt><dd>Value in <code>ink</code>, placeholder in the darkened muted; add <code>onSubmitEditing</code> and <code>blurOnSubmit</code>; rename 데이터 백업 → 데이터 내보내기 (JSON).</dd>
+    </dl>
+  </div>
+
+  <div class="find p1">
+    <div class="tag">10 · <b>P1</b> · STATES · risk: LOW</div>
+    <h5>Loading is a blank screen, a false empty state, or a bricked error page</h5>
+    <dl>
+      <dt>Problem</dt><dd>Four <code>return null</code> sites render nothing while a live query resolves. Two more screens do worse: <code>useFoodsWithStatus</code> coalesces to <code>[]</code>, so Foods shows “검색 결과가 없어요” and Calendar shows “기록이 없어요” on the first frame — the app tells a user their data is gone, then it appears. The DB-init failure renders the exception text with no retry and no safe-area inset.</dd>
+      <dt>Why it matters</dt><dd>On an offline SQLite app the first frame is fast, so this is rarely seen — but the two states it produces are “your data is missing” and “the app is broken”, which are the two worst things a private medical notebook can say.</dd>
+      <dt>Where</dt><dd class="src">app/_layout.tsx:30–37 · app/index.tsx:18 · app/settings.tsx:37 · app/food/[id].tsx:31 · src/data/queries.ts:24,33,38</dd>
+      <dt>User impact</dt><dd>A brief false-negative on every cold start; an unrecoverable screen on migration failure.</dd>
+      <dt>Fix</dt><dd>Distinguish “not loaded yet” from “empty”. Give the error screen a retry button and an inset. Give the food-detail null branch a real “재료를 찾을 수 없어요” with an exit, since that path is also a permanent dead end for a bad id.</dd>
+    </dl>
+  </div>
+
+  <div class="find">
+    <div class="tag">ALSO · P2 · verified, not ranked</div>
+    <h5>Eleven smaller findings</h5>
+    <dl>
+      <dt>Vocabulary</dt><dd>테스트 and 관찰 name the same span across shipped strings — <code>ko.json:41</code> uses both in one sentence, and the calendar legend (테스트 기간) contradicts the notification (관찰 기간). <b>Resolved 2026-07-25: 관찰 wins everywhere</b> — warmer, and truer to what a parent actually does. ~8 strings change, including <code>status.testing</code> 테스트 중 → 관찰 중.</dd>
+      <dt>Hardcoded 3일</dt><dd><code>ko.json:7, 22, 30</code> hardcode the window while <code>:6, 36, 37</code> interpolate it. <code>defaultWindowDays</code> is a real column with no UI.</dd>
+      <dt>Destructive copy</dt><dd>Both confirm alerts put 취소 on the destroying button and 닫기 on the safe one, inverting the iOS convention.</dd>
+      <dt>Severity default</dt><dd>가벼움 is pre-selected and rendered as chosen; save is gated only on symptoms, so the fastest path records an unchosen severity — permanently, into the PDF.</dd>
+      <dt>Save alert</dt><dd><code>reaction.savedBody</code> claims a test just ended, unconditionally — wrong on the delayed-reaction path, and it never names the 안전 → 반응 flip.</dd>
+      <dt>고위험</dt><dd>Asserted on a dozen foods with no definition, legend or tap target anywhere.</dd>
+      <dt>Dynamic Type</dt><dd><code>ROW_H = 44</code> is fixed and fed to <code>getItemLayout</code>; with <code>numberOfLines={1}</code> and RN's default visible overflow, large text overruns the row and its rule.</dd>
+      <dt>Check-in pill</dt><dd>Collapses ≈47 pt → ≈33 pt on tap, shifting the button below it under the finger; it is also the only mutation that does not cancel that day's pending notification; and food detail keeps offering it after the window elapses while Home removes it.</dd>
+      <dt>Welcome inset</dt><dd><code>paddingBottom: insets.top + 22</code> — the disclaimer's bottom clearance is driven by the notch.</dd>
+      <dt>Modal insets</dt><dd>Neither modal applies <code>insets.bottom</code>; 반응 저장 sits inside the home-indicator zone.</dd>
+      <dt>No edit or delete</dt><dd>Nothing in the app can amend a record. A mis-tapped reaction is permanent and reaches the export.</dd>
+    </dl>
+  </div>
+</section>
+
+<!-- ══════════════════════ PHASE 3 ══════════════════════ -->
+<section class="wrap" id="p3">
+  <div class="shead"><span class="num">PHASE 3</span><h2>Direction</h2></div>
+  <p class="lede">First, an uncomfortable observation. This UI is <b>not</b> generic in the usual sense — no cards, no shadows, no gradients, a real 58 px display voice, rules instead of containers. That is more opinionated than most shipping apps. But <b>warm cream ground + heavy display type + a terracotta accent</b> is, in 2026, the single most common look produced by design tooling. The palette is the part that reads as default; the structure is the part that could be unmistakable. So none of the three directions below changes the palette beyond the contrast repairs. They compete on <b>structure</b>.</p>
+
+  <div class="note">
+    <b>The flatness is not a colour problem — it is a dynamics problem.</b> Every row is a hairline, every action is a full-width pill, every screen is a stack of equal-weight blocks. The app's central idea — a three-day observation with a once-daily beat — is currently rendered as a 3 px grey bar. That is the opening.
+  </div>
+
+  <!-- ─── A ─── -->
+  <div class="dir rec">
+    <div class="hd">
+      <span class="idx">DIRECTION A</span>
+      <h3>관찰 일지 — The Observation Ledger</h3>
+      <span class="verdict">RECOMMENDED</span>
+    </div>
+    <p class="thesis">The user should feel they are <em>keeping a watch</em>, not filling in a form — and should know within one second whether today's job is done.</p>
+
+    <h4>Problem it attacks</h4>
+    <ul>
+      <li><b>Issue 01</b> — the dominant CTA points at a blocked action. A fixes it by making primacy a function of trial state.</li>
+      <li><b>Issue 05</b> — no success state. The ledger closing green <em>is</em> the success state.</li>
+      <li><b>Issue 03</b> — the ledger's “today” cell is the thing that must go stale-proof, which forces the AppState fix into the design rather than leaving it a bug ticket.</li>
+      <li><b>Phase 1 / Home</b> — four 44 pt count rows push 캘린더 and 설정 toward the fold on a mini.</li>
+    </ul>
+
+    <h4>Signature element — the three-day ledger</h4>
+    <p>The anonymous progress bar becomes <b>three named, stamped cells</b>, and the rule under each cell carries its state. Not a widget: the same object appears at three scales — live on Home, replayed on food detail, and as the tinted run of days on the calendar. One mechanic, three surfaces, nothing new to learn on the second screen.</p>
+<pre class="ascii">두부
+관찰 중 · 3일 중 2일째
+
+ 1일          │ 2일          │ 3일
+ 이상 없음    │ 오늘         │ —
+ 어제 19:04   │ 기록 전      │
+━━━━━━━━━━━━━┷━━━━━━━━━━━━━┷─────────────
+  3px green      3px amber      1px hairline
+  ↑ the bar and the record are the same object
+
+[ 이상 없음 기록 ]  ← filled persimmon: the thing to do today
+[ 반응 기록      ]  ← outline
+──────────────────────────────────────────
+ 안전 8 │ 관찰 중 1 │ 반응 2 │ 안 먹어봄 45   ← one band, was four rows
+──────────────────────────────────────────
+ 새 재료 시작하기        →   ← demoted to a row while a trial runs
+ 캘린더                  →
+ 설정                    →</pre>
+    <p>When the window elapses, the third cell becomes the confirm target and the fill transfers to 안전으로 표시. When the trial closes, all three cells go green, the hero turns green, and the fill transfers to 새 재료 시작하기 — which is now, finally, the right thing to do. <b>The button never moves. Its weight follows the trial.</b></p>
+
+    <h4>Tokens — actual values</h4>
+    <div class="sw">
+      <figure><div class="chip" style="background:#FAF7F0"></div><figcaption><b>surface</b>#FAF7F0<br>unchanged</figcaption></figure>
+      <figure><div class="chip" style="background:#26241F"></div><figcaption><b>ink</b>#26241F<br>14.5:1</figcaption></figure>
+      <figure><div class="chip" style="background:#6E675A"></div><figcaption><b>ink-secondary</b>#6E675A<br>5.23:1 · new</figcaption></figure>
+      <figure><div class="chip" style="background:#8B8578"></div><figcaption><b>ink-tertiary</b>#8B8578<br>marks only</figcaption></figure>
+      <figure><div class="chip" style="background:#E4DED2"></div><figcaption><b>rule</b>#E4DED2<br>decorative</figcaption></figure>
+      <figure><div class="chip" style="background:#BE4F26"></div><figcaption><b>action</b>#BE4F26<br>4.84:1 w/ #FFF</figcaption></figure>
+      <figure><div class="chip" style="background:#96631A"></div><figcaption><b>watching-text</b>#96631A<br>4.79:1 · new</figcaption></figure>
+      <figure><div class="chip" style="background:#B0761F"></div><figcaption><b>watching-mark</b>#B0761F<br>fills only</figcaption></figure>
+      <figure><div class="chip" style="background:#2E7D4F"></div><figcaption><b>clear</b>#2E7D4F<br>4.72:1</figcaption></figure>
+      <figure><div class="chip" style="background:#A8432B"></div><figcaption><b>alarm</b>#A8432B<br>5.60:1</figcaption></figure>
+      <figure><div class="chip" style="background:#F3E5C9"></div><figcaption><b>watching-tint</b>#F3E5C9</figcaption></figure>
+      <figure><div class="chip" style="background:#DFEEDF"></div><figcaption><b>clear-tint</b>#DFEEDF<br>currently unused</figcaption></figure>
+    </div>
+
+    <p style="margin-top:22px">Type: <b>seven steps, down from seventeen ad-hoc sizes.</b> A pure find-and-replace across the six screens — the largest single subtraction available in this codebase.</p>
+    <div class="ladder">
+      <div class="l"><div class="g" style="font-size:52px;font-weight:900;letter-spacing:-1px;line-height:1.05">두부</div><div class="s">display · 52/54 · 900 · −1.0<br>the food under observation</div></div>
+      <div class="l"><div class="g" style="font-size:30px;font-weight:900;letter-spacing:-.3px">2026년 7월</div><div class="s">title · 30/34 · 900 · −0.3<br>calendar month, welcome</div></div>
+      <div class="l"><div class="g" style="font-size:17px;font-weight:900;font-variant-numeric:tabular-nums">8 &nbsp;1 &nbsp;2 &nbsp;45</div><div class="s">numeral · 17 · 900 · tabular<br>counts only</div></div>
+      <div class="l"><div class="g" style="font-size:15px;font-weight:600">새 재료 시작하기 · 고구마</div><div class="s">body · 15/21 · 600<br>rows, buttons, inputs</div></div>
+      <div class="l"><div class="g" style="font-size:13px;font-weight:700">관찰 중 · 3일 중 2일째</div><div class="s">meta · 13/18 · 700<br>status lines, events</div></div>
+      <div class="l"><div class="g" style="font-size:12px;font-weight:500;color:#6E675A">2026년 7월 17일 · 오후 2:30</div><div class="s">caption · 12/16 · 500<br>timestamps, hints</div></div>
+      <div class="l"><div class="g" style="font-size:10px;font-weight:700;letter-spacing:2.2px;color:#6E675A">알레르기 트래커</div><div class="s">eyebrow · 10/12 · 700 · +2.2<br>screen labels (kept as-is)</div></div>
+    </div>
+
+    <div class="grid2" style="margin-top:26px">
+      <div>
+        <h4>Spacing · radius · elevation</h4>
+        <ul>
+          <li><b>4 pt scale, strictly:</b> 4 · 8 · 12 · 16 · 20 · 24 · 32 · 48. Screen inset 20 (from 22). <code>layout.rowInset</code> 10 → 12.</li>
+          <li><b>Radius:</b> <code>pill 999</code> · <code>slot 10</code> (ledger cells, calendar days — replaces the current 9) · <code>badge 4</code>. Three values, all already approximated in the code.</li>
+          <li><b>Elevation: zero at every level.</b> No shadows, ever. The only z-axis in this app is the iOS modal sheet. Depth comes from rule weight and type weight — this is a position, not an omission.</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Motion — three behaviours, each informational</h4>
+        <ul>
+          <li><b>120 ms</b> · press: opacity 1 → 0.55 via Pressable's own <code>pressed</code> argument. No library. This is issue 06.</li>
+          <li><b>260 ms</b> · a ledger cell filling when a check-in lands — confirms the write happened.</li>
+          <li><b>400 ms</b> · the safe confirmation: hero ink → green, ledger closes. The success state, animated once.</li>
+          <li>Easing <code>cubic-bezier(0,0,.2,1)</code>. Nothing else moves. <code>react-native-reanimated</code> is already installed; even so, the first two need only <code>Animated</code> from core.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h4>Applied to the three most important screens</h4>
+    <ul>
+      <li><b>Home</b> — eyebrow · 52 px food name · 13 px status line · the ledger · one filled action + one outline · a single 42 pt tally band (replacing four 44 pt rows, freeing ~134 pt) · three nav rows. Between trials the hero slot holds “안전 9개 확인됨” and the ledger is replaced by the last-confirmed food; it is never empty.</li>
+      <li><b>Food detail</b> — same masthead, then the ledger replayed for the latest trial, with a reaction cutting the run at the day it happened. Actions below. History rows unchanged — they are already the best-composed list in the app.</li>
+      <li><b>Foods</b> — untried rows lose their chip entirely (absence <em>is</em> untried, and it removes 45 repetitions of the same grey mark), tested foods sort first under a 기록 있음 · 10 group rule, and the count band from Home moves here as a filter row. The <code>focusApplied</code> / <code>scrollToIndex</code> / <code>getItemLayout</code> machinery is deleted and replaced by a filter — a net loss of code.</li>
+    </ul>
+
+    <h4>Cost in this codebase</h4>
+    <ul>
+      <li><b>New:</b> <code>src/ui/DayLedger.tsx</code> (~70 lines), <code>src/ui/pressable.ts</code> (~6 lines).</li>
+      <li><b>Edited:</b> <code>src/ui/tokens.ts</code> (3 hex + type/space scales), <code>src/ui/Button.tsx</code> (pressed state), <code>src/ui/CheckinPill.tsx</code> (becomes the ledger's today cell on Home), <code>app/index.tsx</code> (hero block, tally band, null branch), <code>app/food/[id].tsx</code> (ledger swap), <code>app/foods.tsx</code> (sort, chip, filter), <code>src/i18n/ko.json</code> (~12 strings).</li>
+      <li><b>Untouched:</b> every file in <code>src/domain/</code>, <code>src/db/</code>, <code>src/data/</code>, <code>src/services/</code>, <code>drizzle/</code>. No schema change, no migration, no new dependency.</li>
+      <li><b>What breaks:</b> the 47-test suite is domain-only and does not assert on layout, so nothing in it should fail. The two places to re-verify by hand are the ledger's day arithmetic against <code>windowDays</code> (never assume 3) and the foods list after <code>scrollToIndex</code> is removed.</li>
+    </ul>
+
+    <h4>Trade-off</h4>
+    <p>The ledger is a three-cell layout, and it will look wrong at a seven-day window — which <code>defaultWindowDays</code> makes technically possible even though no UI sets it. It also privileges the active trial so heavily that the between-trials Home needs its own separate composition to avoid feeling hollow; that is one more state to design and maintain, not a free win. And it does comparatively little for the recall job — a parent preparing for a doctor's visit gets nothing new.</p>
+  </div>
+
+  <!-- ─── B ─── -->
+  <div class="dir">
+    <div class="hd">
+      <span class="idx">DIRECTION B</span>
+      <h3>신호등 — The Traffic Light as Substrate</h3>
+      <span class="verdict no">REJECTED</span>
+    </div>
+    <p class="thesis">The user should feel the food list <em>is</em> the product — one living inventory that visibly turns from grey to green over months of weaning.</p>
+
+    <h4>Problem it attacks</h4>
+    <ul>
+      <li><b>Issue 07</b> and the Foods screen generally — 45 repetitions of an identical grey chip, untried sorted above every food that has a history.</li>
+      <li><b>Phase 1 / Home</b> — counts that navigate to a scroll position rather than a filter, with zero-count rows live and landing nowhere.</li>
+    </ul>
+
+    <h4>Signature element — the proportional status ribbon</h4>
+    <p>A four-segment bar whose widths are the real counts, so the grey segment is 80 % of the width on day one and shrinks visibly over months. It is a legend, a filter control and the only genuinely emotional chart in the product, in four <code>View</code>s and no library.</p>
+<pre class="ascii">▓▓▓▓▓▓▓▓░▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+ 안전 8   1  2        안 먹어봄 45
+ └── tap a segment → the list filters, the segment fills
+
+두부            고위험  ● 테스트 중
+달걀            고위험  ● 반응
+밀              고위험  ● 반응
+고구마                  ● 안전
+감                              ← no chip: absence is untried</pre>
+
+    <h4>Tokens</h4>
+    <p>Identical to Direction A's contrast repairs — B is a structural proposal, not a palette one. It adds one value: <code>ribbon-h: 8</code>, and reuses <code>radii.pill</code> for the ribbon's end caps.</p>
+
+    <h4>Cost</h4>
+    <ul>
+      <li><b>New:</b> <code>src/ui/StatusRibbon.tsx</code> (~50 lines).</li>
+      <li><b>Edited:</b> <code>app/foods.tsx</code> (filter state replaces focus/scroll machinery — net deletion), <code>app/index.tsx</code> (count block → ribbon), <code>src/ui/StatusChip.tsx</code> (untried → null).</li>
+      <li><b>What breaks:</b> the <code>?focus=</code> deep link changes meaning from “scroll” to “filter”. Search must auto-clear the filter or results silently vanish.</li>
+    </ul>
+
+    <h4>Trade-off — and why it is rejected</h4>
+    <p>The ribbon is near-useless at both ends of the journey: 100 % grey on day one, nearly all green at the end, informative only in the middle months. More decisively, it improves the screen a parent visits <b>once every three days</b> while leaving untouched the screen they visit <b>twice a day</b> — and it does nothing for issues 01, 03, 04 or 05, which are the P0s. Its best ideas survive: dropping the untried chip and fixing the sort are folded into Direction A, and the ribbon itself is parked in the plan as a deferred medium-risk item.</p>
+  </div>
+
+  <!-- ─── C ─── -->
+  <div class="dir">
+    <div class="hd">
+      <span class="idx">DIRECTION C</span>
+      <h3>달력이 앱이다 — Calendar-First</h3>
+      <span class="verdict no">REJECTED</span>
+    </div>
+    <p class="thesis">The record <em>is</em> the product; make the timeline the home screen and let the daily loop live inside it.</p>
+
+    <h4>Problem it attacks</h4>
+    <ul>
+      <li><b>Issue 08</b> — a month grid where 33 of 34 days carry the same tint and outcomes are unmarked.</li>
+      <li><b>Phase 1</b> — the calendar is the app's real long-term value and sits behind an unlabelled row at the bottom of Home.</li>
+    </ul>
+
+    <h4>Signature element — the continuous trial bracket</h4>
+    <p>Replace the month grid with a vertically scrolling week strip on which each trial is drawn as one continuous bracket spanning exactly the days it covered, food name set alongside it, reactions as notches. A Gantt chart in editorial type — genuinely unlike anything in this category, and achievable with plain <code>View</code>s.</p>
+<pre class="ascii">7월
+ 13 월 ┃ 밀        ▓▓▓▓
+ 14 화 ┃           ▓▓▓▓✕  ← reaction notch ends the bracket
+ 15 수 │
+ 16 목 ┃ 달걀      ▓▓▓▓
+ 17 금 ┃           ▓▓▓▓✕
+ 18 토 │
+ 22 화 ┃ 소고기    ▓▓▓▓▓▓▓▓▓▓▓▓ ✓ 안전
+ 24 목 ┃ 두부      ▓▓▓▓▓▓ ← 오늘</pre>
+
+    <h4>Cost — and why it is rejected</h4>
+    <p>High: a full rewrite of <code>app/calendar.tsx</code> with new layout maths, Home reduced to a shell, and a first-run experience that is markedly harder to understand than three numbered steps and a button. It optimises <b>recall</b> — the job a parent does perhaps four times a year, before a paediatric appointment — at the cost of the job they do twice a day. It is the right direction for a different product, and possibly the right v2 for the calendar screen alone; it is the wrong one to spend this codebase's next commits on.</p>
+  </div>
+
+  <!-- ─── recommendation ─── -->
+  <h3 style="margin-top:76px">Recommendation</h3>
+  <p><b>Direction A — 관찰 일지.</b> It is the only one of the three that touches every P0: it fixes the CTA hierarchy by making weight follow trial state, it invents the success state the app has never had, it forces the staleness bug into the design rather than leaving it a ticket, and it is where the implicit-safe autoclose finally gets disclosed. It gives the app a signature that is structural rather than chromatic — which matters, because the palette is the part that currently reads as a default, and the ledger is a mechanic no competitor in this category ships.</p>
+  <p>B was rejected because it optimises the every-three-days screen while leaving the twice-a-day screen alone, and solves none of the P0s; its two good ideas are absorbed into A and its ribbon is deferred, not discarded. C was rejected because it optimises the rarest job in the product and costs a rewrite to do it.</p>
+  <p>A is also the cheapest of the three: two new files, no schema change, no migration, no new dependency, and a net deletion in <code>app/foods.tsx</code>.</p>
+
+  <div class="method">
+    <b>METHOD.</b> Read: README, docs/design-spec.md, CLAUDE.md, package.json + package-lock.json, app.json, all 6 route files, all 4 files in src/ui, src/domain (4), src/data (4), src/db (4), src/services (2), src/i18n/ko.json, drizzle config, and the five shipped screenshots in docs/screenshots.<br>
+    <b>VERIFIED.</b> 26 claims were sent to six independent agents instructed to refute them, defaulting to refuted when uncertain; a seventh looked for what the audit had missed. 20 were confirmed verbatim, 4 confirmed with corrections that are reflected above (notably: home's <code>?focus=</code> deep link does bypass the foods-list ordering problem, so that finding is narrowed to direct browsing; amber calendar day numbers sit on amberTint at 3.09:1, not on paper at 3.60:1; the two modal screens do have ✕ controls, so the faint back glyph is the only affordance on the three <em>pushed</em> screens). 2 were partially refuted and are stated in their corrected form.<br>
+    <b>COMPUTED.</b> All contrast ratios were calculated from the hex literals in src/ui/tokens.ts using WCAG 2.1 relative luminance. The calendar tint density (33 of 34 days) was computed by replaying src/db/demoData.ts through the bounds logic in src/domain/calendar.ts.<br>
+    <b>NOT DONE.</b> No file in the existing project was modified. The app was not run on a simulator or device for this audit; every device-behaviour claim above is either static-analysis certain or explicitly flagged for the manual QA list in plan.md.
+  </div>
+</section>
+
+</body>
+</html>

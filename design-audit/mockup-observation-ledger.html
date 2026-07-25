@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>관찰 일지 — Allergy Tracker mockup</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   MOCKUP — Direction A "관찰 일지" (The Observation Ledger)
+   Static. No scripts, no network, no fake interactivity beyond :hover.
+   Screens drawn at 375 × 812 pt — iPhone 12 mini logical size, the
+   device this app is dogfooded on. Every pixel value here is the value
+   to type into the RN StyleSheet.
+   Content is the real EXPO_PUBLIC_DEMO=1 fixture (src/db/demoData.ts).
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* app tokens — Direction A revision. ✓ = ratio vs #FAF7F0 paper */
+  --surface:#FAF7F0;
+  --ink:#26241F;          /* 14.5:1 */
+  --ink-2:#6E675A;        /* 5.23:1  — replaces muted for TEXT */
+  --ink-3:#8B8578;        /* 3.43:1  — demoted: marks & rules only, never text */
+  --rule:#E4DED2;
+  --rule-strong:#26241F;
+  --accent:#BE4F26;       /* 4.84:1 with #FFF — was #D96C3D at 3.41:1 */
+  --amber-tx:#96631A;     /* 4.79:1  — amber for TEXT */
+  --amber-mk:#B0761F;     /* marks & fills only */
+  --green:#2E7D4F;        /* 4.72:1 */
+  --red:#A8432B;          /* 5.60:1 */
+  --amber-tint:#F3E5C9;
+  --green-tint:#DFEEDF;
+  --red-tint:#F3DED7;
+
+  /* studio ground — deliberately cool so the app's warm paper reads as a sample */
+  --stage:#DCDDD8;
+  --stage-ink:#33352F;
+  --stage-2:#6B6E66;
+
+  --app: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+         "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, "Roboto Mono", monospace;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background:var(--stage);
+  color:var(--stage-ink);
+  font-family:var(--mono);
+  -webkit-font-smoothing:antialiased;
+  padding:48px 24px 80px;
+}
+
+/* ─── stage chrome ─────────────────────────────────────────────── */
+.masthead{max-width:1400px;margin:0 auto 48px}
+.masthead .kicker{
+  font-size:10px;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--stage-2);margin-bottom:14px;
+}
+.masthead h1{
+  font-family:var(--app);font-size:clamp(30px,5vw,46px);font-weight:900;
+  letter-spacing:-.02em;line-height:1.04;max-width:16ch;
+}
+.masthead h1 em{font-style:normal;color:var(--accent)}
+.masthead p{
+  font-family:var(--app);font-size:15px;line-height:1.6;color:var(--stage-2);
+  max-width:62ch;margin-top:16px;
+}
+.masthead dl{
+  display:flex;flex-wrap:wrap;gap:0 40px;margin-top:26px;
+  padding-top:18px;border-top:1px solid #C6C8C1;font-size:11px;
+}
+.masthead dt{color:var(--stage-2);letter-spacing:.08em;text-transform:uppercase;font-size:9.5px}
+.masthead dd{margin-top:4px;font-weight:600}
+
+.rack{
+  max-width:1400px;margin:0 auto;
+  display:grid;gap:56px 40px;
+  grid-template-columns:repeat(auto-fit,minmax(375px,max-content));
+  justify-content:center;
+}
+.slot{width:375px}
+.slot > figcaption{margin-bottom:14px}
+/* Captions run 3–5 lines, which would stagger the device frames. The whole
+   point of the rack is comparing screens off a shared baseline, so reserve the
+   tallest caption's height — but only while the slots are actually side by
+   side. A caption that ever overflows just sits lower, as it does today. */
+@media (min-width:900px){ .slot > figcaption{min-height:140px} }
+.slot .n{
+  display:inline-block;font-size:10px;font-weight:700;letter-spacing:.14em;
+  background:var(--stage-ink);color:var(--stage);padding:3px 7px;
+}
+.slot .t{font-family:var(--app);font-size:15px;font-weight:800;margin-top:9px;color:var(--stage-ink)}
+.slot .d{font-size:11px;line-height:1.6;color:var(--stage-2);margin-top:5px;max-width:34ch}
+
+/* ─── device ───────────────────────────────────────────────────── */
+.device{
+  width:375px;height:812px;background:var(--surface);
+  border:9px solid #16181A;border-radius:42px;overflow:hidden;
+  position:relative;font-family:var(--app);color:var(--ink);
+  box-shadow:0 22px 44px -18px rgba(0,0,0,.42);
+}
+.notch{
+  position:absolute;top:9px;left:50%;transform:translateX(-50%);
+  width:118px;height:26px;background:#16181A;border-radius:14px;z-index:5;
+}
+.statusbar{
+  height:50px;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 4px;font-size:13px;font-weight:700;letter-spacing:-.01em;
+}
+.statusbar .r{display:flex;gap:5px;align-items:center;font-size:11px;color:var(--ink)}
+.screen{padding:4px 20px 0;height:762px;display:flex;flex-direction:column;overflow:hidden}
+
+/* ─── app type scale (7 steps, down from 17 ad-hoc sizes) ──────── */
+.display{font-size:52px;line-height:54px;font-weight:900;letter-spacing:-1px}
+.title  {font-size:30px;line-height:34px;font-weight:900;letter-spacing:-.3px}
+.body   {font-size:15px;line-height:21px;font-weight:600}
+.meta   {font-size:13px;line-height:18px;font-weight:700}
+.caption{font-size:12px;line-height:16px;font-weight:500;color:var(--ink-2)}
+.eyebrow{font-size:10px;line-height:12px;font-weight:700;letter-spacing:2.2px;color:var(--ink-2);text-transform:none}
+.numeral{font-size:17px;font-weight:900;font-variant-numeric:tabular-nums}
+
+/* ─── THE SIGNATURE: the 3-day ledger ──────────────────────────── */
+/* Each day of the observation window is a named cell. The rule under a
+   cell is its state — this replaces the anonymous 3px progress bar.    */
+.ledger{display:grid;grid-template-columns:repeat(3,1fr);margin-top:18px}
+.ledger .cell{
+  padding:10px 0 9px;border-top:1px solid var(--rule);
+  border-left:1px solid var(--rule);position:relative;
+}
+.ledger .cell:first-child{border-left:0}
+.ledger .cell > *{padding-left:10px}
+.ledger .cell::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;
+  height:1px;background:var(--rule);
+}
+.ledger .cell.done::after {height:3px;background:var(--green)}
+.ledger .cell.today::after{height:3px;background:var(--amber-mk)}
+.ledger .cell.hit::after  {height:3px;background:var(--red)}
+.ledger .cell.wait::after {height:3px;background:var(--amber-mk);opacity:.28}
+.ledger .day{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ink-2)}
+.ledger .state{font-size:13px;font-weight:800;margin-top:6px;color:var(--ink-3)}
+.ledger .cell.done  .state{color:var(--green)}
+.ledger .cell.today .state{color:var(--amber-tx)}
+.ledger .cell.hit   .state{color:var(--red)}
+.ledger .cell.wait  .state{color:var(--amber-tx)}
+.ledger .stamp{font-size:10.5px;font-weight:500;color:var(--ink-2);margin-top:3px;min-height:13px}
+
+/* ─── controls ─────────────────────────────────────────────────── */
+.btn{
+  display:block;width:100%;text-align:center;border-radius:999px;
+  font-size:15px;font-weight:700;padding:14px 0;border:0;
+  background:var(--accent);color:#fff;letter-spacing:-.01em;
+}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink);padding:12.5px 0}
+.btn.quiet{background:transparent;color:var(--ink-2);border:1.5px solid var(--rule);padding:12.5px 0}
+.btn + .btn{margin-top:10px}
+
+/* one-line status summary — replaces Home's four 44pt count rows */
+.tally{
+  display:flex;gap:0;margin-top:20px;border-top:1px solid var(--rule);
+  border-bottom:1px solid var(--rule);
+}
+.tally a{
+  flex:1;text-decoration:none;padding:11px 0 10px;text-align:center;
+  border-left:1px solid var(--rule);
+}
+.tally a:first-child{border-left:0}
+.tally .k{display:block;font-size:10.5px;font-weight:700;color:var(--ink-2)}
+.tally .v{display:block;font-size:19px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:2px}
+.tally .safe .v{color:var(--green)} .tally .test .v{color:var(--amber-tx)}
+.tally .re   .v{color:var(--red)}   .tally .un   .v{color:var(--ink-2)}
+
+.navrow{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:15px 10px;border-top:1px solid var(--rule);
+}
+.navrow .body{font-weight:700}
+.navrow .chev{color:var(--ink-2);font-size:15px}
+
+.foot{margin-top:auto;padding-bottom:24px}
+
+/* ─── foods list ───────────────────────────────────────────────── */
+.searchbar{
+  display:flex;align-items:center;gap:8px;
+  border-bottom:2px solid var(--ink);padding-bottom:8px;margin-top:2px;
+}
+.searchbar .ph{flex:1;font-size:15px;color:var(--ink-2)}
+.searchbar .glass{width:14px;height:14px;border:1.5px solid var(--ink-2);border-radius:999px;position:relative}
+.searchbar .glass::after{
+  content:"";position:absolute;right:-3px;bottom:-2px;width:6px;height:1.5px;
+  background:var(--ink-2);transform:rotate(45deg);
+}
+.addpill{
+  border:1px solid var(--ink);border-radius:999px;padding:6px 11px;
+  font-size:13px;font-weight:700;
+}
+.seg{display:flex;gap:6px;margin-top:12px;overflow:hidden}
+.seg span{
+  font-size:12px;font-weight:700;padding:6px 11px;border-radius:999px;
+  border:1.5px solid var(--rule);color:var(--ink-2);white-space:nowrap;
+}
+.seg span.on{border-color:var(--ink);background:var(--ink);color:var(--surface)}
+.frow{
+  display:flex;align-items:center;gap:7px;min-height:44px;padding:0 10px;
+  border-bottom:1px solid var(--rule);
+}
+.frow .nm{flex:1;font-size:15px;font-weight:600}
+.frow.testing .nm{font-weight:800}
+.risk{
+  font-size:10px;font-weight:800;color:var(--red);border:1px solid var(--red);
+  border-radius:4px;padding:1px 4px;
+}
+.chip{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800}
+.chip .dot{width:7px;height:7px;border-radius:999px}
+.chip.safe{color:var(--green)}   .chip.safe .dot{background:var(--green)}
+.chip.test{color:var(--amber-tx)}.chip.test .dot{background:var(--amber-mk)}
+.chip.re  {color:var(--red)}     .chip.re   .dot{background:var(--red)}
+.groupbar{
+  font-size:10px;font-weight:700;letter-spacing:2.2px;color:var(--ink-2);
+  padding:16px 10px 7px;border-bottom:1px solid var(--rule);
+}
+.groupbar:first-of-type{padding-top:12px}
+
+/* ─── detail history ───────────────────────────────────────────── */
+.ev{display:flex;gap:10px;padding:11px 10px;border-bottom:1px solid var(--rule);align-items:flex-start}
+.ev .bullet{width:9px;height:9px;border-radius:999px;margin-top:5px;flex:none}
+.ev .when{font-size:11.5px;color:var(--ink-2)}
+.ev .what{font-size:15px;font-weight:700;margin-top:2px}
+.ev .why{font-size:12.5px;color:var(--red);margin-top:2px;line-height:17px}
+
+.back{padding:11px 0 12px;font-size:10px;letter-spacing:2.2px;font-weight:700;color:var(--ink-2)}
+.back b{font-size:13px;letter-spacing:0;color:var(--ink-2);font-weight:400}
+
+.pressnote{
+  margin-top:14px;padding:12px 14px;background:#CFD1CB;border-left:3px solid var(--stage-ink);
+  font-size:11px;line-height:1.65;color:var(--stage-ink);
+}
+.pressnote b{font-family:var(--app);font-weight:800}
+
+@media (max-width:900px){
+  body{padding:32px 14px 60px}
+  .rack{gap:44px 0}
+  .device{transform-origin:top center}
+}
+@media (max-width:420px){
+  .slot{width:100%}
+  .device{width:100%;height:auto;aspect-ratio:375/812}
+  .screen{height:auto;min-height:0;padding-bottom:20px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .device{transition:box-shadow .24s cubic-bezier(0,0,.2,1)}
+  .device:hover{box-shadow:0 30px 60px -20px rgba(0,0,0,.5)}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <p class="kicker">Mockup · recommended direction</p>
+  <h1>관찰 일지 <em>—</em> the observation ledger</h1>
+  <p>The three-day watch window stops being a 3&nbsp;px grey bar and becomes a named, stamped record of three days. The loudest control on the screen is always the thing this app is asking you to do today — so the filled persimmon button moves off <b>새 재료 시작하기</b> (blocked while a trial runs) and onto the daily check-in, and only reclaims primacy the moment a food is confirmed.</p>
+  <dl>
+    <div><dt>Frame</dt><dd>375 × 812 pt — iPhone 12 mini</dd></div>
+    <div><dt>Content</dt><dd>src/db/demoData.ts fixture</dd></div>
+    <div><dt>New deps</dt><dd>none</dd></div>
+    <div><dt>Accent</dt><dd>#BE4F26 · 4.84:1 on white</dd></div>
+  </dl>
+</header>
+
+<div class="rack">
+
+<!-- ══════════════ 1 · HOME, day 2, check-in pending ══════════════ -->
+<figure class="slot">
+  <figcaption>
+    <span class="n">01</span>
+    <div class="t">홈 — 관찰 2일째, 오늘 기록 전</div>
+    <div class="d">The primary action is the one the app will send a notification about at 09:00. 새 재료 시작하기 is demoted to a row.</div>
+  </figcaption>
+  <div class="device">
+    <div class="notch"></div>
+    <div class="statusbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>
+    <div class="screen">
+      <div class="eyebrow" style="padding:0 0 12px 10px">알레르기 트래커</div>
+
+      <div class="display">두부</div>
+      <div class="meta" style="color:var(--amber-tx);margin-top:9px;padding-left:10px">관찰 중 · 3일 중 2일째</div>
+
+      <div class="ledger">
+        <div class="cell done">
+          <div class="day">1일</div><div class="state">이상 없음</div><div class="stamp">어제 19:04</div>
+        </div>
+        <div class="cell today">
+          <div class="day">2일</div><div class="state">오늘</div><div class="stamp">기록 전</div>
+        </div>
+        <div class="cell">
+          <div class="day">3일</div><div class="state">—</div><div class="stamp"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px">
+        <button class="btn">이상 없음 기록</button>
+        <button class="btn ghost">반응 기록</button>
+      </div>
+
+      <div class="tally">
+        <a class="safe"><span class="k">안전</span><span class="v">8</span></a>
+        <a class="test"><span class="k">관찰 중</span><span class="v">1</span></a>
+        <a class="re"><span class="k">반응</span><span class="v">2</span></a>
+        <a class="un"><span class="k">안 먹어봄</span><span class="v">45</span></a>
+      </div>
+
+      <div class="foot">
+        <div class="navrow"><span class="body">새 재료 시작하기</span><span class="chev">→</span></div>
+        <div class="navrow"><span class="body">캘린더</span><span class="chev">→</span></div>
+        <div class="navrow"><span class="body">설정</span><span class="chev">→</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="pressnote">
+    <b>What changed.</b> Four 44&nbsp;pt count rows collapse into one 42&nbsp;pt tally band — that is the ~134&nbsp;pt that lets 캘린더 and 설정 sit above the fold on a mini. The persimmon fill now sits on 이상 없음 기록.
+  </div>
+</figure>
+
+<!-- ══════════════ 2 · HOME, just confirmed safe ══════════════════ -->
+<figure class="slot">
+  <figcaption>
+    <span class="n">02</span>
+    <div class="t">홈 — 안전 확인 직후</div>
+    <div class="d">This state does not exist today: after 안전으로 표시 the hero simply unmounts and Home renders nothing. Here the ledger closes green, and primacy transfers to 새 재료 시작하기 — the correct next action.</div>
+  </figcaption>
+  <div class="device">
+    <div class="notch"></div>
+    <div class="statusbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>
+    <div class="screen">
+      <div class="eyebrow" style="padding:0 0 12px 10px">알레르기 트래커</div>
+
+      <div class="display" style="color:var(--green)">두부</div>
+      <div class="meta" style="color:var(--green);margin-top:9px;padding-left:10px">✓ 안전 확인 · 3일 관찰 완료</div>
+
+      <div class="ledger">
+        <div class="cell done"><div class="day">1일</div><div class="state">이상 없음</div><div class="stamp">7월 22일</div></div>
+        <div class="cell done"><div class="day">2일</div><div class="state">이상 없음</div><div class="stamp">7월 23일</div></div>
+        <div class="cell done"><div class="day">3일</div><div class="state">이상 없음</div><div class="stamp">7월 24일</div></div>
+      </div>
+
+      <div style="margin-top:20px">
+        <button class="btn">새 재료 시작하기</button>
+        <button class="btn quiet">두부 기록 보기</button>
+      </div>
+
+      <div class="tally">
+        <a class="safe"><span class="k">안전</span><span class="v">9</span></a>
+        <a class="test"><span class="k">관찰 중</span><span class="v">0</span></a>
+        <a class="re"><span class="k">반응</span><span class="v">2</span></a>
+        <a class="un"><span class="k">안 먹어봄</span><span class="v">44</span></a>
+      </div>
+
+      <div class="foot">
+        <div class="navrow"><span class="body">캘린더</span><span class="chev">→</span></div>
+        <div class="navrow"><span class="body">설정</span><span class="chev">→</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="pressnote">
+    <b>The mechanic.</b> The persimmon button never moves — it changes weight. Trial running → the check-in is filled and 새 재료 is a row. Trial closed → 새 재료 is filled and the check-in is gone. Primacy follows trial state.
+  </div>
+</figure>
+
+<!-- ══════════════ 3 · FOODS ══════════════════════════════════════ -->
+<figure class="slot">
+  <figcaption>
+    <span class="n">03</span>
+    <div class="t">재료 — 기록된 재료 먼저</div>
+    <div class="d">Untried foods carry no chip (absence <em>is</em> untried) and sort last, so the 10 foods with history stop being buried under 45 identical grey rows.</div>
+  </figcaption>
+  <div class="device">
+    <div class="notch"></div>
+    <div class="statusbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>
+    <div class="screen">
+      <div class="back">‹ <span style="letter-spacing:2.2px">홈</span></div>
+      <div class="searchbar">
+        <span class="glass"></span><span class="ph">재료 검색…</span><span class="addpill">＋ 직접 추가</span>
+      </div>
+
+      <div class="seg">
+        <span class="on">전체 55</span><span>안전 8</span><span>반응 2</span><span>안 먹어봄 45</span>
+      </div>
+
+      <div class="groupbar">기록 있음 · 10</div>
+      <div class="frow testing"><span class="nm">두부</span><span class="risk">고위험</span><span class="chip test"><i class="dot"></i>관찰 중</span></div>
+      <div class="frow"><span class="nm">달걀</span><span class="risk">고위험</span><span class="chip re"><i class="dot"></i>반응</span></div>
+      <div class="frow"><span class="nm">밀</span><span class="risk">고위험</span><span class="chip re"><i class="dot"></i>반응</span></div>
+      <div class="frow"><span class="nm">고구마</span><span class="chip safe"><i class="dot"></i>안전</span></div>
+      <div class="frow"><span class="nm">단호박</span><span class="chip safe"><i class="dot"></i>안전</span></div>
+      <div class="frow"><span class="nm">당근</span><span class="chip safe"><i class="dot"></i>안전</span></div>
+      <div class="frow"><span class="nm">바나나</span><span class="chip safe"><i class="dot"></i>안전</span></div>
+      <div class="frow"><span class="nm">브로콜리</span><span class="chip safe"><i class="dot"></i>안전</span></div>
+      <div class="frow"><span class="nm">소고기</span><span class="chip safe"><i class="dot"></i>안전</span></div>
+
+      <div class="groupbar">안 먹어봄 · 45</div>
+      <div class="frow"><span class="nm">감</span></div>
+      <div class="frow"><span class="nm">감자</span></div>
+      <div class="frow"><span class="nm">게</span><span class="risk">고위험</span></div>
+      <div class="frow"><span class="nm">고등어</span><span class="risk">고위험</span></div>
+    </div>
+  </div>
+  <div class="pressnote">
+    <b>Subtraction.</b> 45 repeated “안 먹어봄” chips removed. The <code>focusApplied</code> / <code>scrollToIndex</code> / <code>getItemLayout</code> machinery in <code>app/foods.tsx</code> is deleted and replaced by a filter — net loss of code.
+  </div>
+</figure>
+
+<!-- ══════════════ 4 · FOOD DETAIL ════════════════════════════════ -->
+<figure class="slot">
+  <figcaption>
+    <span class="n">04</span>
+    <div class="t">달걀 — 반응으로 끝난 관찰</div>
+    <div class="d">The same ledger, replayed. The reaction cuts the run on day 2 — visible in one glance before you read a single history row.</div>
+  </figcaption>
+  <div class="device">
+    <div class="notch"></div>
+    <div class="statusbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>
+    <div class="screen">
+      <div class="back">‹ <span style="letter-spacing:2.2px">재료</span></div>
+
+      <div class="display">달걀</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:9px;padding-left:10px">
+        <span class="meta" style="color:var(--red)">✕ 반응 · 중간 · 두드러기, 얼굴 부종</span>
+        <span class="risk">고위험</span>
+      </div>
+
+      <div class="ledger">
+        <div class="cell done"><div class="day">1일</div><div class="state">이상 없음</div><div class="stamp">7월 16일 19:00</div></div>
+        <div class="cell hit"><div class="day">2일</div><div class="state">반응 발생</div><div class="stamp">7월 17일 14:30</div></div>
+        <div class="cell"><div class="day">3일</div><div class="state">—</div><div class="stamp">관찰 중단</div></div>
+      </div>
+
+      <div style="margin-top:20px">
+        <button class="btn ghost">다시 관찰 (3일)</button>
+        <button class="btn quiet">반응 기록 추가</button>
+      </div>
+
+      <div class="eyebrow" style="margin-top:22px;padding-left:10px">기록</div>
+      <div class="ev">
+        <span class="bullet" style="background:var(--red)"></span>
+        <span><span class="when">2026년 7월 17일 · 오후 2:30</span>
+        <span class="what" style="color:var(--red);display:block">반응 발생</span>
+        <span class="why">중간 · 두드러기, 얼굴 부종 — 볼과 목에 두드러기, 1시간 후 가라앉음</span></span>
+      </div>
+      <div class="ev">
+        <span class="bullet" style="background:var(--green)"></span>
+        <span><span class="when">2026년 7월 16일 · 오후 7:00</span>
+        <span class="what" style="color:var(--green);display:block">이상 없음</span></span>
+      </div>
+      <div class="ev">
+        <span class="bullet" style="background:var(--amber-mk)"></span>
+        <span><span class="when">2026년 7월 16일 · 오전 9:00</span>
+        <span class="what" style="color:var(--amber-tx);display:block">관찰 시작</span></span>
+      </div>
+    </div>
+  </div>
+  <div class="pressnote">
+    <b>One mechanic, three surfaces.</b> The ledger on Home is live, on detail it is a replay, and on the calendar the same three cells are the tinted run of days. Nothing new to learn on the second screen.
+  </div>
+</figure>
+
+</div>
+</body>
+</html>
