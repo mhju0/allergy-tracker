@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { Alert, FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -187,7 +187,12 @@ export default function Foods() {
       )}
 
       {!query.trim() && (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingTop: 12 }}>
+        <View style={{ paddingTop: 12 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 6, paddingRight: 22, alignItems: 'center' }}
+        >
           {([null, ...FILTERS] as const).map((f) => {
             const on = filter === f;
             const label = f === null ? t('foods.filterAll') : t(`status.${f}`);
@@ -211,6 +216,7 @@ export default function Foods() {
               </Pressable>
             );
           })}
+        </ScrollView>
         </View>
       )}
 
@@ -241,15 +247,21 @@ export default function Foods() {
         keyExtractor={(r) => r.key}
         renderItem={({ item: row }) =>
           row.kind === 'header' ? (
-            <Text
+            <View
               style={{
-                fontSize: 10, fontWeight: '700', letterSpacing: 2.2, color: colors.inkSecondary,
+                flexDirection: 'row', alignItems: 'baseline', gap: 6,
                 paddingTop: 16, paddingBottom: 7, paddingHorizontal: layout.rowInset,
                 borderBottomWidth: 1, borderColor: colors.hairline,
               }}
             >
-              {row.label} · {row.count}
-            </Text>
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 2.2, color: colors.inkSecondary }}>
+                {row.label}
+              </Text>
+              {/* the count sits outside the letterspaced run — 2.2 turned "45" into "4 5" */}
+              <Text style={{ fontSize: 10, fontWeight: '700', color: colors.inkSecondary }}>
+                · {row.count}
+              </Text>
+            </View>
           ) : (
             <FoodRow
               item={row.item}
