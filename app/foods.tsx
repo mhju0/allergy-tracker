@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -28,8 +28,15 @@ function SearchIcon() {
   );
 }
 
-const ORDER: Record<FoodStatus, number> = { testing: 0, untried: 1, safe: 2, reacted: 3 };
-const ROW_H = 44; // fixed row height (matches the previous content-sized height) — required for getItemLayout/scrollToIndex
+// Untried used to sort second, so on a fresh install ~45 foods with no history
+// sat above every food that had one. The rows worth reading now lead.
+const ORDER: Record<FoodStatus, number> = { testing: 0, reacted: 1, safe: 2, untried: 3 };
+const ROW_MIN_H = 44; // minimum, not fixed — rows must grow with Dynamic Type
+const FILTERS = ['testing', 'reacted', 'safe', 'untried'] as const;
+
+type Row =
+  | { kind: 'header'; key: string; label: string; count: number }
+  | { kind: 'food'; key: string; item: FoodWithStatus };
 const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.inkSecondary, paddingBottom: 12 };
 
 export default function Foods() {
@@ -47,16 +54,44 @@ export default function Foods() {
   const [newName, setNewName] = useState('');
   const [addOpen, setAddOpen] = useState(false);
   const submitting = useRef(false);
-  const listRef = useRef<FlatList<FoodWithStatus>>(null);
-  const focusApplied = useRef(false);
+  // Home's count rows arrive as ?focus=<status>. They used to scroll an
+  // unfiltered list to that status; they now actually filter to it, which is
+  // what "안전 8" implies. Seeded once from the param, then user-owned.
+  const [filter, setFilter] = useState<FoodStatus | null>(
+    FILTERS.includes(focus as (typeof FILTERS)[number]) ? (focus as FoodStatus) : null,
+  );
 
-  const visible = useMemo(() => {
+  const counts = useMemo(() => {
+    const c = { testing: 0, reacted: 0, safe: 0, untried: 0 } as Record<FoodStatus, number>;
+    for (const f of foods) c[f.status]++;
+    return c;
+  }, [foods]);
+
+  const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return foods
+    const matched = foods
       .filter((f) => foodLabel(f.food).toLowerCase().includes(q))
+      .filter((f) => (filter && !q ? f.status === filter : true))
       .sort((a, b) =>
         ORDER[a.status] - ORDER[b.status] || foodLabel(a.food).localeCompare(foodLabel(b.food)));
-  }, [foods, query, i18n.language]);
+
+    // Headers only earn their space in the unfiltered, unsearched view, where
+    // they explain why a run of rows carries no status chip.
+    if (filter || q) return matched.map((item): Row => ({ kind: 'food', key: item.food.id, item }));
+
+    const out: Row[] = [];
+    const tried = matched.filter((f) => f.status !== 'untried');
+    const untried = matched.filter((f) => f.status === 'untried');
+    if (tried.length) {
+      out.push({ kind: 'header', key: 'h-tried', label: t('foods.groupTried'), count: tried.length });
+      for (const item of tried) out.push({ kind: 'food', key: item.food.id, item });
+    }
+    if (untried.length) {
+      out.push({ kind: 'header', key: 'h-untried', label: t('foods.groupUntried'), count: untried.length });
+      for (const item of untried) out.push({ kind: 'food', key: item.food.id, item });
+    }
+    return out;
+  }, [foods, query, filter, i18n.language, t]);
 
   // The food that a start would auto-close as 안전 — only when its window has
   // already elapsed (that is the only case decideStartTrial allows through).
@@ -64,18 +99,6 @@ export default function Foods() {
     const a = foods.find((f) => f.status === 'testing');
     return a?.latest && isWindowElapsed(a.latest, new Date()) ? a : undefined;
   }, [foods]);
-
-  // Home's count rows land here with ?focus=<status>: jump once (no animation)
-  // to that status's section. foods and trials arrive from two independent live
-  // queries, so statuses can render as all-untried for a frame — only latch once
-  // the target status actually exists in the list (a 0-count focus stays at top).
-  useEffect(() => {
-    if (focusApplied.current || !focus || visible.length === 0) return;
-    const index = visible.findIndex((f) => f.status === focus);
-    if (index === -1) return;
-    focusApplied.current = true;
-    if (index > 0) listRef.current?.scrollToIndex({ index, animated: false });
-  }, [visible, focus]);
 
   const submitNew = async () => {
     const name = newName.trim();
@@ -123,7 +146,14 @@ export default function Foods() {
           placeholder={t('foods.search')}
           placeholderTextColor={colors.inkSecondary}
           value={query}
-          onChangeText={setQuery}
+          // Searching with a filter on would silently hide matches, so typing
+          // drops the filter — visibly, since the pill deselects.
+          onChangeText={(v) => {
+            setQuery(v);
+            if (v.trim()) setFilter(null);
+          }}
+          clearButtonMode="while-editing"
+          autoCorrect={false}
           style={{ flex: 1, fontSize: 15, color: colors.ink, marginLeft: 7 }}
         />
         <Pressable
@@ -156,6 +186,34 @@ export default function Foods() {
         </View>
       )}
 
+      {!query.trim() && (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingTop: 12 }}>
+          {([null, ...FILTERS] as const).map((f) => {
+            const on = filter === f;
+            const label = f === null ? t('foods.filterAll') : t(`status.${f}`);
+            const n = f === null ? foods.length : counts[f];
+            if (f !== null && n === 0) return null;
+            return (
+              <Pressable
+                key={f ?? 'all'}
+                accessibilityRole="button"
+                accessibilityState={{ selected: on }}
+                onPress={() => setFilter(f)}
+                style={press({
+                  paddingHorizontal: 11, paddingVertical: 6, borderRadius: radii.pill, borderWidth: 1.5,
+                  borderColor: on ? colors.ink : colors.hairline,
+                  backgroundColor: on ? colors.ink : 'transparent',
+                })}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '700', color: on ? colors.paper : colors.inkSecondary }}>
+                  {label} {n}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+
       {addOpen && (
         <View
           style={{
@@ -179,20 +237,30 @@ export default function Foods() {
       )}
 
       <FlatList
-        ref={listRef}
-        data={visible}
-        keyExtractor={(f) => f.food.id}
-        getItemLayout={(_, index) => ({ length: ROW_H, offset: ROW_H * index, index })}
-        renderItem={({ item }) => (
-          <FoodRow
-            item={item}
-            onPress={
-              pick === '1'
-                ? () => startFlow(item.food, () => router.back())
-                : () => router.push({ pathname: '/food/[id]', params: { id: item.food.id, from: 'foods' } })
-            }
-          />
-        )}
+        data={rows}
+        keyExtractor={(r) => r.key}
+        renderItem={({ item: row }) =>
+          row.kind === 'header' ? (
+            <Text
+              style={{
+                fontSize: 10, fontWeight: '700', letterSpacing: 2.2, color: colors.inkSecondary,
+                paddingTop: 16, paddingBottom: 7, paddingHorizontal: layout.rowInset,
+                borderBottomWidth: 1, borderColor: colors.hairline,
+              }}
+            >
+              {row.label} · {row.count}
+            </Text>
+          ) : (
+            <FoodRow
+              item={row.item}
+              onPress={
+                pick === '1'
+                  ? () => startFlow(row.item.food, () => router.back())
+                  : () => router.push({ pathname: '/food/[id]', params: { id: row.item.food.id, from: 'foods' } })
+              }
+            />
+          )
+        }
         ListEmptyComponent={
           query.trim() ? (
             // A search that finds nothing used to be a dead end: the 직접 추가
@@ -225,17 +293,25 @@ export default function Foods() {
 function FoodRow({ item, onPress }: { item: FoodWithStatus; onPress: () => void }) {
   const { t } = useTranslation();
   const bold = item.status === 'testing';
+  const untried = item.status === 'untried';
   return (
     <Pressable
       accessibilityRole="button"
+      // The chip is dropped for untried rows below, so the status has to reach
+      // screen readers here — it is the only place it survives for those rows.
+      accessibilityLabel={[
+        foodLabel(item.food),
+        item.food.allergenGroup ? t('foods.highRisk') : null,
+        t(`status.${item.status}`),
+      ].filter(Boolean).join(', ')}
       onPress={onPress}
       style={press({
-        flexDirection: 'row', alignItems: 'center', height: ROW_H,
-        paddingHorizontal: layout.rowInset,
+        flexDirection: 'row', alignItems: 'center', minHeight: ROW_MIN_H,
+        paddingVertical: 8, paddingHorizontal: layout.rowInset,
         borderBottomWidth: 1, borderColor: colors.hairline, gap: 7,
       })}
     >
-      <Text numberOfLines={1} style={{ flex: 1, fontSize: 15, fontWeight: bold ? '800' : '600', color: colors.ink }}>
+      <Text style={{ flex: 1, fontSize: 15, fontWeight: bold ? '800' : '600', color: colors.ink }}>
         {foodLabel(item.food)}
       </Text>
       {item.food.allergenGroup && (
@@ -248,7 +324,8 @@ function FoodRow({ item, onPress }: { item: FoodWithStatus; onPress: () => void 
           {t('foods.highRisk')}
         </Text>
       )}
-      <StatusChip status={item.status} />
+      {/* absence IS untried — 45 identical grey chips carried no information */}
+      {!untried && <StatusChip status={item.status} />}
     </Pressable>
   );
 }

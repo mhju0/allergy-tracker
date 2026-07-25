@@ -42,7 +42,10 @@
     "pickHintAutoclose": "{{food}}는 안전으로 기록돼요",
     "emptySearch": "검색 결과가 없어요",
     "emptyAdd": "“{{name}}” 직접 추가하기",
-    "highRiskHint": "고위험 = 알레르기를 자주 일으키는 재료예요. 시작해도 괜찮지만 더 주의해서 관찰하세요."
+    "highRiskHint": "고위험 = 알레르기를 자주 일으키는 재료예요. 시작해도 괜찮지만 더 주의해서 관찰하세요.",
+    "groupTried": "기록 있음",
+    "groupUntried": "안 먹어봄",
+    "filterAll": "전체"
   },
   "food": {
     "startTrial": "{{days}}일 관찰 시작",
