@@ -132,8 +132,8 @@ export default function FoodDetail() {
               t('food.cancelConfirmTitle', { food: foodLabel(food) }),
               t('food.cancelConfirmBody'),
               [
-                { text: t('food.cancelTrial'), style: 'destructive', onPress: () => cancelTrial(activeHere.id, new Date()) },
-                { text: t('food.close'), style: 'cancel' },
+                { text: t('food.cancelConfirmYes'), style: 'destructive', onPress: () => cancelTrial(activeHere.id, new Date()) },
+                { text: t('food.keepGoing'), style: 'cancel' },
               ],
             )} />
         </View>

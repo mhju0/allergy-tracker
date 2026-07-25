@@ -17,13 +17,13 @@ const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 
 export default function Home() {
   const baby = useBaby();
   if (!baby) return null; // seed hasn't landed yet (first frame)
-  if (!baby.welcomedAt) return <WelcomeCard />;
+  if (!baby.welcomedAt) return <WelcomeCard windowDays={baby.defaultWindowDays} />;
   return <Dashboard />;
 }
 
 // One-time first-run explainer (Apple "welcome sheet" idiom: title, three
 // rows, one button). Info only — no input; dismissal persists in the DB.
-function WelcomeCard() {
+function WelcomeCard({ windowDays }: { windowDays: number }) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   return (
@@ -46,7 +46,7 @@ function WelcomeCard() {
               <Text style={{ fontSize: 13, fontWeight: '800', color: colors.ink }}>{n}</Text>
             </View>
             <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: colors.ink, lineHeight: 21 }}>
-              {t(`welcome.step${n}`)}
+              {t(`welcome.step${n}`, { days: windowDays })}
             </Text>
           </View>
         ))}
@@ -99,7 +99,9 @@ function Dashboard() {
             </Text>
           </Pressable>
           <Text style={{ fontSize: 13, fontWeight: '700', color: colors.amberText, marginTop: 9, paddingLeft: layout.rowInset }}>
-            {elapsed ? t('home.readyToConfirm') : `${t('status.testing')} · ${t('home.dayOf', { day, total: latest.windowDays })}`}
+            {elapsed
+              ? t('home.readyToConfirm', { total: latest.windowDays })
+              : `${t('status.testing')} · ${t('home.dayOf', { day, total: latest.windowDays })}`}
           </Text>
           <View style={{ height: 3, backgroundColor: colors.hairline, borderRadius: 2, marginTop: 13, marginBottom: 20, overflow: 'hidden' }}>
             <View style={{ height: 3, width: `${fraction * 100}%`, backgroundColor: colors.amber }} />

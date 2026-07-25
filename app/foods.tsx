@@ -7,7 +7,7 @@ import { useBaby, useFoodsWithStatus, type FoodWithStatus } from '../src/data/qu
 import { addCustomFood } from '../src/data/mutations';
 import { useStartTrialFlow } from '../src/data/useStartTrialFlow';
 import { foodLabel } from '../src/i18n';
-import type { FoodStatus } from '../src/domain/status';
+import { isWindowElapsed, type FoodStatus } from '../src/domain/status';
 import { StatusChip } from '../src/ui/StatusChip';
 import { press } from '../src/ui/pressable';
 import { colors, layout, radii } from '../src/ui/tokens';
@@ -41,7 +41,8 @@ export default function Foods() {
   const insets = useSafeAreaInsets();
   const foods = useFoodsWithStatus();
   const baby = useBaby();
-  const startFlow = useStartTrialFlow(foods, baby?.defaultWindowDays ?? 3);
+  const windowDays = baby?.defaultWindowDays ?? 3;
+  const startFlow = useStartTrialFlow(foods, windowDays);
   const [query, setQuery] = useState('');
   const [newName, setNewName] = useState('');
   const [addOpen, setAddOpen] = useState(false);
@@ -56,6 +57,13 @@ export default function Foods() {
       .sort((a, b) =>
         ORDER[a.status] - ORDER[b.status] || foodLabel(a.food).localeCompare(foodLabel(b.food)));
   }, [foods, query, i18n.language]);
+
+  // The food that a start would auto-close as 안전 — only when its window has
+  // already elapsed (that is the only case decideStartTrial allows through).
+  const autocloses = useMemo(() => {
+    const a = foods.find((f) => f.status === 'testing');
+    return a?.latest && isWindowElapsed(a.latest, new Date()) ? a : undefined;
+  }, [foods]);
 
   // Home's count rows land here with ?focus=<status>: jump once (no animation)
   // to that status's section. foods and trials arrive from two independent live
@@ -133,9 +141,19 @@ export default function Foods() {
       </View>
 
       {pick === '1' && (
-        <Text style={{ fontSize: 12, color: colors.inkSecondary, paddingTop: 8, paddingLeft: layout.rowInset }}>
-          {t('foods.pickHint')}
-        </Text>
+        <View style={{ paddingTop: 8, paddingLeft: layout.rowInset }}>
+          <Text style={{ fontSize: 12, color: colors.inkSecondary }}>
+            {t('foods.pickHint', { days: windowDays })}
+          </Text>
+          {/* Starting a food while the previous window has elapsed silently
+              records that food as 안전 (the implicit-safe autoclose). Say so
+              before the tap — it is the app's most consequential write. */}
+          {autocloses && (
+            <Text style={{ fontSize: 12, fontWeight: '700', color: colors.green, marginTop: 3 }}>
+              {t('foods.pickHintAutoclose', { food: foodLabel(autocloses.food) })}
+            </Text>
+          )}
+        </View>
       )}
 
       {addOpen && (
@@ -177,7 +195,7 @@ export default function Foods() {
         )}
         ListEmptyComponent={
           <Text style={{ color: colors.inkSecondary, fontSize: 14, textAlign: 'center', paddingVertical: 24 }}>
-            {t('foods.empty')}
+            {query.trim() ? t('foods.emptySearch') : t('foods.empty')}
           </Text>
         }
       />

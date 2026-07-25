@@ -43,6 +43,10 @@ export default function LogReaction() {
   const toggle = (s: string) =>
     setSymptoms((cur) => (cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s]));
 
+  // Read before the mutation: logReaction flips the trial to 'reacted', so
+  // after it lands the two paths are indistinguishable.
+  const delayed = entry.status !== 'testing';
+
   const save = async () => {
     if (saving.current) return;
     saving.current = true;
@@ -59,10 +63,13 @@ export default function LogReaction() {
       }
       if (navigation.isFocused()) router.back();
       // The food vanishes from the home hero the moment its trial flips to
-      // reacted — say where it went so the jump isn't confusing.
+      // reacted — say where it went so the jump isn't confusing. `delayed` is
+      // captured from the pre-save render: on that path no observation was
+      // running, so claiming "관찰이 끝났어요" would be false — the food went
+      // straight from 안전 to 반응 and that is what the parent needs told.
       Alert.alert(
         t('reaction.savedTitle', { food: foodLabel(entry.food) }),
-        t('reaction.savedBody'),
+        t(delayed ? 'reaction.savedBodyDelayed' : 'reaction.savedBodyActive'),
       );
     } catch {
       Alert.alert(t('errors.generic'));

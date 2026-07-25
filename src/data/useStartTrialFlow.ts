@@ -58,7 +58,7 @@ export function useStartTrialFlow(foods: FoodWithStatus[], windowDays: number) {
             }
           },
         },
-        { text: t('food.close'), style: 'cancel' },
+        { text: t('food.keepGoing'), style: 'cancel' },
       ]);
     } catch {
       Alert.alert(t('errors.generic'));
