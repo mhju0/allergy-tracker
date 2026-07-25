@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { logCheckin } from '../data/mutations';
 import { useCheckins } from '../data/queries';
 import { isSameLocalDay } from '../domain/status';
+import { press } from './pressable';
 import { colors, radii } from './tokens';
 
 // One-tap "이상 없음" observation for an active trial. Never touches trial
@@ -45,10 +46,10 @@ export function CheckinPill({ foodId, trialId }: { foodId: string; trialId: stri
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={{
+      style={press({
         borderWidth: 1.5, borderColor: colors.green, borderRadius: radii.pill,
         paddingVertical: 12.5, alignItems: 'center',
-      }}
+      })}
     >
       <Text style={{ color: colors.green, fontSize: 15, fontWeight: '700' }}>{t('food.checkinClear')}</Text>
     </Pressable>

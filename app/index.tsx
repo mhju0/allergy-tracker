@@ -9,6 +9,7 @@ import { foodLabel } from '../src/i18n';
 import { isWindowElapsed, MS_PER_DAY, type FoodStatus } from '../src/domain/status';
 import { Button } from '../src/ui/Button';
 import { CheckinPill } from '../src/ui/CheckinPill';
+import { press } from '../src/ui/pressable';
 import { colors, layout } from '../src/ui/tokens';
 
 const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.inkSecondary, paddingBottom: 12, paddingLeft: layout.rowInset };
@@ -91,6 +92,7 @@ function Dashboard() {
             accessibilityRole="button"
             accessibilityLabel={foodLabel(active.food)}
             onPress={() => router.push({ pathname: '/food/[id]', params: { id: active.food.id } })}
+            style={press()}
           >
             <Text style={{ fontSize: 58, fontWeight: '900', color: colors.ink, letterSpacing: -1, lineHeight: 60 }}>
               {foodLabel(active.food)}
@@ -135,11 +137,11 @@ function Dashboard() {
             accessibilityRole="button"
             accessibilityLabel={`${t(`status.${s}`)} ${counts[s]}`}
             onPress={() => router.push({ pathname: '/foods', params: { focus: s } })}
-            style={{
+            style={press({
               flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',
               paddingVertical: 12, paddingHorizontal: layout.rowInset,
               borderBottomWidth: 1, borderColor: colors.hairline,
-            }}
+            })}
           >
             <Text style={{ fontSize: 14, fontWeight: '700', color: colors.status[s].fg }}>{t(`status.${s}`)}</Text>
             <Text style={{ fontSize: 17, fontWeight: '900', color: colors.status[s].fg, fontVariant: ['tabular-nums'] }}>
@@ -154,11 +156,11 @@ function Dashboard() {
           accessibilityRole="button"
           accessibilityLabel={t('home.calendar')}
           onPress={() => router.push('/calendar')}
-          style={{
+          style={press({
             flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
             paddingVertical: 15, paddingHorizontal: layout.rowInset,
             borderTopWidth: 1, borderColor: colors.hairline,
-          }}
+          })}
         >
           <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }}>{t('home.calendar')}</Text>
           <Text style={{ fontSize: 15, color: colors.inkSecondary }}>→</Text>
@@ -167,11 +169,11 @@ function Dashboard() {
           accessibilityRole="button"
           accessibilityLabel={t('settings.title')}
           onPress={() => router.push('/settings')}
-          style={{
+          style={press({
             flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
             paddingVertical: 15, paddingHorizontal: layout.rowInset,
             borderTopWidth: 1, borderColor: colors.hairline,
-          }}
+          })}
         >
           <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }}>{t('settings.title')}</Text>
           <Text style={{ fontSize: 15, color: colors.inkSecondary }}>→</Text>

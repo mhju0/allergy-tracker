@@ -7,6 +7,7 @@ import { useFoodsWithStatus } from '../src/data/queries';
 import { logReaction } from '../src/data/mutations';
 import { foodLabel } from '../src/i18n';
 import { Button } from '../src/ui/Button';
+import { press } from '../src/ui/pressable';
 import { colors } from '../src/ui/tokens';
 
 const SYMPTOMS = ['hives', 'rash', 'vomiting', 'diarrhea', 'swelling', 'cough', 'breathing', 'other'] as const;
@@ -82,7 +83,7 @@ export default function LogReaction() {
           accessibilityLabel={t('food.close')}
           onPress={() => router.back()}
           hitSlop={12}
-          style={{ position: 'absolute', right: 0, top: -6, minWidth: 32, minHeight: 32, alignItems: 'flex-end', justifyContent: 'center' }}
+          style={press({ position: 'absolute', right: 0, top: -6, minWidth: 32, minHeight: 32, alignItems: 'flex-end', justifyContent: 'center' })}
         >
           <Text style={{ fontSize: 17, color: colors.inkSecondary }}>✕</Text>
         </Pressable>
@@ -101,11 +102,11 @@ export default function LogReaction() {
               accessibilityRole="button"
               accessibilityState={{ selected: on }}
               onPress={() => toggle(s)}
-              style={{
+              style={press({
                 paddingHorizontal: 13, paddingVertical: 8, borderRadius: 999, borderWidth: 1.5,
                 borderColor: on ? colors.ink : colors.hairline,
                 backgroundColor: on ? colors.ink : 'transparent',
-              }}
+              })}
             >
               <Text style={{ color: on ? colors.paper : colors.ink, fontSize: 13, fontWeight: '600' }}>
                 {t(`reaction.symptom.${s}`)}
@@ -127,10 +128,10 @@ export default function LogReaction() {
               accessibilityRole="button"
               accessibilityState={{ selected: on }}
               onPress={() => setSeverity(s)}
-              style={{
+              style={press({
                 flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: 999,
                 backgroundColor: on ? colors.ink : 'transparent',
-              }}
+              })}
             >
               <Text style={{ color: on ? colors.paper : colors.ink, fontSize: 13, fontWeight: '700' }}>
                 {t(`reaction.severityLevel.${s}`)}

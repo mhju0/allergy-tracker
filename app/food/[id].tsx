@@ -10,6 +10,7 @@ import { foodLabel } from '../../src/i18n';
 import { isWindowElapsed, MS_PER_DAY } from '../../src/domain/status';
 import { Button } from '../../src/ui/Button';
 import { CheckinPill } from '../../src/ui/CheckinPill';
+import { press } from '../../src/ui/pressable';
 import { colors, layout, statusIcon } from '../../src/ui/tokens';
 
 const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.inkSecondary, paddingBottom: 12 };
@@ -85,7 +86,7 @@ export default function FoodDetail() {
         accessibilityRole="button"
         onPress={() => router.back()}
         hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
-        style={{ minHeight: 44, justifyContent: 'center' }}
+        style={press({ minHeight: 44, justifyContent: 'center' })}
       >
         <Text style={eyebrowStyle}>
           <Text style={{ color: colors.inkSecondary }}>‹ </Text>

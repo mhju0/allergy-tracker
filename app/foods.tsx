@@ -9,6 +9,7 @@ import { useStartTrialFlow } from '../src/data/useStartTrialFlow';
 import { foodLabel } from '../src/i18n';
 import type { FoodStatus } from '../src/domain/status';
 import { StatusChip } from '../src/ui/StatusChip';
+import { press } from '../src/ui/pressable';
 import { colors, layout, radii } from '../src/ui/tokens';
 
 // Dependency-free magnifier glyph (no icon lib in the project) — a ring plus a
@@ -95,7 +96,7 @@ export default function Foods() {
         accessibilityRole="button"
         onPress={() => router.back()}
         hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
-        style={{ minHeight: 44, justifyContent: 'center' }}
+        style={press({ minHeight: 44, justifyContent: 'center' })}
       >
         <Text style={eyebrowStyle}>
           <Text style={{ color: colors.inkSecondary }}>‹ </Text>
@@ -121,11 +122,11 @@ export default function Foods() {
           accessibilityRole="button"
           onPress={() => setAddOpen((v) => !v)}
           hitSlop={{ top: 9, bottom: 9, left: 8, right: 8 }}
-          style={{
+          style={press({
             flexDirection: 'row', alignItems: 'center',
             borderWidth: 1, borderColor: colors.ink, borderRadius: radii.pill,
             paddingVertical: 5, paddingHorizontal: 11,
-          }}
+          })}
         >
           <Text style={{ fontSize: 13, fontWeight: '700', color: colors.ink }}>＋ {t('foods.customAdd')}</Text>
         </Pressable>
@@ -153,7 +154,7 @@ export default function Foods() {
             onSubmitEditing={submitNew}
             style={{ flex: 1, fontSize: 15, color: colors.ink }}
           />
-          <Pressable accessibilityRole="button" onPress={submitNew}>
+          <Pressable accessibilityRole="button" onPress={submitNew} style={press()}>
             <Text style={{ fontSize: 13, fontWeight: '700', color: colors.accent }}>{t('foods.add')}</Text>
           </Pressable>
         </View>
@@ -191,11 +192,11 @@ function FoodRow({ item, onPress }: { item: FoodWithStatus; onPress: () => void 
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={{
+      style={press({
         flexDirection: 'row', alignItems: 'center', height: ROW_H,
         paddingHorizontal: layout.rowInset,
         borderBottomWidth: 1, borderColor: colors.hairline, gap: 7,
-      }}
+      })}
     >
       <Text numberOfLines={1} style={{ flex: 1, fontSize: 15, fontWeight: bold ? '800' : '600', color: colors.ink }}>
         {foodLabel(item.food)}

@@ -13,6 +13,7 @@ import { updateBabySettings } from '../src/data/mutations';
 import { isPermissionGranted } from '../src/services/notify';
 import { foodLabel } from '../src/i18n';
 import { Button } from '../src/ui/Button';
+import { press } from '../src/ui/pressable';
 import { colors, layout } from '../src/ui/tokens';
 import { buildBackup, buildReportHtml } from '../src/services/export';
 
@@ -108,7 +109,7 @@ export default function Settings() {
           accessibilityLabel={t('food.close')}
           onPress={() => router.back()}
           hitSlop={12}
-          style={{ position: 'absolute', right: 0, top: -6, minWidth: 32, minHeight: 32, alignItems: 'flex-end', justifyContent: 'center' }}
+          style={press({ position: 'absolute', right: 0, top: -6, minWidth: 32, minHeight: 32, alignItems: 'flex-end', justifyContent: 'center' })}
         >
           <Text style={{ fontSize: 17, color: colors.inkSecondary }}>✕</Text>
         </Pressable>
@@ -144,7 +145,7 @@ export default function Settings() {
       <Pressable
         accessibilityRole="button"
         onPress={() => Linking.openSettings()}
-        style={rowStyle}
+        style={press(rowStyle)}
       >
         <Text style={rowLabelText}>{t('settings.notifications')}</Text>
         <Text style={{ fontSize: 14, color: notifOn === false ? colors.red : colors.inkSecondary }}>
@@ -157,7 +158,7 @@ export default function Settings() {
           await updateBabySettings({ welcomedAt: null });
           router.back(); // home now shows the welcome card again
         }}
-        style={rowStyle}
+        style={press(rowStyle)}
       >
         <Text style={rowLabelText}>{t('settings.showGuide')}</Text>
         <Text style={{ fontSize: 15, color: colors.inkSecondary }}>→</Text>

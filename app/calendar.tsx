@@ -7,6 +7,7 @@ import { useCheckins, useFoodsWithStatus, useReactions } from '../src/data/queri
 import { dayMark, monthMatrix, sameLocalDay, sortDayEvents } from '../src/domain/calendar';
 import { foodLabel } from '../src/i18n';
 import type { Food } from '../src/db/schema';
+import { press } from '../src/ui/pressable';
 import { colors, layout } from '../src/ui/tokens';
 
 const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.inkSecondary, paddingBottom: 12 };
@@ -108,7 +109,7 @@ export default function Calendar() {
         accessibilityRole="button"
         onPress={() => router.back()}
         hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
-        style={{ minHeight: 44, justifyContent: 'center' }}
+        style={press({ minHeight: 44, justifyContent: 'center' })}
       >
         <Text style={eyebrowStyle}>
           <Text style={{ color: colors.inkSecondary }}>‹ </Text>
@@ -117,16 +118,16 @@ export default function Calendar() {
       </Pressable>
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.today')} onPress={goToday}>
+        <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.today')} onPress={goToday} style={press()}>
           <Text style={{ fontSize: 30, fontWeight: '900', color: colors.ink, letterSpacing: -0.3, paddingLeft: layout.rowInset }}>
             {t('calendar.monthTitle', { year: display.year, month: display.month0 + 1 })}
           </Text>
         </Pressable>
         <View style={{ flexDirection: 'row' }}>
-          <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.prevMonth')} onPress={() => goMonth(-1)} style={navBtnStyle}>
+          <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.prevMonth')} onPress={() => goMonth(-1)} style={press(navBtnStyle)}>
             <Text style={{ fontSize: 18, color: colors.inkSecondary }}>‹</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.nextMonth')} onPress={() => goMonth(1)} style={navBtnStyle}>
+          <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.nextMonth')} onPress={() => goMonth(1)} style={press(navBtnStyle)}>
             <Text style={{ fontSize: 18, color: colors.inkSecondary }}>›</Text>
           </Pressable>
         </View>
@@ -161,11 +162,11 @@ export default function Calendar() {
                   accessibilityLabel={cell.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}
                   accessibilityState={{ selected: isSelected }}
                   onPress={() => setSelectedDate(cell.date)}
-                  style={{
+                  style={press({
                     flex: 1, aspectRatio: 1, margin: 1.5, borderRadius: 9,
                     backgroundColor: bg, alignItems: 'center', justifyContent: 'center',
                     borderWidth: isSelected ? 2 : 0, borderColor: colors.ink,
-                  }}
+                  })}
                 >
                   <Text style={{ fontSize: 12.5, fontWeight: '700', color: fg }}>{cell.date.getDate()}</Text>
                   {mark.dot && (
