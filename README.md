@@ -144,7 +144,7 @@ progress bar and the record are the same object.
 | App | Expo SDK 57 · React Native 0.86 · TypeScript (strict) |
 | Navigation | Expo Router — file-based, typed routes, stack-only |
 | Data | expo-sqlite + Drizzle ORM, generated migrations committed |
-| Domain | Pure TypeScript core, built test-first — Jest, 94 tests |
+| Domain | Pure TypeScript core, built test-first — Jest, 123 tests |
 | Notifications | expo-notifications — all local, no push service |
 | Localization | i18next — Korean-only by design, dates pinned to `ko-KR` |
 | UI | Hand-rolled editorial design system, no component library |
@@ -176,7 +176,7 @@ src/ui/       design tokens (single source of colour) + shared components
 ```bash
 npm install
 npx expo run:ios       # dev build on the simulator
-npx jest               # 94 unit tests
+npx jest               # 123 unit tests
 npx tsc --noEmit       # typecheck
 ```
 
