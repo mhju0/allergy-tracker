@@ -22,6 +22,8 @@ export type ReactionLike = {
 
 export type CheckinLike = { id: string; trialId: string; occurredAt: Date };
 
+export type RecordedTrial = TrialLike & { reactions: ReactionLike[]; checkins: CheckinLike[] };
+
 export type TrialRecord<F> = {
   key: string;
   at: Date;
@@ -34,38 +36,28 @@ export type TrialRecord<F> = {
 // Oldest first, with a trial's start listed last among events sharing its
 // instant (see sortDayEvents). Reverse it for a newest-first view.
 export function buildRecords<F>(
-  foods: { food: F; trials: TrialLike[] }[],
-  reactions: ReactionLike[],
-  checkins: CheckinLike[],
+  foods: { food: F; trials: RecordedTrial[] }[],
   opts: { includeCancelled?: boolean } = {},
 ): TrialRecord<F>[] {
   const rows: TrialRecord<F>[] = [];
-  const foodByTrial = new Map<string, F>();
 
   for (const { food, trials } of foods) {
     for (const tr of trials) {
       // Cancelled trials are invisible on the calendar (owner decision
       // 2026-07-23) but keep their full history on the food detail page.
       if (tr.outcome === 'cancelled' && !opts.includeCancelled) continue;
-      foodByTrial.set(tr.id, food);
       rows.push({ key: `start-${tr.id}`, at: tr.startedAt, kind: 'start', food, trialId: tr.id });
       // outcome 'reacted' emits no end row — the reaction below is that moment.
       if (tr.endedAt && (tr.outcome === 'safe' || tr.outcome === 'cancelled')) {
         rows.push({ key: `end-${tr.id}`, at: tr.endedAt, kind: tr.outcome, food, trialId: tr.id });
       }
+      for (const r of tr.reactions) {
+        rows.push({ key: `reaction-${r.id}`, at: r.occurredAt, kind: 'reacted', food, trialId: tr.id, reaction: r });
+      }
+      for (const c of tr.checkins) {
+        rows.push({ key: `checkin-${c.id}`, at: c.occurredAt, kind: 'checkin', food, trialId: tr.id });
+      }
     }
-  }
-
-  for (const r of reactions) {
-    const food = foodByTrial.get(r.trialId);
-    if (!food) continue; // belongs to a trial this view doesn't show
-    rows.push({ key: `reaction-${r.id}`, at: r.occurredAt, kind: 'reacted', food, trialId: r.trialId, reaction: r });
-  }
-
-  for (const c of checkins) {
-    const food = foodByTrial.get(c.trialId);
-    if (!food) continue;
-    rows.push({ key: `checkin-${c.id}`, at: c.occurredAt, kind: 'checkin', food, trialId: c.trialId });
   }
 
   return sortDayEvents(rows);

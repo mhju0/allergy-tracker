@@ -1,5 +1,5 @@
 import { buildBackup, buildReport, escapeHtml, type ReportInput } from './export';
-import type { TrialLike } from '../domain/status';
+import type { RecordedTrial } from '../domain/records';
 
 // The report is driven from domain values now, so the fixture is what the app
 // actually holds — foods, trials, reactions — not a hand-written view-model.
@@ -12,21 +12,24 @@ const t = (key: string, opts?: Record<string, unknown>) =>
   opts ? `${key}(${Object.values(opts).join(',')})` : key;
 
 let n = 0;
-const mk = (over: Partial<TrialLike> = {}): TrialLike => ({
-  id: `t${n++}`, startedAt: D('2026-07-10T09:00:00Z'), windowDays: 3, outcome: null, endedAt: null, ...over,
+const mk = (over: Partial<RecordedTrial> = {}): RecordedTrial => ({
+  id: `t${n++}`, startedAt: D('2026-07-10T09:00:00Z'), windowDays: 3, outcome: null, endedAt: null,
+  reactions: [], checkins: [], ...over,
 });
 const foodRow = (name: string) => ({ isCustom: true as const, name });
 
-const reactedTrial = mk({ outcome: 'reacted', endedAt: D('2026-07-11T14:00:00Z') });
+const reactedTrial = mk({
+  outcome: 'reacted', endedAt: D('2026-07-11T14:00:00Z'),
+  reactions: [{
+    id: 'r1', trialId: 'egg-trial', occurredAt: D('2026-07-11T14:00:00Z'),
+    severity: 'moderate', symptoms: ['hives', 'rash'], note: null,
+  }],
+});
 const base: ReportInput<{ isCustom: boolean; name: string }> = {
   baby: { name: '하율', birthdate: D('2025-11-02T00:00:00Z') },
   foods: [
     { food: foodRow('달걀'), status: 'reacted', trials: [reactedTrial], latest: reactedTrial },
   ],
-  reactions: [{
-    id: 'r1', trialId: reactedTrial.id, occurredAt: D('2026-07-11T14:00:00Z'),
-    severity: 'moderate', symptoms: ['hives', 'rash'], note: null,
-  }],
 };
 
 describe('escapeHtml', () => {
@@ -44,7 +47,7 @@ describe('buildReport', () => {
   });
 
   // The join that used to be an O(n·m) flatMap().find() in the screen.
-  test('a reaction is attributed to the food whose trial it belongs to', () => {
+  test('each reaction is attributed to the food whose trial it belongs to', () => {
     const other = mk({ outcome: 'safe', endedAt: D('2026-07-05T09:00:00Z') });
     const html = buildReport({
       ...base,
@@ -57,9 +60,20 @@ describe('buildReport', () => {
     expect(html).not.toMatch(/<li><strong>두부<\/strong>/);
   });
 
-  test('a reaction whose trial is gone degrades to a blank food, not a crash', () => {
-    const html = buildReport({ ...base, foods: [] }, NOW, t);
-    expect(html).toContain('<li><strong></strong>');
+  // Grouping the list by food would bury a pattern that runs across foods.
+  test('reactions list chronologically, not grouped by food', () => {
+    const earlier = mk({
+      outcome: 'reacted', endedAt: D('2026-07-02T09:00:00Z'),
+      reactions: [{
+        id: 'r0', trialId: 'tofu-trial', occurredAt: D('2026-07-02T09:00:00Z'),
+        severity: 'mild', symptoms: ['cough'], note: null,
+      }],
+    });
+    const html = buildReport({
+      ...base,
+      foods: [...base.foods, { food: foodRow('두부'), status: 'reacted', trials: [earlier], latest: earlier }],
+    }, NOW, t);
+    expect(html.indexOf('두부</strong>')).toBeLessThan(html.indexOf('달걀</strong>'));
   });
 
   test('an untried food is left out of the table', () => {
@@ -84,14 +98,17 @@ describe('buildReport', () => {
     const html = buildReport({
       baby: { name: null, birthdate: null },
       foods: [{ food: foodRow('<script>x</script>'), status: 'safe', trials: [tr], latest: tr }],
-      reactions: [],
     }, NOW, t);
     expect(html).not.toContain('<script>');
     expect(html).toContain('&lt;script&gt;');
   });
 
   test('no reactions → the none label', () => {
-    expect(buildReport({ ...base, reactions: [] }, NOW, t)).toContain('report.none');
+    const clean = mk({ outcome: 'safe', endedAt: D('2026-07-13T09:00:00Z') });
+    expect(buildReport({
+      ...base,
+      foods: [{ food: foodRow('두부'), status: 'safe', trials: [clean], latest: clean }],
+    }, NOW, t)).toContain('report.none');
   });
 
   test('no name and no birthdate drops the line, not just its text', () => {

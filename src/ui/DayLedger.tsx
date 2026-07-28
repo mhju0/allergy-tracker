@@ -1,6 +1,7 @@
 import { Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { MS_PER_DAY, isSameLocalDay, type TrialLike } from '../domain/status';
+import { MS_PER_DAY, isSameLocalDay } from '../domain/status';
+import type { RecordedTrial } from '../domain/records';
 import { colors, layout } from './tokens';
 
 // The observation window, rendered as one named cell per day instead of an
@@ -32,20 +33,21 @@ const FG: Record<LedgerDay['state'], string> = {
   stopped: colors.inkSecondary,
 };
 
+// Takes the trial with its records attached — both screens used to filter the
+// check-in table and find the reaction themselves before they could call this.
 export function buildLedger(
-  trial: TrialLike,
-  checkins: Date[],
-  reactionAt: Date | null,
+  trial: RecordedTrial,
   now: Date,
   t: (key: string, opts?: Record<string, unknown>) => string,
 ): LedgerDay[] {
   const time = (d: Date) => d.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
   const endedDay = trial.endedAt ?? null;
+  const reactionAt = trial.reactions[0]?.occurredAt ?? null;
 
   return Array.from({ length: trial.windowDays }, (_, i) => {
     const date = new Date(trial.startedAt.getTime() + i * MS_PER_DAY);
     const label = t('ledger.day', { n: i + 1 });
-    const checkin = checkins.find((c) => isSameLocalDay(c, date));
+    const checkin = trial.checkins.find((c) => isSameLocalDay(c.occurredAt, date))?.occurredAt;
 
     if (reactionAt && isSameLocalDay(reactionAt, date)) {
       return { label, state: 'reacted' as const, stamp: time(reactionAt) };

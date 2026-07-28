@@ -3,7 +3,7 @@ import { Animated, AppState, Pressable, ScrollView, Text, View } from 'react-nat
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useBaby, useCheckins, useFoodsWithStatus, useReactions } from '../src/data/queries';
+import { useBaby, useFoodsWithStatus } from '../src/data/queries';
 import { confirmSafe, updateBabySettings } from '../src/data/mutations';
 import { foodLabel } from '../src/i18n';
 import { autoclosedBy, type FoodStatus } from '../src/domain/status';
@@ -69,8 +69,6 @@ function Dashboard() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const foods = useFoodsWithStatus();
-  const checkins = useCheckins();
-  const reactions = useReactions();
   const [, setTick] = useState(0);
   const bump = useCallback(() => setTick((x) => x + 1), []);
   useFocusEffect(bump);
@@ -87,22 +85,14 @@ function Dashboard() {
   }, [bump]);
   const now = new Date();
 
-  const { state, subline, filled } = describeHome(foods, reactions, now, t);
+  const { state, subline, filled } = describeHome(foods, now, t);
   const counts: Record<FoodStatus, number> = { safe: 0, testing: 0, reacted: 0, untried: 0 };
   for (const f of foods) counts[f.status]++;
 
   const active = state.kind === 'observing' || state.kind === 'confirm' ? state : null;
   const field = useFieldFade(state.kind);
 
-  const ledger = active
-    ? buildLedger(
-        active.trial,
-        checkins.filter((c) => c.trialId === active.trial.id).map((c) => c.occurredAt),
-        reactions.find((r) => r.trialId === active.trial.id)?.occurredAt ?? null,
-        now,
-        t,
-      )
-    : null;
+  const ledger = active ? buildLedger(active.trial, now, t) : null;
 
   // Starting a food auto-closes a previous elapsed trial as 안전, silently.
   const autoclosed = active ? autoclosedBy(foods, active.trial) : undefined;
@@ -157,7 +147,7 @@ function Dashboard() {
             after they logged facial swelling is the wrong instinct. */}
         <View style={{ gap: 10, marginTop: ledger ? 20 : 0, marginBottom: 10 }}>
           {state.kind === 'observing' && (
-            <CheckinPill foodId={state.food.id} trialId={state.trial.id} filled />
+            <CheckinPill foodId={state.food.id} trial={state.trial} now={now} filled />
           )}
           {state.kind === 'confirm' && (
             <Button label={t('home.markSafe')} onPress={() => confirmSafe(state.trial.id, new Date())} />

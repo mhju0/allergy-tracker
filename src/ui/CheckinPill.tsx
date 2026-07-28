@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { logCheckin } from '../data/mutations';
-import { useCheckins } from '../data/queries';
+import type { RecordedTrial } from '../domain/records';
 import { isSameLocalDay } from '../domain/status';
 import { press } from './pressable';
 import { colors, radii } from './tokens';
@@ -14,11 +14,15 @@ import { colors, radii } from './tokens';
 // when the app is asking for a check-in, this IS the thing to do — it used to be
 // a green outline sitting under a filled persimmon button for an action the
 // one-active-trial rule blocks.
-export function CheckinPill({ foodId, trialId, filled }: { foodId: string; trialId: string; filled?: boolean }) {
+export function CheckinPill(
+  { foodId, trial, now, filled }:
+  { foodId: string; trial: RecordedTrial; now: Date; filled?: boolean },
+) {
   const { t } = useTranslation();
-  const checkins = useCheckins();
   const checkingIn = useRef(false);
-  const doneToday = checkins.find((c) => c.trialId === trialId && isSameLocalDay(c.occurredAt, new Date()));
+  // The trial carries its own check-ins, so this no longer reads the whole
+  // table (or the clock) to answer a question about one trial.
+  const doneToday = trial.checkins.find((c) => isSameLocalDay(c.occurredAt, now));
 
   if (doneToday) {
     const time = doneToday.occurredAt.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });

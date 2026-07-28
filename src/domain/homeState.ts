@@ -1,6 +1,7 @@
 import {
   isWindowElapsed, latestTrial, windowEnd, MS_PER_DAY, type FoodStatus, type TrialLike,
 } from './status';
+import type { RecordedTrial } from './records';
 
 // What Home shows. Derived, never stored — same discipline as deriveStatus.
 //
@@ -12,14 +13,17 @@ import {
 // Generic over the food shape so this module never imports a db type; app/
 // passes the Drizzle `Food` row and gets it back on the state.
 
+// Trials arrive from the connected read model with their own records attached.
+export type HomeTrial = RecordedTrial;
+
 export type HomeState<F> =
   | { kind: 'empty' }
-  | { kind: 'observing'; food: F; trial: TrialLike; day: number }
-  | { kind: 'confirm'; food: F; trial: TrialLike }
-  | { kind: 'safe'; food: F; trial: TrialLike; safeCount: number }
-  | { kind: 'reacted'; food: F; trial: TrialLike };
+  | { kind: 'observing'; food: F; trial: HomeTrial; day: number }
+  | { kind: 'confirm'; food: F; trial: HomeTrial }
+  | { kind: 'safe'; food: F; trial: HomeTrial; safeCount: number }
+  | { kind: 'reacted'; food: F; trial: HomeTrial };
 
-export type HomeFood<F> = { food: F; trials: TrialLike[]; status: FoodStatus; latest: TrialLike | undefined };
+export type HomeFood<F> = { food: F; trials: HomeTrial[]; status: FoodStatus; latest: HomeTrial | undefined };
 
 // Day n of the window, 1-based, clamped to the window length.
 export function trialDay(t: Pick<TrialLike, 'startedAt' | 'windowDays'>, now: Date): number {
@@ -56,7 +60,7 @@ export function deriveHomeState<F>(foods: HomeFood<F>[], now: Date): HomeState<F
 // module-scope, and not exported, so nothing could test them. They switch over
 // the state machine above, which makes them the same module's business.
 
-type ReactionLike = { trialId: string; occurredAt: Date; severity: string; symptoms: string[] };
+type ReactionLike = { occurredAt: Date; severity: string; symptoms: string[] };
 type Translate = (key: string, opts?: Record<string, unknown>) => string;
 
 export type HomeView<F> = {
@@ -67,14 +71,10 @@ export type HomeView<F> = {
 
 // One call for the whole field: state, its line, and how much of the window it
 // has run. Home finds nothing out for itself.
-export function describeHome<F>(
-  foods: HomeFood<F>[], reactions: ReactionLike[], now: Date, t: Translate,
-): HomeView<F> {
+export function describeHome<F>(foods: HomeFood<F>[], now: Date, t: Translate): HomeView<F> {
   const state = deriveHomeState(foods, now);
   if (state.kind === 'empty') return { state, subline: t('home.empty'), filled: 0 };
-  const reaction = state.kind === 'reacted'
-    ? reactions.find((r) => r.trialId === state.trial.id)
-    : undefined;
+  const reaction = state.kind === 'reacted' ? state.trial.reactions[0] : undefined;
   return { state, subline: subline(state, reaction, t), filled: segmentsFilled(state) };
 }
 
@@ -121,8 +121,8 @@ function segmentsFilled<F>(state: WithTrial<F>): number {
 
 // The non-cancelled trial that ended most recently, across every food.
 // Ordered by endedAt, not startedAt — a trial started earlier can end later.
-function latestClosed<F>(foods: HomeFood<F>[]): { food: F; trial: TrialLike } | undefined {
-  let best: { food: F; trial: TrialLike } | undefined;
+function latestClosed<F>(foods: HomeFood<F>[]): { food: F; trial: HomeTrial } | undefined {
+  let best: { food: F; trial: HomeTrial } | undefined;
   for (const f of foods) {
     const t = latestTrial(f.trials);
     if (!t?.endedAt || t.outcome === null) continue;

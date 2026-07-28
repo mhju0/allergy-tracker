@@ -7,7 +7,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
-import { readAllTables, useBaby, useFoodsWithStatus, useReactions } from '../src/data/queries';
+import { readAllTables, useBaby, useFoodsWithStatus } from '../src/data/queries';
 import { updateBabySettings } from '../src/data/mutations';
 import { isPermissionGranted } from '../src/services/notify';
 import { Button } from '../src/ui/Button';
@@ -28,7 +28,6 @@ export default function Settings() {
   const baby = useBaby();
   const insets = useSafeAreaInsets();
   const foods = useFoodsWithStatus();
-  const reactions = useReactions();
   const exporting = useRef(false);
   const [notifOn, setNotifOn] = useState<boolean | null>(null); // null = still checking
   useEffect(() => {
@@ -40,7 +39,7 @@ export default function Settings() {
     if (exporting.current) return;
     exporting.current = true;
     try {
-      const html = buildReport({ baby, foods, reactions }, new Date(), t);
+      const html = buildReport({ baby, foods }, new Date(), t);
       const { uri } = await Print.printToFileAsync({ html });
       await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
     } catch {

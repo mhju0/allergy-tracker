@@ -3,7 +3,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useCheckins, useFoodsWithStatus, useReactions } from '../src/data/queries';
+import { useFoodsWithStatus } from '../src/data/queries';
 import { dayMark, monthMatrix, sameLocalDay } from '../src/domain/calendar';
 import { buildRecords, reactionSummary, type RecordKind } from '../src/domain/records';
 import { foodLabel } from '../src/i18n';
@@ -57,8 +57,6 @@ export default function Calendar() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const foods = useFoodsWithStatus();
-  const reactions = useReactions();
-  const checkins = useCheckins();
 
   const [display, setDisplay] = useState(() => {
     const d = new Date();
@@ -91,7 +89,7 @@ export default function Calendar() {
   const allTrials = useMemo(() => foods.flatMap((f) => f.trials), [foods]);
   // Cancelled trials are invisible on the calendar (owner decision 2026-07-23):
   // no rows, no dots. buildRecords drops them; the tint needs the same cut.
-  const records = useMemo(() => buildRecords(foods, reactions, checkins), [foods, reactions, checkins]);
+  const records = useMemo(() => buildRecords(foods), [foods]);
   const reactionDays = useMemo(
     () => records.filter((r) => r.kind === 'reacted').map((r) => r.at),
     [records],

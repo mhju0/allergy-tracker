@@ -9,34 +9,55 @@ export function useBaby(): Baby | undefined {
   return data?.[0];
 }
 
-export type FoodWithStatus = { food: Food; trials: Trial[]; status: FoodStatus; latest: Trial | undefined };
+// A trial with everything that was ever recorded against it. Four flat tables
+// went out of here once, and every screen rebuilt the trial→reaction and
+// trial→check-in joins for itself — the report's did it at O(n·m). The join
+// happens here now, once.
+export type TrialWithRecords = Trial & { reactions: Reaction[]; checkins: Checkin[] };
+export type FoodWithStatus = {
+  food: Food;
+  trials: TrialWithRecords[];
+  status: FoodStatus;
+  latest: TrialWithRecords | undefined;
+};
 
 export function useFoodsWithStatus(): FoodWithStatus[] {
   const { data: foods } = useLiveQuery(db.select().from(food));
   const { data: trials } = useLiveQuery(db.select().from(trial));
-  return useMemo(() => {
-    const byFood = new Map<string, Trial[]>();
-    for (const t of trials ?? []) {
-      const list = byFood.get(t.foodId) ?? [];
-      list.push(t);
-      byFood.set(t.foodId, list);
-    }
-    return (foods ?? []).map((f) => {
-      const ts = byFood.get(f.id) ?? [];
-      return { food: f, trials: ts, status: deriveStatus(ts), latest: latestTrial(ts) };
-    });
-  }, [foods, trials]);
+  const { data: reactions } = useLiveQuery(db.select().from(reaction));
+  const { data: checkins } = useLiveQuery(db.select().from(checkin));
+  return useMemo(
+    () => connectFoods(foods ?? [], trials ?? [], reactions ?? [], checkins ?? []),
+    [foods, trials, reactions, checkins],
+  );
 }
 
-export function useReactions(): Reaction[] {
-  const { data } = useLiveQuery(db.select().from(reaction));
-  return data ?? [];
+// Pure, so the shape the whole app reads has a test that doesn't need a device.
+export function connectFoods(
+  foods: Food[], trials: Trial[], reactions: Reaction[], checkins: Checkin[],
+): FoodWithStatus[] {
+  const byTrial = new Map<string, TrialWithRecords>();
+  const byFood = new Map<string, TrialWithRecords[]>();
+  for (const t of trials) {
+    const withRecords: TrialWithRecords = { ...t, reactions: [], checkins: [] };
+    byTrial.set(t.id, withRecords);
+    const list = byFood.get(t.foodId) ?? [];
+    list.push(withRecords);
+    byFood.set(t.foodId, list);
+  }
+  // Chronological, never insertion order — the row order sqlite hands back is
+  // not a promise anything should read.
+  for (const r of [...reactions].sort(byTime)) byTrial.get(r.trialId)?.reactions.push(r);
+  for (const c of [...checkins].sort(byTime)) byTrial.get(c.trialId)?.checkins.push(c);
+
+  return foods.map((f) => {
+    const ts = byFood.get(f.id) ?? [];
+    return { food: f, trials: ts, status: deriveStatus(ts), latest: latestTrial(ts) };
+  });
 }
 
-export function useCheckins(): Checkin[] {
-  const { data } = useLiveQuery(db.select().from(checkin));
-  return data ?? [];
-}
+const byTime = (a: { occurredAt: Date }, b: { occurredAt: Date }) =>
+  a.occurredAt.getTime() - b.occurredAt.getTime();
 
 // Every row, for the JSON backup. Not a hook — the settings screen used to run
 // these five selects itself, which was the only Drizzle call left in app/.

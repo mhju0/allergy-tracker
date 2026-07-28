@@ -1,17 +1,18 @@
-import { describeHome, deriveHomeState, trialDay, type HomeFood } from './homeState';
+import { describeHome, deriveHomeState, trialDay, type HomeFood, type HomeTrial } from './homeState';
 import { deriveStatus, latestTrial, MS_PER_DAY, type TrialLike } from './status';
 
 const D = (s: string) => new Date(s);
 const NOW = D('2026-07-28T09:00:00Z');
 
 let n = 0;
-const mk = (over: Partial<TrialLike> = {}): TrialLike => ({
-  id: `t${n++}`, startedAt: D('2026-07-26T10:00:00Z'), windowDays: 3, outcome: null, endedAt: null, ...over,
+const mk = (over: Partial<HomeTrial> = {}): HomeTrial => ({
+  id: `t${n++}`, startedAt: D('2026-07-26T10:00:00Z'), windowDays: 3, outcome: null, endedAt: null,
+  reactions: [], checkins: [], ...over,
 });
 
 // Mirrors what useFoodsWithStatus produces, minus the db row. Uses the real
 // derivation so the fixture can't drift from what the app actually feeds in.
-const food = (name: string, trials: TrialLike[]): HomeFood<string> => ({
+const food = (name: string, trials: HomeTrial[]): HomeFood<string> => ({
   food: name, trials, status: deriveStatus(trials), latest: latestTrial(trials),
 });
 
@@ -137,20 +138,20 @@ describe('describeHome', () => {
     opts ? `${key}|${Object.entries(opts).map(([k, v]) => `${k}=${v}`).join(',')}` : key;
 
   test('empty → the empty line, nothing lit', () => {
-    const v = describeHome([], [], NOW, t);
+    const v = describeHome([], NOW, t);
     expect(v.state.kind).toBe('empty');
     expect(v.subline).toBe('home.empty');
     expect(v.filled).toBe(0);
   });
 
   test('observing → the day of the window, that many segments lit', () => {
-    const v = describeHome([food('두부', [mk({ startedAt: D('2026-07-26T08:00:00Z') })])], [], NOW, t);
+    const v = describeHome([food('두부', [mk({ startedAt: D('2026-07-26T08:00:00Z') })])], NOW, t);
     expect(v.subline).toContain('home.sub.observing|day=3,total=3');
     expect(v.filled).toBe(3);
   });
 
   test('confirm → the full window is lit', () => {
-    const v = describeHome([food('두부', [mk({ startedAt: D('2026-07-20T08:00:00Z') })])], [], NOW, t);
+    const v = describeHome([food('두부', [mk({ startedAt: D('2026-07-20T08:00:00Z') })])], NOW, t);
     expect(v.state.kind).toBe('confirm');
     expect(v.subline).toBe('home.sub.confirm|total=3');
     expect(v.filled).toBe(3);
@@ -161,7 +162,7 @@ describe('describeHome', () => {
     const v = describeHome([
       food('두부', [closed]),
       food('감자', [mk({ outcome: 'safe', endedAt: D('2026-07-25T10:00:00Z') })]),
-    ], [], NOW, t);
+    ], NOW, t);
     expect(v.subline).toBe('home.sub.safe|total=3,count=2');
     expect(v.filled).toBe(3);
   });
@@ -170,11 +171,9 @@ describe('describeHome', () => {
     const started = D('2026-07-26T10:00:00Z');
     const reactedAt = D('2026-07-27T14:00:00Z'); // day 2 of 3
     const trial = mk({ startedAt: started, outcome: 'reacted', endedAt: reactedAt });
-    const v = describeHome(
-      [food('달걀', [trial])],
-      [{ trialId: trial.id, occurredAt: reactedAt, severity: 'moderate', symptoms: ['hives', 'rash'] }],
-      NOW, t,
-    );
+    const v = describeHome([food('달걀', [{ ...trial, reactions: [
+      { id: 'r1', trialId: trial.id, occurredAt: reactedAt, severity: 'moderate', symptoms: ['hives', 'rash'] },
+    ] }])], NOW, t);
     expect(v.subline).toBe(
       'home.sub.reacted|day=2,severity=reaction.severityLevel.moderate,'
       + 'symptoms=reaction.symptom.hives, reaction.symptom.rash',
@@ -184,7 +183,7 @@ describe('describeHome', () => {
 
   test('reacted with the reaction row missing → falls back, never crashes', () => {
     const trial = mk({ outcome: 'reacted', endedAt: D('2026-07-27T10:00:00Z') });
-    const v = describeHome([food('달걀', [trial])], [], NOW, t);
+    const v = describeHome([food('달걀', [trial])], NOW, t);
     expect(v.subline).toBe('status.reacted');
   });
 });

@@ -1,4 +1,4 @@
-import { reactionSummary, type ReactionLike } from '../domain/records';
+import { reactionSummary, type RecordedTrial } from '../domain/records';
 import type { TrialLike } from '../domain/status';
 import { foodLabel } from '../i18n';
 
@@ -11,8 +11,7 @@ type Translate = (key: string, opts?: Record<string, unknown>) => string;
 
 export type ReportInput<F extends { isCustom: boolean; name: string }> = {
   baby: { name: string | null; birthdate: Date | null };
-  foods: { food: F; status: string; trials: TrialLike[]; latest: TrialLike | undefined }[];
-  reactions: ReactionLike[];
+  foods: { food: F; status: string; trials: RecordedTrial[]; latest: TrialLike | undefined }[];
 };
 
 const koDate = (d: Date) => d.toLocaleDateString('ko-KR');
@@ -23,10 +22,13 @@ const koDate = (d: Date) => d.toLocaleDateString('ko-KR');
 // here, so the test could hand-write a view-model and never touch the part that
 // decides what goes in the report.
 export function buildReport<F extends { isCustom: boolean; name: string }>(
-  { baby, foods, reactions }: ReportInput<F>, now: Date, t: Translate,
+  { baby, foods }: ReportInput<F>, now: Date, t: Translate,
 ): string {
-  const foodByTrial = new Map<string, F>();
-  for (const { food, trials } of foods) for (const tr of trials) foodByTrial.set(tr.id, food);
+  // Every reaction, with the food it belongs to already attached — chronological,
+  // because grouping the list by food would bury a pattern across foods.
+  const reactions = foods
+    .flatMap(({ food, trials }) => trials.flatMap((tr) => tr.reactions.map((r) => ({ food, r }))))
+    .sort((a, b) => a.r.occurredAt.getTime() - b.r.occurredAt.getTime());
 
   return render({
     title: t('report.title'),
@@ -48,15 +50,12 @@ export function buildReport<F extends { isCustom: boolean; name: string }>(
         status: t(`status.${f.status}`),
         lastTried: f.latest ? koDate(f.latest.startedAt) : '',
       })),
-    reactionRows: reactions.map((r) => {
-      const food = foodByTrial.get(r.trialId);
-      return {
-        food: food ? foodLabel(food) : '',
-        date: koDate(r.occurredAt),
-        summary: reactionSummary(r, t),
-        note: r.note ?? '',
-      };
-    }),
+    reactionRows: reactions.map(({ food, r }) => ({
+      food: foodLabel(food),
+      date: koDate(r.occurredAt),
+      summary: reactionSummary(r, t),
+      note: r.note ?? '',
+    })),
   });
 }
 

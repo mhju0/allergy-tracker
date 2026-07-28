@@ -3,7 +3,7 @@ import { Alert, AppState, Pressable, ScrollView, Text, View } from 'react-native
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useBaby, useCheckins, useFoodsWithStatus, useReactions } from '../../src/data/queries';
+import { useBaby, useFoodsWithStatus } from '../../src/data/queries';
 import { cancelTrial, confirmSafe } from '../../src/data/mutations';
 import { useStartTrialFlow } from '../../src/data/useStartTrialFlow';
 import { foodLabel } from '../../src/i18n';
@@ -40,8 +40,6 @@ export default function FoodDetail() {
   const insets = useSafeAreaInsets();
   const baby = useBaby();
   const foods = useFoodsWithStatus();
-  const reactions = useReactions();
-  const checkins = useCheckins();
   const [, setTick] = useState(0);
   const bump = useCallback(() => setTick((x) => x + 1), []);
   useFocusEffect(bump);
@@ -70,7 +68,7 @@ export default function FoodDetail() {
   const testingElapsed = latest && status === 'testing' ? isWindowElapsed(latest, now) : false;
   const testingDay = latest && status === 'testing' ? trialDay(latest, now) : 0;
 
-  const latestReaction = latest ? reactions.find((r) => r.trialId === latest.id) : undefined;
+  const latestReaction = latest?.reactions[0];
   const subline =
     status === 'reacted' && latestReaction
       ? `${statusIcon.reacted} ${t('status.reacted')} · ${reactionSummary(latestReaction, t)}`
@@ -81,7 +79,7 @@ export default function FoodDetail() {
   // Flat, newest-first history — every record is its own big bullet, mirroring
   // the calendar's day-detail model. Same stream as the calendar, reversed and
   // opted into this food's cancelled trials.
-  const historyRows = buildRecords([entry], reactions, checkins, { includeCancelled: true })
+  const historyRows = buildRecords([entry], { includeCancelled: true })
     .reverse()
     .map((r) => ({
       key: r.key,
@@ -129,17 +127,7 @@ export default function FoodDetail() {
         </View>
       </View>
 
-      {latest && (
-        <DayLedger
-          days={buildLedger(
-            latest,
-            checkins.filter((c) => c.trialId === latest.id).map((c) => c.occurredAt),
-            latestReaction?.occurredAt ?? null,
-            now,
-            t,
-          )}
-        />
-      )}
+      {latest && <DayLedger days={buildLedger(latest, now, t)} />}
 
       {activeHere ? (
         <View style={{ gap: 10 }}>
@@ -151,7 +139,7 @@ export default function FoodDetail() {
             variant="secondary"
             onPress={() => router.push({ pathname: '/log-reaction', params: { foodId: food.id } })}
           />
-          <CheckinPill foodId={food.id} trialId={activeHere.id} />
+          <CheckinPill foodId={food.id} trial={activeHere} now={now} />
           <Button label={t('food.cancelTrial')} variant="danger"
             onPress={() => Alert.alert(
               t('food.cancelConfirmTitle', { food: foodLabel(food) }),
