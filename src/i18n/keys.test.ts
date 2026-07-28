@@ -61,6 +61,8 @@ describe('i18n keys', () => {
     ['reaction.symptom', ['hives', 'rash', 'vomiting', 'diarrhea', 'swelling', 'cough', 'breathing', 'other']],
     ['calendar.weekday', ['w0', 'w1', 'w2', 'w3', 'w4', 'w5', 'w6']],
     ['welcome', ['step1', 'step2', 'step3']],
+    ['home.state', ['observing', 'confirm', 'safe', 'reacted']],
+    ['home.sub', ['observing', 'confirm', 'safe', 'reacted']],
   ])('%s family is complete (interpolated at the call site)', (prefix, members) => {
     for (const m of members) expect(typeof resolve(`${prefix}.${m}`)).toBe('string');
   });
@@ -70,7 +72,8 @@ describe('i18n keys', () => {
   });
 
   it('window length is interpolated, never hardcoded, in window-length copy', () => {
-    for (const key of ['home.readyToConfirm', 'foods.pickHint', 'welcome.step2', 'welcome.step3', 'food.startTrial', 'food.retest']) {
+    for (const key of ['home.dayOf', 'home.sub.observing', 'home.sub.confirm', 'home.sub.safe',
+      'foods.pickHint', 'welcome.step2', 'welcome.step3', 'food.startTrial', 'food.retest']) {
       const value = resolve(key) as string;
       expect(value).toMatch(/\{\{(days|total)\}\}/);
       expect(value).not.toMatch(/\d일/);

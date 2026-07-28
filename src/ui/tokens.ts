@@ -80,4 +80,6 @@ export const radii = { pill: 999 };
 // Single source for the horizontal inset of row content inside full-width
 // divider lines. Dividers/buttons stay flush to the screen padding; labels and
 // values sit this far inside. Used across home, calendar, and the foods list.
-export const layout = { rowInset: 10 };
+// screenInset is the horizontal screen padding. It was a bare 22 in each
+// screen until the state field needed to bleed past it by exactly that much.
+export const layout = { rowInset: 10, screenInset: 22 };

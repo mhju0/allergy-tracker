@@ -6,8 +6,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBaby, useCheckins, useFoodsWithStatus, useReactions } from '../src/data/queries';
 import { confirmSafe, updateBabySettings } from '../src/data/mutations';
 import { foodLabel } from '../src/i18n';
-import { isWindowElapsed, MS_PER_DAY, type FoodStatus } from '../src/domain/status';
+import { windowEnd, type FoodStatus } from '../src/domain/status';
+import { deriveHomeState, trialDay, type HomeState } from '../src/domain/homeState';
+import type { Food, Reaction } from '../src/db/schema';
+import type { TFunction } from 'i18next';
 import { buildLedger, DayLedger } from '../src/ui/DayLedger';
+import { fieldColor, StateField } from '../src/ui/StateField';
 import { Button } from '../src/ui/Button';
 import { CheckinPill } from '../src/ui/CheckinPill';
 import { press } from '../src/ui/pressable';
@@ -85,22 +89,18 @@ function Dashboard() {
   }, [bump]);
   const now = new Date();
 
-  const active = foods.find((f) => f.status === 'testing');
-  const latest = active?.latest;
+  const state = deriveHomeState(foods, now);
   const counts: Record<FoodStatus, number> = { safe: 0, testing: 0, reacted: 0, untried: 0 };
   for (const f of foods) counts[f.status]++;
-  const hasAnyTrial = foods.some((f) => f.trials.some((tr) => tr.outcome !== 'cancelled'));
 
-  const elapsed = latest ? isWindowElapsed(latest, now) : false;
-  const day = latest
-    ? Math.min(latest.windowDays, Math.floor((now.getTime() - latest.startedAt.getTime()) / MS_PER_DAY) + 1)
-    : 0;
+  const active = state.kind === 'observing' || state.kind === 'confirm' ? state : null;
+  const latest = active?.trial;
 
-  const ledger = latest
+  const ledger = active
     ? buildLedger(
-        latest,
-        checkins.filter((c) => c.trialId === latest.id).map((c) => c.occurredAt),
-        reactions.find((r) => r.trialId === latest.id)?.occurredAt ?? null,
+        active.trial,
+        checkins.filter((c) => c.trialId === active.trial.id).map((c) => c.occurredAt),
+        reactions.find((r) => r.trialId === active.trial.id)?.occurredAt ?? null,
         now,
         t,
       )
@@ -109,90 +109,95 @@ function Dashboard() {
   // Starting a food auto-closes a previous elapsed trial as 안전, silently. The
   // autoclose writes endedAt at the same instant as the new trial's startedAt,
   // so it is derivable — no schema change needed to finally disclose it.
-  const autoclosed = latest
+  const autoclosed = active
     ? foods.find((f) =>
-        f.food.id !== active?.food.id &&
+        f.food.id !== active.food.id &&
         f.latest?.outcome === 'safe' &&
-        f.latest.endedAt?.getTime() === latest.startedAt.getTime())
+        f.latest.endedAt?.getTime() === active.trial.startedAt.getTime())
     : undefined;
 
-  // Between trials Home used to render nothing at all — this is its steady
-  // state after the first week, and it was the app's only empty primary slot.
-  const lastClosed = !active
-    ? foods
-        .filter((f) => f.latest?.outcome === 'safe' && f.latest.endedAt)
-        .sort((a, b) => b.latest!.endedAt!.getTime() - a.latest!.endedAt!.getTime())[0]
-    : undefined;
+  const reactedDetail = state.kind === 'reacted' ? reactions.find((r) => r.trialId === state.trial.id) : undefined;
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 22, paddingTop: insets.top + 4, backgroundColor: colors.paper }}>
-      <Text style={eyebrowStyle}>{t('home.title')}</Text>
+    <ScrollView contentContainerStyle={{ flexGrow: 1, backgroundColor: fieldColor[state.kind] }}>
+      <View style={{ paddingHorizontal: layout.screenInset, paddingTop: insets.top + 4 }}>
+        {state.kind === 'empty' ? (
+          <StateField
+            kind="empty"
+            eyebrow={t('home.title')}
+            name={t('home.emptyTitle')}
+            stateWord=""
+            subline={t('home.empty')}
+          />
+        ) : (
+          <StateField
+            kind={state.kind}
+            eyebrow={t('home.title')}
+            name={foodLabel(state.food)}
+            stateWord={t(`home.state.${state.kind}`)}
+            subline={sublineFor(state, reactedDetail, t)}
+            recordLabel={t('home.viewRecord')}
+            onPressRecord={() =>
+              router.push({ pathname: '/food/[id]', params: { id: state.food.id, from: 'home' } })}
+            filled={segmentsFilled(state)}
+            total={state.trial.windowDays}
+          />
+        )}
+      </View>
 
-      {active && latest && ledger ? (
-        <View>
-          {/* Name + status line are ONE target. The 58px headline navigated with
-              no affordance of any kind, so the 기록 보기 → label has to sit
-              inside the same Pressable it describes. */}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={foodLabel(active.food)}
-            accessibilityHint={t('home.viewRecord')}
-            onPress={() => router.push({ pathname: '/food/[id]', params: { id: active.food.id, from: 'home' } })}
-            style={press()}
-          >
-            <Text style={{ fontSize: 52, fontWeight: '900', color: colors.ink, letterSpacing: -1, lineHeight: 54 }}>
-              {foodLabel(active.food)}
-            </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 9, paddingLeft: layout.rowInset }}>
-              <Text style={{ flex: 1, fontSize: 13, fontWeight: '700', color: colors.amberText }}>
-                {elapsed
-                  ? t('home.readyToConfirm', { total: latest.windowDays })
-                  : `${t('status.testing')} · ${t('home.dayOf', { day, total: latest.windowDays })}`}
-              </Text>
-              <Text style={{ fontSize: 12, color: colors.inkSecondary }}>{t('home.viewRecord')} →</Text>
-            </View>
-          </Pressable>
+      {/* Everything below the field returns to paper. flexGrow on the container
+          plus flex:1 here is what lets the paper run to the bottom of a tall
+          screen instead of stopping under the last nav row. */}
+      <View
+        style={{
+          flex: 1, backgroundColor: colors.paper,
+          paddingHorizontal: layout.screenInset, paddingTop: 20,
+        }}
+      >
+        {ledger && <DayLedger days={ledger} />}
 
-          <DayLedger days={ledger} />
+        {autoclosed && (
+          <Text style={{ fontSize: 12, fontWeight: '700', color: colors.green, marginTop: 10, paddingLeft: layout.rowInset }}>
+            {t('home.autoclosed', { food: foodLabel(autoclosed.food) })}
+          </Text>
+        )}
 
-          {autoclosed && (
-            <Text style={{ fontSize: 12, fontWeight: '700', color: colors.green, marginTop: 10, paddingLeft: layout.rowInset }}>
-              {t('home.autoclosed', { food: foodLabel(autoclosed.food) })}
-            </Text>
+        {/* Primacy follows the state. Window running → the check-in is filled.
+            Window elapsed → 안전으로 표시 takes the fill. After a reaction
+            NOTHING is filled: pushing a parent toward the next food seconds
+            after they logged facial swelling is the wrong instinct. */}
+        <View style={{ gap: 10, marginTop: ledger ? 20 : 0, marginBottom: 10 }}>
+          {state.kind === 'observing' && (
+            <CheckinPill foodId={state.food.id} trialId={state.trial.id} filled />
           )}
-
-          {/* Primacy follows the trial. Window running → the check-in is the
-              filled control. Window elapsed → 안전으로 표시 takes the fill.
-              새 재료 시작하기 is demoted to a row below either way, because it
-              is blocked while an observation is live. */}
-          <View style={{ gap: 10, marginTop: 20, marginBottom: 10 }}>
-            {elapsed ? (
-              <Button label={t('home.markSafe')} onPress={() => confirmSafe(latest.id, new Date())} />
-            ) : (
-              <CheckinPill foodId={active.food.id} trialId={latest.id} filled />
-            )}
+          {state.kind === 'confirm' && (
+            <Button label={t('home.markSafe')} onPress={() => confirmSafe(state.trial.id, new Date())} />
+          )}
+          {active && (
             <Button
               label={t('home.logReaction')}
               variant="secondary"
               onPress={() => router.push({ pathname: '/log-reaction', params: { foodId: active.food.id } })}
             />
-          </View>
-        </View>
-      ) : (
-        <View>
-          <Text style={{ fontSize: 52, fontWeight: '900', color: colors.green, letterSpacing: -1, lineHeight: 54 }}>
-            {t('home.idleTitle', { count: counts.safe })}
-          </Text>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: colors.inkSecondary, marginTop: 9, paddingLeft: layout.rowInset }}>
-            {hasAnyTrial && lastClosed
-              ? t('home.lastConfirmed', { food: foodLabel(lastClosed.food) })
-              : t('home.empty')}
-          </Text>
-          <View style={{ marginTop: 20, marginBottom: 10 }}>
+          )}
+          {state.kind === 'reacted' && (
+            <>
+              <Button
+                label={t('home.viewRecord')}
+                variant="secondary"
+                onPress={() => router.push({ pathname: '/food/[id]', params: { id: state.food.id, from: 'home' } })}
+              />
+              <Button
+                label={t('home.tryNewFood')}
+                variant="secondary"
+                onPress={() => router.push({ pathname: '/foods', params: { pick: '1' } })}
+              />
+            </>
+          )}
+          {(state.kind === 'safe' || state.kind === 'empty') && (
             <Button label={t('home.tryNewFood')} onPress={() => router.push({ pathname: '/foods', params: { pick: '1' } })} />
-          </View>
+          )}
         </View>
-      )}
 
       {/* One band, not four 44pt rows — that is the ~130pt which lets 캘린더 and
           설정 sit above the fold on a mini. */}
@@ -271,7 +276,51 @@ function Dashboard() {
           <Text style={{ fontSize: 15, fontWeight: '700', color: colors.ink }}>{t('settings.title')}</Text>
           <Text style={{ fontSize: 15, color: colors.inkSecondary }}>→</Text>
         </Pressable>
+        </View>
       </View>
     </ScrollView>
   );
+}
+
+// The field's secondary line. Each state says something different enough that
+// a single interpolated string would be dishonest for three of the four.
+function sublineFor(
+  state: Extract<HomeState<Food>, { trial: unknown }>,
+  reaction: Reaction | undefined,
+  t: TFunction,
+): string {
+  switch (state.kind) {
+    case 'observing':
+      return t('home.sub.observing', {
+        day: state.day,
+        total: state.trial.windowDays,
+        date: windowEnd(state.trial).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }),
+      });
+    case 'confirm':
+      return t('home.sub.confirm', { total: state.trial.windowDays });
+    case 'safe':
+      return t('home.sub.safe', { total: state.trial.windowDays, count: state.safeCount });
+    case 'reacted':
+      return reaction
+        ? t('home.sub.reacted', {
+            day: trialDay(state.trial, reaction.occurredAt),
+            severity: t(`reaction.severityLevel.${reaction.severity}`),
+            symptoms: reaction.symptoms.map((s) => t(`reaction.symptom.${s}`)).join(', '),
+          })
+        : t('status.reacted');
+  }
+}
+
+// How many window segments are lit. A closed trial lights every day it
+// actually ran — a reaction on day 2 of 3 lights two, not three.
+function segmentsFilled(state: Extract<HomeState<Food>, { trial: unknown }>): number {
+  switch (state.kind) {
+    case 'observing':
+      return state.day;
+    case 'confirm':
+    case 'safe':
+      return state.trial.windowDays;
+    case 'reacted':
+      return state.trial.endedAt ? trialDay(state.trial, state.trial.endedAt) : state.trial.windowDays;
+  }
 }

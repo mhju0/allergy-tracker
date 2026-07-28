@@ -9,7 +9,6 @@
     "title": "알레르기 트래커",
     "tryNewFood": "새 재료 시작하기",
     "dayOf": "{{total}}일 중 {{day}}일째",
-    "readyToConfirm": "{{total}}일 관찰이 끝났어요 — 반응이 없었다면 안전으로 표시하세요",
     "markSafe": "안전으로 표시",
     "logReaction": "반응 기록",
     "empty": "아직 관찰 기록이 없어요. “새 재료 시작하기”를 눌러보세요.",
@@ -17,9 +16,19 @@
     "autoclosed": "✓ {{food}} 안전으로 기록됨",
     "short": "홈",
     "viewRecord": "기록 보기",
-    "idleTitle": "{{count}}가지 안전",
-    "idleBody": "다음 재료를 시작해 보세요.",
-    "lastConfirmed": "{{food}} 안전 확인"
+    "state": {
+      "observing": "관찰 중",
+      "confirm": "관찰 완료",
+      "safe": "안전 확인됨",
+      "reacted": "반응 기록됨"
+    },
+    "sub": {
+      "observing": "{{total}}일 중 {{day}}일째 · {{date}} 확인",
+      "confirm": "{{total}}일 관찰이 끝났어요 — 반응이 없었다면 안전으로 표시하세요",
+      "safe": "{{total}}일 관찰 · 반응 없음 · 이제 {{count}}가지 안전",
+      "reacted": "{{day}}일째 · {{severity}} · {{symptoms}}"
+    },
+    "emptyTitle": "시작해 볼까요"
   },
   "setup": {
     "babyName": "아기 이름",
