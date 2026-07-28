@@ -25,9 +25,12 @@ slug `allergy-tracker`.
 >   in §3.5 was never shipped.
 > - **Symptom list** gained 기침/쌕쌕거림; 얼굴 부종 triggers the emergency
 >   advisory at any severity.
-> - **Catalog** shipped as a TypeScript module (not a JSON asset) with 55
->   foods — the big-9 allergen groups plus Korean staples (e.g. 메밀)
->   flagged high-risk.
+> - **Catalog** shipped as a TypeScript module (not a JSON asset), now 120
+>   foods (44 high-risk) — the big-9 allergen groups plus Korean staples
+>   (e.g. 메밀). Grown from 55 by importing the v1 ingredient list, then
+>   audited down: duplicates that would split one food's record (동태/명태),
+>   foods that mislead in a trial context (매실, 분유, 참치), and ones too
+>   uncommon in Korea to earn a row were cut.
 > - `deriveStatus(trials)` needs neither `now` nor the reactions list — an
 >   active trial never has reactions attached, so trial history alone
 >   determines status.
@@ -53,7 +56,7 @@ list becomes a traffic light they can trust.
 | Persistence | **expo-sqlite + Drizzle ORM** — real typed schema, migrations. |
 | V1 scope extras | **Reminders** (local notifications) + **pediatrician export**. |
 | Not in v1 | Multiple babies, reaction photos, cloud sync, import/restore, dark mode. |
-| Food catalog | **Curated seed + free-text**: big-9 allergens + ~40 common first foods shipped in-app; parents can add any custom food. |
+| Food catalog | **Curated seed + free-text**: big-9 allergens + ~75 common first foods shipped in-app; parents can add any custom food. |
 | Language | **i18n from day one** (i18next + expo-localization): English default, Korean locale. |
 | Repo | **Same repo, wiped and renamed to `mhju0/allergy-tracker`.** v1 archived as a tag; v2 scaffolded at the root. Product name **Allergy Tracker**. Local working folder can be renamed at the owner's convenience (nothing depends on it). |
 
@@ -161,9 +164,9 @@ Shipped as a JSON asset, inserted on first launch:
 
 - **Big-9 allergens** (high-risk badge): egg, peanut, cow's milk, wheat, soy,
   fish, shellfish, tree nuts, sesame.
-- **~40 common first foods**: rice, oat, banana, avocado, sweet potato,
+- **~75 common first foods**: rice, oat, banana, avocado, sweet potato,
   carrot, apple, pear, broccoli, etc. Curated during implementation; Korean
-  weaning staples included.
+  weaning staples included (무, 청경채, 표고버섯, 우엉, 팥, 대추 …).
 - Catalog food names are i18n keys (EN + KO translations); custom foods store
   whatever the parent typed.
 

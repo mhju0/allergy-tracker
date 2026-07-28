@@ -132,8 +132,8 @@ progress bar and the record are the same object.
   marked safe flips it back to 반응, which is how real allergies surface.
 - **A calendar that means something** — days a food actually cleared are green,
   days under observation amber, reactions red. Future days are never shaded.
-- **55 curated Korean weaning foods**, with the big-9 allergen groups plus
-  staples like 메밀 flagged 고위험, and free-text custom foods.
+- **120 curated Korean weaning foods**, 44 of them flagged 고위험 — the big-9
+  allergen groups plus Korean staples (메밀, 잣, 밤) — and free-text custom foods.
 - **A doctor-ready PDF** of every food tried and every reaction logged, plus a
   JSON export — both generated on device and handed to the share sheet.
 

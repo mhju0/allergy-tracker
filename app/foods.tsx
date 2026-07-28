@@ -28,7 +28,7 @@ function SearchIcon() {
   );
 }
 
-// Untried used to sort second, so on a fresh install ~45 foods with no history
+// Untried used to sort second, so on a fresh install ~120 foods with no history
 // sat above every food that had one. The rows worth reading now lead.
 const ORDER: Record<FoodStatus, number> = { testing: 0, reacted: 1, safe: 2, untried: 3 };
 const ROW_MIN_H = 44; // minimum, not fixed — rows must grow with Dynamic Type
