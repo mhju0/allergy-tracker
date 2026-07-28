@@ -4,9 +4,9 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCheckins, useFoodsWithStatus, useReactions } from '../src/data/queries';
-import { dayMark, monthMatrix, sameLocalDay, sortDayEvents } from '../src/domain/calendar';
+import { dayMark, monthMatrix, sameLocalDay } from '../src/domain/calendar';
+import { buildRecords, reactionSummary, type RecordKind } from '../src/domain/records';
 import { foodLabel } from '../src/i18n';
-import type { Food } from '../src/db/schema';
 import { press } from '../src/ui/pressable';
 import { colors, layout, statusIcon } from '../src/ui/tokens';
 
@@ -34,6 +34,23 @@ const LEGEND = [
 ] as const;
 
 type EventRow = { key: string; at: Date; color: string; text: string };
+
+// How each record kind reads on the day list. Reaction rows carry their own
+// summary instead of a fixed label.
+const KIND_COLOR: Record<RecordKind, string> = {
+  start: colors.amberText,
+  safe: colors.green,
+  reacted: colors.red,
+  cancelled: colors.inkSecondary,
+  checkin: colors.green,
+};
+const KIND_LABEL: Record<RecordKind, string> = {
+  start: 'calendar.trialStart',
+  safe: 'food.outcome.safe',
+  reacted: 'food.outcome.reacted',
+  cancelled: 'food.outcome.cancelled',
+  checkin: 'food.checkinClear',
+};
 
 export default function Calendar() {
   const { t } = useTranslation();
@@ -73,53 +90,26 @@ export default function Calendar() {
 
   const allTrials = useMemo(() => foods.flatMap((f) => f.trials), [foods]);
   // Cancelled trials are invisible on the calendar (owner decision 2026-07-23):
-  // no rows, no dots. Their full history stays on the food detail page.
-  const cancelledIds = useMemo(
-    () => new Set(allTrials.filter((tr) => tr.outcome === 'cancelled').map((tr) => tr.id)),
-    [allTrials],
+  // no rows, no dots. buildRecords drops them; the tint needs the same cut.
+  const records = useMemo(() => buildRecords(foods, reactions, checkins), [foods, reactions, checkins]);
+  const reactionDays = useMemo(
+    () => records.filter((r) => r.kind === 'reacted').map((r) => r.at),
+    [records],
   );
-  const reactionDays = useMemo(() => reactions.map((r) => r.occurredAt), [reactions]);
   const checkinDays = useMemo(
-    () => checkins.filter((c) => !cancelledIds.has(c.trialId)).map((c) => c.occurredAt),
-    [checkins, cancelledIds],
+    () => records.filter((r) => r.kind === 'checkin').map((r) => r.at),
+    [records],
   );
-  const foodByTrialId = useMemo(() => {
-    const m = new Map<string, Food>();
-    for (const { food, trials } of foods) for (const tr of trials) m.set(tr.id, food);
-    return m;
-  }, [foods]);
 
-  const events = useMemo(() => {
-    const rows: EventRow[] = [];
-    for (const { food, trials } of foods) {
-      const label = foodLabel(food);
-      for (const tr of trials) {
-        if (tr.outcome === 'cancelled') continue;
-        if (sameLocalDay(tr.startedAt, selectedDate)) {
-          rows.push({ key: `start-${tr.id}`, at: tr.startedAt, color: colors.amberText, text: `${label} — ${t('calendar.trialStart')}` });
-        }
-        // outcome 'reacted' is skipped here — the matching reaction row below already covers that moment.
-        if (tr.outcome === 'safe' && tr.endedAt && sameLocalDay(tr.endedAt, selectedDate)) {
-          rows.push({ key: `end-${tr.id}`, at: tr.endedAt, color: colors.green, text: `${label} — ${t('food.outcome.safe')}` });
-        }
-      }
-    }
-    for (const r of reactions) {
-      if (!sameLocalDay(r.occurredAt, selectedDate)) continue;
-      const label = foodByTrialId.has(r.trialId) ? foodLabel(foodByTrialId.get(r.trialId)!) : '';
-      const symptoms = r.symptoms.map((s) => t(`reaction.symptom.${s}`)).join(', ');
-      rows.push({
-        key: `reaction-${r.id}`, at: r.occurredAt, color: colors.red,
-        text: `${label} — ${t(`reaction.severityLevel.${r.severity}`)} · ${symptoms}`,
-      });
-    }
-    for (const c of checkins) {
-      if (cancelledIds.has(c.trialId) || !sameLocalDay(c.occurredAt, selectedDate)) continue;
-      const label = foodByTrialId.has(c.trialId) ? foodLabel(foodByTrialId.get(c.trialId)!) : '';
-      rows.push({ key: `checkin-${c.id}`, at: c.occurredAt, color: colors.green, text: `${label} — ${t('food.checkinClear')}` });
-    }
-    return sortDayEvents(rows);
-  }, [foods, reactions, checkins, foodByTrialId, cancelledIds, selectedDate, t]);
+  const events = useMemo(
+    () => records
+      .filter((r) => sameLocalDay(r.at, selectedDate))
+      .map((r): EventRow => ({
+        key: r.key, at: r.at, color: KIND_COLOR[r.kind],
+        text: `${foodLabel(r.food)} — ${r.reaction ? reactionSummary(r.reaction, t) : t(KIND_LABEL[r.kind])}`,
+      })),
+    [records, selectedDate, t],
+  );
 
   return (
     <ScrollView contentContainerStyle={{ padding: 22, paddingTop: insets.top + 4, backgroundColor: colors.paper }}>

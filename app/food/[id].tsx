@@ -7,7 +7,9 @@ import { useBaby, useCheckins, useFoodsWithStatus, useReactions } from '../../sr
 import { cancelTrial, confirmSafe } from '../../src/data/mutations';
 import { useStartTrialFlow } from '../../src/data/useStartTrialFlow';
 import { foodLabel } from '../../src/i18n';
-import { isWindowElapsed, MS_PER_DAY } from '../../src/domain/status';
+import { isWindowElapsed } from '../../src/domain/status';
+import { trialDay } from '../../src/domain/homeState';
+import { buildRecords, reactionSummary, type RecordKind } from '../../src/domain/records';
 import { Button } from '../../src/ui/Button';
 import { CheckinPill } from '../../src/ui/CheckinPill';
 import { buildLedger, DayLedger } from '../../src/ui/DayLedger';
@@ -15,6 +17,21 @@ import { press } from '../../src/ui/pressable';
 import { colors, layout, statusIcon } from '../../src/ui/tokens';
 
 const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.inkSecondary, paddingBottom: 12 };
+
+const KIND_COLOR: Record<RecordKind, string> = {
+  start: colors.amberText,
+  safe: colors.green,
+  reacted: colors.red,
+  cancelled: colors.inkSecondary,
+  checkin: colors.green,
+};
+const KIND_LABEL: Record<RecordKind, string> = {
+  start: 'calendar.trialStart',
+  safe: 'food.outcome.safe',
+  reacted: 'food.outcome.reacted',
+  cancelled: 'food.outcome.cancelled',
+  checkin: 'food.checkinClear',
+};
 
 export default function FoodDetail() {
   const { t } = useTranslation();
@@ -51,43 +68,31 @@ export default function FoodDetail() {
   const onStart = () => startFlow(food, () => router.dismissAll());
 
   const testingElapsed = latest && status === 'testing' ? isWindowElapsed(latest, now) : false;
-  const testingDay = latest && status === 'testing'
-    ? Math.min(latest.windowDays, Math.floor((now.getTime() - latest.startedAt.getTime()) / MS_PER_DAY) + 1)
-    : 0;
+  const testingDay = latest && status === 'testing' ? trialDay(latest, now) : 0;
 
   const latestReaction = latest ? reactions.find((r) => r.trialId === latest.id) : undefined;
   const subline =
     status === 'reacted' && latestReaction
-      ? `${statusIcon.reacted} ${t('status.reacted')} · ${t(`reaction.severityLevel.${latestReaction.severity}`)} · ${latestReaction.symptoms.map((s) => t(`reaction.symptom.${s}`)).join(', ')}`
+      ? `${statusIcon.reacted} ${t('status.reacted')} · ${reactionSummary(latestReaction, t)}`
       : status === 'testing' && latest
         ? `${statusIcon.testing} ${t('status.testing')} · ${t('home.dayOf', { day: testingDay, total: latest.windowDays })}`
         : `${statusIcon[status]} ${t(`status.${status}`)}`;
 
-  // Flat, newest-first history — every record (trial start, check-in, reaction,
-  // outcome) is its own big bullet, mirroring the calendar's day-detail model.
-  // A reacted trial's end is skipped: the reaction row already marks that moment.
-  const trialIds = new Set(trials.map((tr) => tr.id));
-  const historyRows: { key: string; at: Date; color: string; outline: boolean; label: string; detail?: string }[] = [];
-  for (const tr of trials) {
-    historyRows.push({ key: `start-${tr.id}`, at: tr.startedAt, color: colors.amberText, outline: false, label: t('calendar.trialStart') });
-    if (tr.outcome === 'safe' && tr.endedAt) {
-      historyRows.push({ key: `end-${tr.id}`, at: tr.endedAt, color: colors.green, outline: false, label: t('food.outcome.safe') });
-    } else if (tr.outcome === 'cancelled' && tr.endedAt) {
-      historyRows.push({ key: `end-${tr.id}`, at: tr.endedAt, color: colors.inkSecondary, outline: true, label: t('food.outcome.cancelled') });
-    }
-  }
-  for (const r of reactions) {
-    if (!trialIds.has(r.trialId)) continue;
-    historyRows.push({
-      key: `reaction-${r.id}`, at: r.occurredAt, color: colors.red, outline: false, label: t('food.outcome.reacted'),
-      detail: `${t(`reaction.severityLevel.${r.severity}`)} · ${r.symptoms.map((s) => t(`reaction.symptom.${s}`)).join(', ')}${r.note ? ` — ${r.note}` : ''}`,
-    });
-  }
-  for (const c of checkins) {
-    if (!trialIds.has(c.trialId)) continue;
-    historyRows.push({ key: `checkin-${c.id}`, at: c.occurredAt, color: colors.green, outline: false, label: t('food.checkinClear') });
-  }
-  historyRows.sort((a, b) => b.at.getTime() - a.at.getTime());
+  // Flat, newest-first history — every record is its own big bullet, mirroring
+  // the calendar's day-detail model. Same stream as the calendar, reversed and
+  // opted into this food's cancelled trials.
+  const historyRows = buildRecords([entry], reactions, checkins, { includeCancelled: true })
+    .reverse()
+    .map((r) => ({
+      key: r.key,
+      at: r.at,
+      color: KIND_COLOR[r.kind],
+      outline: r.kind === 'cancelled',
+      label: t(KIND_LABEL[r.kind]),
+      detail: r.reaction
+        ? `${reactionSummary(r.reaction, t)}${r.reaction.note ? ` — ${r.reaction.note}` : ''}`
+        : undefined,
+    }));
 
   return (
     <ScrollView contentContainerStyle={{ padding: 22, paddingTop: insets.top + 4, gap: 20, backgroundColor: colors.paper }}>
