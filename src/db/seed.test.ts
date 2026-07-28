@@ -1,11 +1,11 @@
-// Foods removed from CATALOG (e.g. greenbean, dropped 2026-07) linger in DBs
-// seeded by older builds and render as raw i18n keys. seedIfEmpty must
-// reconcile: delete seeded (non-custom) foods no longer in the catalog, but
-// never ones with trial history. Asserted on the generated SQL via a
+// seedIfEmpty reconciles the food table against CATALOG on every launch:
+// foods ADDED to the catalog must reach installs seeded by an older build,
+// foods REMOVED must go (they'd render as raw i18n keys) — but never ones with
+// trial history, and never custom foods. Asserted on the generated SQL via a
 // capturing sqlite-proxy driver, per the no-incidental-behavior test rule.
 const mockCaptured: { sql: string; params: unknown[] }[] = [];
 // false = demo-seeded fresh install (custom 아마씨 only, no catalog rows);
-// true = catalog already seeded (upgrade path → reconcile branch).
+// true = catalog already seeded by an older build (the upgrade path).
 let mockCatalogSeeded = false;
 
 jest.mock('./client', () => {
@@ -28,12 +28,18 @@ jest.mock('./client', () => {
 import { seedIfEmpty } from './seed';
 import { CATALOG } from './catalog';
 
-test('seedIfEmpty seeds the catalog even when only custom foods exist (demo seeds 아마씨 first)', async () => {
+test.each([
+  ['fresh install (only the demo custom 아마씨 exists)', false],
+  ['install already seeded by an older, smaller catalog', true],
+])('seedIfEmpty inserts the whole catalog on a %s', async (_label, seeded) => {
   mockCaptured.length = 0;
-  mockCatalogSeeded = false;
+  mockCatalogSeeded = seeded;
   await seedIfEmpty();
   const ins = mockCaptured.find((c) => c.sql.toLowerCase().startsWith('insert into "food"'));
-  expect(ins).toBeDefined(); // regression: an existing custom row must not suppress catalog seeding
+  // regression: an early return here stranded existing installs on the old
+  // catalog — the 93 foods of the v1 import would never have appeared.
+  expect(ins).toBeDefined();
+  expect(ins!.sql.toLowerCase()).toContain('on conflict do nothing'); // rows already there are left alone
   for (const c of CATALOG) expect(ins!.params).toContain(c.id);
 });
 

@@ -12,33 +12,30 @@ export async function seedIfEmpty(): Promise<void> {
   if (babyRow.length === 0) {
     await db.insert(baby).values({ id: newId(), name: null, birthdate: null, defaultWindowDays: 3 });
   }
-  // Check for SEEDED foods specifically — a custom food (e.g. the demo's
-  // 아마씨, inserted before this runs) must not suppress catalog seeding.
-  const existing = await db
-    .select({ id: food.id })
-    .from(food)
-    .where(eq(food.isCustom, false))
-    .limit(1);
-  if (existing.length > 0) {
-    // Reconcile installs seeded by an older catalog: drop seeded foods that
-    // were since removed (they'd render as raw i18n keys), but never ones the
-    // user has trial history for — those keep a legacy name in ko.json.
-    await db.delete(food).where(
-      and(
-        eq(food.isCustom, false),
-        notInArray(food.id, CATALOG.map((c) => c.id)),
-        notInArray(food.id, db.select({ id: trial.foodId }).from(trial)),
-      ),
-    );
-    return;
-  }
-  await db.insert(food).values(
-    CATALOG.map((c) => ({
-      id: c.id,
-      name: `foodName.${c.id}`,
-      isCustom: false,
-      allergenGroup: c.group,
-    })),
+  // Runs on every launch, not just the first: an install seeded by an older
+  // build must pick up foods ADDED to the catalog since (the v1 import took it
+  // from 55 to 148). Existing rows are left alone — ids are stable, and a
+  // user's trial history hangs off them.
+  await db
+    .insert(food)
+    .values(
+      CATALOG.map((c) => ({
+        id: c.id,
+        name: `foodName.${c.id}`,
+        isCustom: false,
+        allergenGroup: c.group,
+      })),
+    )
+    .onConflictDoNothing();
+  // ...and drop seeded foods REMOVED from the catalog since (they'd render as
+  // raw i18n keys), but never ones the user has trial history for — those keep
+  // a legacy name in ko.json. Custom foods (the demo's 아마씨) are never touched.
+  await db.delete(food).where(
+    and(
+      eq(food.isCustom, false),
+      notInArray(food.id, CATALOG.map((c) => c.id)),
+      notInArray(food.id, db.select({ id: trial.foodId }).from(trial)),
+    ),
   );
 }
 
