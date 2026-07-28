@@ -1,6 +1,6 @@
 import {
-  deriveStatus, decideStartTrial, isWindowElapsed, latestTrial, windowEnd,
-  MS_PER_DAY, TrialLike,
+  autoclosedBy, deriveStatus, decideStartTrial, isWindowElapsed, latestTrial,
+  pendingAutoclose, windowEnd, MS_PER_DAY, TrialLike,
 } from './status';
 
 const D = (s: string) => new Date(s);
@@ -74,5 +74,48 @@ describe('decideStartTrial', () => {
     const t = mk({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 });
     expect(decideStartTrial(t, D('2026-07-03T10:00:00Z')))
       .toEqual({ allowed: false, reason: 'trial_in_progress' });
+  });
+});
+
+// Both screens that disclose the silent autoclose used to restate the rule
+// themselves — the picker predicting it, Home reconstructing it from
+// timestamps. These are those two questions, asked of the rule.
+describe('pendingAutoclose', () => {
+  const entry = (status: 'testing' | 'safe' | 'untried', latest?: TrialLike) => ({ status, latest });
+
+  test('elapsed active trial → that food would be closed', () => {
+    const t = mk({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 });
+    const foods = [entry('safe', mk({ outcome: 'safe' })), entry('testing', t)];
+    expect(pendingAutoclose(foods, D('2026-07-04T10:00:00Z'))).toBe(foods[1]);
+  });
+  test('window still running → nothing would be closed', () => {
+    const t = mk({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 });
+    expect(pendingAutoclose([entry('testing', t)], D('2026-07-03T09:00:00Z'))).toBeUndefined();
+  });
+  test('no active trial → nothing would be closed', () => {
+    expect(pendingAutoclose([entry('safe', mk({ outcome: 'safe' }))], D('2026-07-04T10:00:00Z')))
+      .toBeUndefined();
+  });
+});
+
+describe('autoclosedBy', () => {
+  const started = D('2026-07-04T10:00:00Z');
+  const newTrial = mk({ id: 'new', startedAt: started });
+
+  test('the trial closed at the new trial’s start instant', () => {
+    const closed = mk({ id: 'old', outcome: 'safe', endedAt: started });
+    const foods = [{ latest: closed }, { latest: newTrial }];
+    expect(autoclosedBy(foods, newTrial)).toBe(foods[0]);
+  });
+  test('a trial closed a moment earlier was not this start’s doing', () => {
+    const closed = mk({ id: 'old', outcome: 'safe', endedAt: D('2026-07-04T09:59:59Z') });
+    expect(autoclosedBy([{ latest: closed }], newTrial)).toBeUndefined();
+  });
+  test('a reacted trial is never an autoclose', () => {
+    const closed = mk({ id: 'old', outcome: 'reacted', endedAt: started });
+    expect(autoclosedBy([{ latest: closed }], newTrial)).toBeUndefined();
+  });
+  test('the starting trial never reports itself', () => {
+    expect(autoclosedBy([{ latest: newTrial }], newTrial)).toBeUndefined();
   });
 });

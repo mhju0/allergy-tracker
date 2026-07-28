@@ -7,7 +7,7 @@ import { useBaby, useFoodsWithStatus, type FoodWithStatus } from '../src/data/qu
 import { addCustomFood } from '../src/data/mutations';
 import { useStartTrialFlow } from '../src/data/useStartTrialFlow';
 import { foodLabel } from '../src/i18n';
-import { isWindowElapsed, type FoodStatus } from '../src/domain/status';
+import { pendingAutoclose, type FoodStatus } from '../src/domain/status';
 import { StatusChip } from '../src/ui/StatusChip';
 import { press } from '../src/ui/pressable';
 import { colors, layout, radii } from '../src/ui/tokens';
@@ -93,12 +93,8 @@ export default function Foods() {
     return out;
   }, [foods, query, filter, i18n.language, t]);
 
-  // The food that a start would auto-close as 안전 — only when its window has
-  // already elapsed (that is the only case decideStartTrial allows through).
-  const autocloses = useMemo(() => {
-    const a = foods.find((f) => f.status === 'testing');
-    return a?.latest && isWindowElapsed(a.latest, new Date()) ? a : undefined;
-  }, [foods]);
+  // The food that a start would auto-close as 안전, per the rule itself.
+  const autocloses = useMemo(() => pendingAutoclose(foods, new Date()), [foods]);
 
   const submitNew = async () => {
     const name = newName.trim();

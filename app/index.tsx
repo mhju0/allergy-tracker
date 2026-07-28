@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBaby, useCheckins, useFoodsWithStatus, useReactions } from '../src/data/queries';
 import { confirmSafe, updateBabySettings } from '../src/data/mutations';
 import { foodLabel } from '../src/i18n';
-import { windowEnd, type FoodStatus } from '../src/domain/status';
+import { autoclosedBy, windowEnd, type FoodStatus } from '../src/domain/status';
 import { deriveHomeState, trialDay, type HomeState } from '../src/domain/homeState';
 import type { Food, Reaction } from '../src/db/schema';
 import type { TFunction } from 'i18next';
@@ -106,15 +106,8 @@ function Dashboard() {
       )
     : null;
 
-  // Starting a food auto-closes a previous elapsed trial as 안전, silently. The
-  // autoclose writes endedAt at the same instant as the new trial's startedAt,
-  // so it is derivable — no schema change needed to finally disclose it.
-  const autoclosed = active
-    ? foods.find((f) =>
-        f.food.id !== active.food.id &&
-        f.latest?.outcome === 'safe' &&
-        f.latest.endedAt?.getTime() === active.trial.startedAt.getTime())
-    : undefined;
+  // Starting a food auto-closes a previous elapsed trial as 안전, silently.
+  const autoclosed = active ? autoclosedBy(foods, active.trial) : undefined;
 
   const reactedDetail = state.kind === 'reacted' ? reactions.find((r) => r.trialId === state.trial.id) : undefined;
 

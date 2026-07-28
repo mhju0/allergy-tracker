@@ -57,3 +57,30 @@ export function decideStartTrial(activeTrial: TrialLike | undefined, now: Date):
   }
   return { allowed: false, reason: 'trial_in_progress' };
 }
+
+// The autoclose is a silent write, so the two screens that disclose it used to
+// restate the rule — the picker predicting it, Home reconstructing it. Both ask
+// here now, so the copy cannot drift from what startTrial actually does.
+
+type WithLatest = { status: FoodStatus; latest: TrialLike | undefined };
+
+// Which food starting anything right now would close as 안전.
+export function pendingAutoclose<T extends WithLatest>(foods: T[], now: Date): T | undefined {
+  const active = foods.find((f) => f.status === 'testing');
+  if (!active?.latest) return undefined;
+  return decideStartTrial(active.latest, now).allowed ? active : undefined;
+}
+
+// Which food this trial's start already closed. The autoclose stamps endedAt at
+// the same instant as the new trial's startedAt, so it stays derivable.
+export function autoclosedBy<T extends { latest: TrialLike | undefined }>(
+  foods: T[], trial: TrialLike,
+): T | undefined {
+  return foods.find(
+    (f) =>
+      f.latest !== undefined &&
+      f.latest.id !== trial.id &&
+      f.latest.outcome === 'safe' &&
+      f.latest.endedAt?.getTime() === trial.startedAt.getTime(),
+  );
+}
