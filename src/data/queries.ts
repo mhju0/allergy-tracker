@@ -37,3 +37,13 @@ export function useCheckins(): Checkin[] {
   const { data } = useLiveQuery(db.select().from(checkin));
   return data ?? [];
 }
+
+// Every row, for the JSON backup. Not a hook — the settings screen used to run
+// these five selects itself, which was the only Drizzle call left in app/.
+export async function readAllTables() {
+  const [b, f, tr, re, ch] = await Promise.all([
+    db.select().from(baby), db.select().from(food),
+    db.select().from(trial), db.select().from(reaction), db.select().from(checkin),
+  ]);
+  return { baby: b, foods: f, trials: tr, reactions: re, checkins: ch };
+}

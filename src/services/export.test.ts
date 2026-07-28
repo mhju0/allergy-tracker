@@ -1,15 +1,32 @@
-import { buildBackup, buildReportHtml, escapeHtml, type ReportView } from './export';
+import { buildBackup, buildReport, escapeHtml, type ReportInput } from './export';
+import type { TrialLike } from '../domain/status';
 
-const view: ReportView = {
-  title: 'Food & Allergy Log',
-  babyLine: 'Dana · born 2025-11-02',
-  generatedLine: 'Generated 2026-07-16',
-  foodsHeading: 'Foods tried',
-  reactionsHeading: 'Reactions',
-  noneLabel: 'None',
-  cols: { food: 'Food', status: 'Status', lastTried: 'Last tried' },
-  rows: [{ food: 'Egg', status: 'Reacted', lastTried: '2026-07-10' }],
-  reactionRows: [{ food: 'Egg', date: '2026-07-10', severity: 'Moderate', symptoms: 'Hives, Rash', note: '' }],
+// The report is driven from domain values now, so the fixture is what the app
+// actually holds — foods, trials, reactions — not a hand-written view-model.
+// Foods are custom (isCustom: true) so their Korean name is the row itself.
+const D = (s: string) => new Date(s);
+const NOW = D('2026-07-16T00:00:00Z');
+
+// Echoes the key so an assertion reads as the label the report would print.
+const t = (key: string, opts?: Record<string, unknown>) =>
+  opts ? `${key}(${Object.values(opts).join(',')})` : key;
+
+let n = 0;
+const mk = (over: Partial<TrialLike> = {}): TrialLike => ({
+  id: `t${n++}`, startedAt: D('2026-07-10T09:00:00Z'), windowDays: 3, outcome: null, endedAt: null, ...over,
+});
+const foodRow = (name: string) => ({ isCustom: true as const, name });
+
+const reactedTrial = mk({ outcome: 'reacted', endedAt: D('2026-07-11T14:00:00Z') });
+const base: ReportInput<{ isCustom: boolean; name: string }> = {
+  baby: { name: '하율', birthdate: D('2025-11-02T00:00:00Z') },
+  foods: [
+    { food: foodRow('달걀'), status: 'reacted', trials: [reactedTrial], latest: reactedTrial },
+  ],
+  reactions: [{
+    id: 'r1', trialId: reactedTrial.id, occurredAt: D('2026-07-11T14:00:00Z'),
+    severity: 'moderate', symptoms: ['hives', 'rash'], note: null,
+  }],
 };
 
 describe('escapeHtml', () => {
@@ -18,29 +35,75 @@ describe('escapeHtml', () => {
   });
 });
 
-describe('buildReportHtml', () => {
-  test('contains all headings and row data', () => {
-    const html = buildReportHtml(view);
-    for (const s of ['Food &amp; Allergy Log', 'Dana', 'Egg', 'Reacted', 'Hives, Rash']) {
-      expect(html).toContain(s);
-    }
+describe('buildReport', () => {
+  test('prints the foods tried, their status, and the reaction line', () => {
+    const html = buildReport(base, NOW, t);
+    expect(html).toContain('달걀');
+    expect(html).toContain('status.reacted');
+    expect(html).toContain('reaction.severityLevel.moderate · reaction.symptom.hives, reaction.symptom.rash');
   });
-  test('escapes malicious custom food names', () => {
-    const html = buildReportHtml({
-      ...view,
-      rows: [{ food: '<script>x</script>', status: 'Safe', lastTried: '2026-07-01' }],
-      reactionRows: [],
-    });
+
+  // The join that used to be an O(n·m) flatMap().find() in the screen.
+  test('a reaction is attributed to the food whose trial it belongs to', () => {
+    const other = mk({ outcome: 'safe', endedAt: D('2026-07-05T09:00:00Z') });
+    const html = buildReport({
+      ...base,
+      foods: [
+        { food: foodRow('두부'), status: 'safe', trials: [other], latest: other },
+        ...base.foods,
+      ],
+    }, NOW, t);
+    expect(html).toMatch(/<li><strong>달걀<\/strong>/);
+    expect(html).not.toMatch(/<li><strong>두부<\/strong>/);
+  });
+
+  test('a reaction whose trial is gone degrades to a blank food, not a crash', () => {
+    const html = buildReport({ ...base, foods: [] }, NOW, t);
+    expect(html).toContain('<li><strong></strong>');
+  });
+
+  test('an untried food is left out of the table', () => {
+    const html = buildReport({
+      ...base,
+      foods: [...base.foods, { food: foodRow('감자'), status: 'untried', trials: [], latest: undefined }],
+    }, NOW, t);
+    expect(html).not.toContain('감자');
+  });
+
+  test('a food whose only trial was cancelled counts as untried', () => {
+    const cancelled = mk({ outcome: 'cancelled', endedAt: D('2026-07-02T09:00:00Z') });
+    const html = buildReport({
+      ...base,
+      foods: [{ food: foodRow('당근'), status: 'untried', trials: [cancelled], latest: undefined }],
+    }, NOW, t);
+    expect(html).not.toContain('당근');
+  });
+
+  test('escapes a malicious custom food name', () => {
+    const tr = mk({ outcome: 'safe', endedAt: D('2026-07-12T09:00:00Z') });
+    const html = buildReport({
+      baby: { name: null, birthdate: null },
+      foods: [{ food: foodRow('<script>x</script>'), status: 'safe', trials: [tr], latest: tr }],
+      reactions: [],
+    }, NOW, t);
     expect(html).not.toContain('<script>');
     expect(html).toContain('&lt;script&gt;');
   });
-  test('empty reactions render the none label', () => {
-    expect(buildReportHtml({ ...view, reactionRows: [] })).toContain('None');
+
+  test('no reactions → the none label', () => {
+    expect(buildReport({ ...base, reactions: [] }, NOW, t)).toContain('report.none');
   });
-  test('empty babyLine drops the line, not just its text', () => {
-    const html = buildReportHtml({ ...view, babyLine: '' });
-    expect(html).not.toContain('<br>'); // no orphan break before generatedLine
-    expect(html).toContain('Generated 2026-07-16');
+
+  test('no name and no birthdate drops the line, not just its text', () => {
+    const html = buildReport({ ...base, baby: { name: null, birthdate: null } }, NOW, t);
+    expect(html).not.toContain('<br>'); // no orphan break before the generated line
+    expect(html).toContain('report.generated');
+  });
+
+  test('a name without a birthdate still prints', () => {
+    const html = buildReport({ ...base, baby: { name: '하율', birthdate: null } }, NOW, t);
+    expect(html).toContain('하율');
+    expect(html).not.toContain('report.born');
   });
 });
 
@@ -48,7 +111,7 @@ describe('buildBackup', () => {
   test('versioned envelope with ISO timestamp and every table', () => {
     const out = JSON.parse(buildBackup(
       { baby: [], foods: [{ id: 'rice' }], trials: [], reactions: [], checkins: [{ id: 'c1' }] },
-      new Date('2026-07-16T00:00:00Z')));
+      D('2026-07-16T00:00:00Z')));
     expect(out.app).toBe('allergy-tracker');
     expect(out.version).toBe(1);
     expect(out.exportedAt).toBe('2026-07-16T00:00:00.000Z');

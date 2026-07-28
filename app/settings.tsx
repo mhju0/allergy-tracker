@@ -7,16 +7,13 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
-import { db } from '../src/db/client';
-import { baby as babyTable, checkin, food, reaction, trial } from '../src/db/schema';
-import { useBaby, useFoodsWithStatus, useReactions } from '../src/data/queries';
+import { readAllTables, useBaby, useFoodsWithStatus, useReactions } from '../src/data/queries';
 import { updateBabySettings } from '../src/data/mutations';
 import { isPermissionGranted } from '../src/services/notify';
-import { foodLabel } from '../src/i18n';
 import { Button } from '../src/ui/Button';
 import { press } from '../src/ui/pressable';
 import { colors, layout } from '../src/ui/tokens';
-import { buildBackup, buildReportHtml } from '../src/services/export';
+import { buildBackup, buildReport } from '../src/services/export';
 
 const labelStyle = { fontSize: 11, fontWeight: '800' as const, letterSpacing: 1.5, color: colors.inkSecondary, marginTop: 18, marginBottom: 4, paddingLeft: layout.rowInset };
 const rowStyle = {
@@ -43,35 +40,7 @@ export default function Settings() {
     if (exporting.current) return;
     exporting.current = true;
     try {
-      const tried = foods.filter((f) => f.trials.some((tr) => tr.outcome !== 'cancelled'));
-      const html = buildReportHtml({
-        title: t('report.title'),
-        // Optional fields: whatever is set, joined; empty string drops the line.
-        babyLine: [
-          baby.name,
-          baby.birthdate ? t('report.born', { date: baby.birthdate.toLocaleDateString('ko-KR') }) : null,
-        ].filter(Boolean).join(' · '),
-        generatedLine: t('report.generated', { date: new Date().toLocaleDateString('ko-KR') }),
-        foodsHeading: t('report.foodsTried'),
-        reactionsHeading: t('report.reactionsSection'),
-        noneLabel: t('report.none'),
-        cols: { food: t('report.colFood'), status: t('report.colStatus'), lastTried: t('report.colLastTried') },
-        rows: tried.map((f) => ({
-          food: foodLabel(f.food),
-          status: t(`status.${f.status}`),
-          lastTried: f.latest?.startedAt.toLocaleDateString('ko-KR') ?? '',
-        })),
-        reactionRows: reactions.map((r) => {
-          const tr = foods.flatMap((f) => f.trials.map((x) => ({ f, x }))).find((p) => p.x.id === r.trialId);
-          return {
-            food: tr ? foodLabel(tr.f.food) : '',
-            date: r.occurredAt.toLocaleDateString('ko-KR'),
-            severity: t(`reaction.severityLevel.${r.severity}`),
-            symptoms: r.symptoms.map((s) => t(`reaction.symptom.${s}`)).join(', '),
-            note: r.note ?? '',
-          };
-        }),
-      });
+      const html = buildReport({ baby, foods, reactions }, new Date(), t);
       const { uri } = await Print.printToFileAsync({ html });
       await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
     } catch {
@@ -85,11 +54,7 @@ export default function Settings() {
     if (exporting.current) return;
     exporting.current = true;
     try {
-      const [b, f, tr, re, ch] = await Promise.all([
-        db.select().from(babyTable), db.select().from(food),
-        db.select().from(trial), db.select().from(reaction), db.select().from(checkin),
-      ]);
-      const json = buildBackup({ baby: b, foods: f, trials: tr, reactions: re, checkins: ch }, new Date());
+      const json = buildBackup(await readAllTables(), new Date());
       const path = `${FileSystem.cacheDirectory}allergy-tracker-backup.json`;
       await FileSystem.writeAsStringAsync(path, json);
       await Sharing.shareAsync(path, { mimeType: 'application/json' });
