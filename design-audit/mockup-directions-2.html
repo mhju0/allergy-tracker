@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>세 상태, 두 방향 — Allergy Tracker mockup</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   MOCKUP round 2 — 2026-07-28
+   Round 1 (mockup-directions.html) asked: does B mean a yellow screen
+   forever? Checking app/index.tsx: Home has only two branches, active
+   trial and idle. Red never renders. Logging a reaction ends the trial,
+   so Home falls to idle and prints home.idleTitle — "8가지 안전" in
+   GREEN (index.tsx:183) right after a reaction was recorded.
+
+   So the field does not need to be amber forever. It needs the state
+   machine the app never finished. Rack 1 draws all three.
+
+   No serif anywhere this round. System sans only.
+   Static, no scripts, no network. 375 × 812 pt — iPhone 12 mini.
+   Content: real fixture (src/db/demoData.ts) — 두부 active, 달걀 reacted.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root{
+  --surface:#FAF7F0;
+  --ink:#26241F;          /* 14.5:1 */
+  --ink-2:#6E675A;        /* 5.23:1 */
+  --ink-3:#8B8578;        /* marks & rules only */
+  --rule:#E4DED2;
+  --accent:#BE4F26;
+  --amber-tx:#96631A;     /* 4.79:1 */
+  --amber-mk:#B0761F;
+  --green:#2E7D4F;        /* 4.72:1 */
+  --red:#A8432B;          /* 5.60:1 */
+  --amber-tint:#F3E5C9;
+  --green-tint:#DFEEDF;
+  --red-tint:#F3DED7;
+
+  --stage:#DCDDD8;
+  --stage-ink:#33352F;
+  --stage-2:#6B6E66;
+  --stage-rule:#C6C8C1;
+
+  --app: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+         "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, "Roboto Mono", monospace;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background:var(--stage);color:var(--stage-ink);
+  font-family:var(--mono);-webkit-font-smoothing:antialiased;
+  padding:48px 24px 80px;
+}
+
+/* ─── stage chrome ─────────────────────────────────────────────── */
+.masthead{max-width:1400px;margin:0 auto 40px}
+.masthead .kicker{font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--stage-2);margin-bottom:14px}
+.masthead h1{font-family:var(--app);font-size:clamp(30px,5vw,46px);font-weight:900;letter-spacing:-.02em;line-height:1.04;max-width:20ch}
+.masthead h1 em{font-style:normal;color:var(--accent)}
+.masthead p{font-family:var(--app);font-size:15px;line-height:1.6;color:var(--stage-2);max-width:68ch;margin-top:16px}
+.masthead p b{color:var(--stage-ink)}
+.masthead code{font-family:var(--mono);font-size:13px;background:#00000010;padding:1px 5px}
+
+.sectionhead{
+  max-width:1400px;margin:0 auto 26px;padding-top:36px;
+  border-top:1px solid var(--stage-rule);
+}
+.sectionhead .num{font-size:10px;letter-spacing:.2em;color:var(--stage-2)}
+.sectionhead h2{font-family:var(--app);font-size:24px;font-weight:900;margin-top:8px;letter-spacing:-.01em}
+.sectionhead p{font-family:var(--app);font-size:14px;line-height:1.6;color:var(--stage-2);max-width:70ch;margin-top:8px}
+.sectionhead p b{color:var(--stage-ink)}
+
+.rack{
+  max-width:1400px;margin:0 auto;display:grid;gap:52px 36px;
+  grid-template-columns:repeat(auto-fit,minmax(375px,max-content));
+  justify-content:center;
+}
+.slot{width:375px}
+.slot > figcaption{margin-bottom:14px}
+@media (min-width:900px){ .slot > figcaption{min-height:132px} }
+.slot .n{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.14em;background:var(--stage-ink);color:var(--stage);padding:3px 7px}
+.slot .n.g{background:var(--green);color:#fff}
+.slot .n.a{background:var(--amber-mk);color:#fff}
+.slot .n.r{background:var(--red);color:#fff}
+.slot .n.rec{background:var(--accent);color:#fff}
+.slot .t{font-family:var(--app);font-size:15px;font-weight:800;margin-top:9px}
+.slot .d{font-size:11px;line-height:1.6;color:var(--stage-2);margin-top:5px;max-width:36ch}
+.slot .d b{color:var(--stage-ink);font-weight:700}
+
+/* ─── device ───────────────────────────────────────────────────── */
+.device{
+  width:375px;height:812px;background:var(--surface);
+  border:9px solid #16181A;border-radius:42px;overflow:hidden;
+  position:relative;font-family:var(--app);color:var(--ink);
+  box-shadow:0 22px 44px -18px rgba(0,0,0,.42);
+}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:118px;height:26px;background:#16181A;border-radius:14px;z-index:5}
+.statusbar{height:50px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 4px;font-size:13px;font-weight:700;position:relative;z-index:3}
+.statusbar .r{display:flex;gap:5px;align-items:center;font-size:11px}
+.screen{padding:4px 20px 0;height:762px;display:flex;flex-direction:column;overflow:hidden;position:relative;z-index:2}
+
+.eyebrow{font-size:10px;line-height:12px;font-weight:700;letter-spacing:2.2px;color:var(--ink-2);padding-bottom:12px;padding-left:3px}
+
+.btn{display:block;width:100%;text-align:center;border-radius:999px;font-size:15px;font-weight:700;padding:14px 0;border:0;background:var(--accent);color:#fff;letter-spacing:-.01em}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink);padding:12.5px 0}
+.btn + .btn{margin-top:10px}
+
+.navrow{display:flex;justify-content:space-between;align-items:center;padding:15px 10px;border-top:1px solid var(--rule)}
+.navrow span:first-child{font-size:15px;font-weight:700}
+.navrow .chev{color:var(--ink-2);font-size:15px}
+.foot{margin-top:auto;padding-bottom:22px}
+
+.tally{display:flex;margin-top:18px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.tally div{flex:1;padding:11px 0 10px;text-align:center;border-left:1px solid var(--rule)}
+.tally div:first-child{border-left:0}
+.tally .k{display:block;font-size:10.5px;font-weight:700;color:var(--ink-2)}
+.tally .v{display:block;font-size:19px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:2px}
+.tally .safe .v{color:var(--green)} .tally .test .v{color:var(--amber-tx)}
+.tally .re .v{color:var(--red)} .tally .un .v{color:var(--ink-2)}
+
+/* ═══ B′ — the field, with the state machine finished ═════════════ */
+.F .field{position:absolute;top:0;left:0;right:0;height:404px;z-index:0}
+.F.amber .field{background:var(--amber-tint)}
+.F.green .field{background:var(--green-tint)}
+.F.red   .field{background:var(--red-tint)}
+.F.amber .device{background:var(--amber-tint)}
+.F.green .device{background:var(--green-tint)}
+.F.red   .device{background:var(--red-tint)}
+
+/* window progress rides the very top edge */
+.F .progress{position:absolute;top:0;left:0;right:0;height:4px;display:flex;gap:2px;padding:0 4px;z-index:6}
+.F .progress i{flex:1;opacity:.22;border-radius:0 0 2px 2px}
+.F.amber .progress i{background:var(--amber-mk)}
+.F.green .progress i{background:var(--green)}
+.F.red   .progress i{background:var(--red)}
+.F .progress i.on{opacity:1}
+
+.F .hero{height:354px;display:flex;flex-direction:column}
+.F .display{font-size:76px;line-height:74px;font-weight:900;letter-spacing:-3.5px;color:var(--ink);margin-top:26px}
+.F .statusword{font-size:16px;font-weight:900;letter-spacing:-.2px;margin-top:16px;padding-left:3px}
+.F .dayline{font-size:13px;font-weight:700;margin-top:5px;padding-left:3px;opacity:.9}
+.F .record{margin-top:auto;padding-bottom:20px;font-size:12px;padding-left:3px}
+.F.amber .eyebrow,.F.amber .statusword,.F.amber .dayline,.F.amber .record{color:var(--amber-tx)}
+.F.green .eyebrow,.F.green .statusword,.F.green .dayline,.F.green .record{color:var(--green)}
+.F.red   .eyebrow,.F.red   .statusword,.F.red   .dayline,.F.red   .record{color:var(--red)}
+.F .lower{background:var(--surface);margin:0 -20px;padding:20px 20px 0;flex:1;display:flex;flex-direction:column}
+
+/* ═══ D — 상태 카드 ═══════════════════════════════════════════════ */
+.D .card{
+  margin:0 -6px;padding:22px 18px 18px;border-radius:20px;
+  background:var(--amber-tint);
+}
+.D .display{font-size:64px;line-height:64px;font-weight:900;letter-spacing:-2.8px;color:var(--ink)}
+.D .cardsub{display:flex;align-items:baseline;margin-top:12px}
+.D .cardsub .s{flex:1;font-size:14px;font-weight:900;color:var(--amber-tx)}
+.D .cardsub .r{font-size:12px;color:var(--amber-tx);opacity:.85}
+.D .seg{display:flex;gap:3px;margin-top:16px}
+.D .seg i{flex:1;height:5px;border-radius:3px;background:var(--amber-mk);opacity:.24}
+.D .seg i.on{opacity:1}
+/* A's ledger, stripped to three lines — no double rule, no serif */
+.D .log{margin-top:22px}
+.D .log .r{
+  display:grid;grid-template-columns:26px 1fr auto;align-items:baseline;gap:10px;
+  padding:12px 3px 11px;border-bottom:1px solid var(--rule);
+}
+.D .log .r:first-child{border-top:1px solid var(--rule)}
+.D .log .dy{font-size:12px;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.D .log .st{font-size:14px;font-weight:800}
+.D .log .r.done .st{color:var(--green)}
+.D .log .r.today .st{color:var(--amber-tx)}
+.D .log .r.wait .st{color:var(--ink-3);font-weight:600}
+.D .log .r.wait .dy{color:var(--ink-3)}
+.D .log .tm{font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+
+/* ═══ E — 띠 ══════════════════════════════════════════════════════ */
+.E .display{font-size:62px;line-height:62px;font-weight:900;letter-spacing:-2.6px;color:var(--ink);margin-top:4px}
+.E .band{
+  margin:20px -20px 0;padding:18px 23px;background:var(--amber-tint);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.E .band .l .w{font-size:17px;font-weight:900;color:var(--amber-tx);letter-spacing:-.3px}
+.E .band .l .d{font-size:12.5px;font-weight:700;color:var(--amber-tx);opacity:.88;margin-top:3px}
+.E .band .dots{display:flex;gap:6px}
+.E .band .dots i{width:10px;height:10px;border-radius:999px;background:var(--amber-mk);opacity:.26}
+.E .band .dots i.on{opacity:1}
+.E .log{margin-top:20px}
+.E .log .r{display:flex;justify-content:space-between;align-items:baseline;padding:12px 3px 11px;border-bottom:1px solid var(--rule)}
+.E .log .r:first-child{border-top:1px solid var(--rule)}
+.E .log .st{font-size:14px;font-weight:800}
+.E .log .r.done .st{color:var(--green)}
+.E .log .r.today .st{color:var(--amber-tx)}
+.E .log .r.wait .st{color:var(--ink-3);font-weight:600}
+.E .log .tm{font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+
+/* ─── notes ────────────────────────────────────────────────────── */
+.note{
+  width:375px;margin-top:16px;padding-top:14px;border-top:1px solid var(--stage-rule);
+  font-family:var(--mono);font-size:10px;line-height:1.7;color:var(--stage-2);
+}
+.note b{color:var(--stage-ink);font-weight:700}
+
+.tail{max-width:1400px;margin:56px auto 0;padding-top:24px;border-top:1px solid var(--stage-rule)}
+.tail h3{font-family:var(--app);font-size:17px;font-weight:800;margin-bottom:10px}
+.tail p{font-family:var(--app);font-size:14px;line-height:1.65;color:var(--stage-2);max-width:74ch;margin-bottom:14px}
+.tail p b{color:var(--stage-ink)}
+.tail code{font-family:var(--mono);font-size:12.5px;background:#00000010;padding:1px 5px}
+.tail table{font-family:var(--app);font-size:13px;border-collapse:collapse;margin-top:6px;max-width:74ch;width:100%}
+.tail th,.tail td{text-align:left;padding:9px 12px 9px 0;border-bottom:1px solid var(--stage-rule);vertical-align:top}
+.tail th{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--stage-2);font-weight:600}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="kicker">Allergy Tracker · 시각 방향 검토 2회차 · 2026-07-28</div>
+  <h1>노란 화면이 <em>계속</em>은 아니다 — 상태를 끝내면 된다</h1>
+  <p>
+    B가 항상 호박색인 이유는 색면 때문이 아니라 <b>홈에 상태가 두 개뿐</b>이기 때문이다.
+    <code>app/index.tsx</code>는 관찰 중이면 히어로를, 아니면 유휴 화면을 그린다. 빨강은
+    어디에도 없다. 반응을 기록하면 관찰이 즉시 종료되므로 홈은 유휴 분기로 떨어지고
+    <code>home.idleTitle</code>, 즉 <b>“8가지 안전”을 초록으로</b> 출력한다
+    (<code>index.tsx:183</code>). 방금 반응을 기록했는데 홈이 초록으로 축하하는 셈이다.
+    이건 어느 방향을 고르든 고쳐야 하는 버그다. 아래 1번 랙이 세 상태를 전부 그린다.
+  </p>
+  <p>명조는 이번 회차에서 전부 뺐다. 시스템 고딕만 쓴다.</p>
+</header>
+
+<!-- ══════════════════ RACK 1 ══════════════════ -->
+<section class="sectionhead">
+  <div class="num">RACK 1</div>
+  <h2>B′ — 색면이 상태를 따라간다</h2>
+  <p>
+    같은 방향, 상태 기계만 완성했다. <b>호박 = 관찰 중</b>(창이 도는 동안),
+    <b>초록 = 안전 확인 직후</b>(다음 재료를 시작할 때까지),
+    <b>빨강 = 반응 기록 직후</b>(다음 재료를 시작할 때까지). 화면 맨 윗변의
+    세그먼트가 창의 진행을 들고, 색은 항상 같은 자리에 있다.
+  </p>
+</section>
+
+<div class="rack">
+
+  <figure class="slot F amber">
+    <figcaption>
+      <span class="n a">상태 1</span>
+      <div class="t">관찰 중 · 3일 중 2일째</div>
+      <div class="d">창이 도는 동안. 오늘 아직 체크인 전이라 <b>오늘 이상 없음</b>이 채워진 버튼이다.</div>
+    </figcaption>
+    <div class="device">
+      <div class="progress"><i class="on"></i><i class="on"></i><i></i></div>
+      <div class="field"></div>
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>
+      <div class="screen">
+        <div class="hero">
+          <div class="eyebrow">알레르기 트래커</div>
+          <div class="display">두부</div>
+          <div class="statusword">관찰 중</div>
+          <div class="dayline">3일 중 2일째 · 7월 29일 확인</div>
+          <div class="record">기록 보기 →</div>
+        </div>
+        <div class="lower">
+          <button class="btn">오늘 이상 없음</button>
+          <button class="btn ghost">반응 기록</button>
+          <div class="tally">
+            <div class="safe"><span class="k">안전</span><span class="v">8</span></div>
+            <div class="test"><span class="k">관찰 중</span><span class="v">1</span></div>
+            <div class="re"><span class="k">반응</span><span class="v">2</span></div>
+            <div class="un"><span class="k">안 먹어봄</span><span class="v">45</span></div>
+          </div>
+          <div class="foot">
+            <div class="navrow"><span>새 재료 시작하기</span><span class="chev">→</span></div>
+            <div class="navrow"><span>캘린더</span><span class="chev">→</span></div>
+            <div class="navrow"><span>설정</span><span class="chev">→</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="note"><b>지속</b> — 창이 도는 3일. 앱을 여는 대부분의 시간.</div>
+  </figure>
+
+  <figure class="slot F green">
+    <figcaption>
+      <span class="n g">상태 2</span>
+      <div class="t">안전 확인됨</div>
+      <div class="d">안전으로 표시한 직후부터 다음 재료를 시작할 때까지. 지금은 유휴 화면이 <b>“8가지 안전”</b>만 띄우고 방금 뭘 통과했는지 말하지 않는다.</div>
+    </figcaption>
+    <div class="device">
+      <div class="progress"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+      <div class="field"></div>
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>
+      <div class="screen">
+        <div class="hero">
+          <div class="eyebrow">알레르기 트래커</div>
+          <div class="display">두부</div>
+          <div class="statusword">안전 확인됨</div>
+          <div class="dayline">3일 관찰 · 반응 없음 · 이제 9가지 안전</div>
+          <div class="record">기록 보기 →</div>
+        </div>
+        <div class="lower">
+          <button class="btn">새 재료 시작하기</button>
+          <div class="tally">
+            <div class="safe"><span class="k">안전</span><span class="v">9</span></div>
+            <div class="test"><span class="k">관찰 중</span><span class="v">0</span></div>
+            <div class="re"><span class="k">반응</span><span class="v">2</span></div>
+            <div class="un"><span class="k">안 먹어봄</span><span class="v">45</span></div>
+          </div>
+          <div class="foot">
+            <div class="navrow"><span>캘린더</span><span class="chev">→</span></div>
+            <div class="navrow"><span>설정</span><span class="chev">→</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="note"><b>지속</b> — 다음 재료를 시작할 때까지. 보통 몇 분에서 하루.</div>
+  </figure>
+
+  <figure class="slot F red">
+    <figcaption>
+      <span class="n r">상태 3</span>
+      <div class="t">반응 기록됨 — 현재 존재하지 않는 화면</div>
+      <div class="d">지금 이 자리에는 초록 <b>“8가지 안전”</b>이 뜬다. 반응을 기록한 부모가 보게 되는 화면이 이것이어야 한다.</div>
+    </figcaption>
+    <div class="device">
+      <div class="progress"><i class="on"></i><i class="on"></i><i></i></div>
+      <div class="field"></div>
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>
+      <div class="screen">
+        <div class="hero">
+          <div class="eyebrow">알레르기 트래커</div>
+          <div class="display">달걀</div>
+          <div class="statusword">반응 기록됨</div>
+          <div class="dayline">2일째 · 중간 · 두드러기, 얼굴 부종</div>
+          <div class="record">기록 보기 →</div>
+        </div>
+        <div class="lower">
+          <button class="btn ghost">기록 보기</button>
+          <button class="btn ghost" style="border-color:var(--rule);color:var(--ink-2)">새 재료 시작하기</button>
+          <div class="tally">
+            <div class="safe"><span class="k">안전</span><span class="v">8</span></div>
+            <div class="test"><span class="k">관찰 중</span><span class="v">0</span></div>
+            <div class="re"><span class="k">반응</span><span class="v">3</span></div>
+            <div class="un"><span class="k">안 먹어봄</span><span class="v">45</span></div>
+          </div>
+          <div class="foot">
+            <div class="navrow"><span>캘린더</span><span class="chev">→</span></div>
+            <div class="navrow"><span>설정</span><span class="chev">→</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="note"><b>지속</b> — 다음 재료를 시작할 때까지. <b>채워진 주 버튼 없음</b> — 반응 직후에 부모를 다음 행동으로 떠미는 건 옳지 않다.</div>
+  </figure>
+
+</div>
+
+<!-- ══════════════════ RACK 2 ══════════════════ -->
+<section class="sectionhead">
+  <div class="num">RACK 2</div>
+  <h2>A의 기록 + B의 단순함, 명조 없이</h2>
+  <p>
+    둘 다 관찰 중 상태다. A에서 가져온 것은 <b>날짜·상태·시각이 있는 기록 줄</b>이고,
+    B에서 가져온 것은 <b>큰 이름과 큰 색</b>이다. 뺀 것은 명조, 그레인, 이중괘선.
+    색은 B′와 같은 규칙으로 세 상태를 돈다.
+  </p>
+</section>
+
+<div class="rack">
+
+  <figure class="slot D">
+    <figcaption>
+      <span class="n rec">D · 추천</span>
+      <div class="t">상태 카드 — The State Card</div>
+      <div class="d">
+        색이 화면 전체가 아니라 <b>모서리가 둥근 카드 한 장</b>을 채운다. 상태가 물건이
+        되니 “화면이 경고 중”이 아니라 “이 재료가 관찰 중”으로 읽힌다. 카드 안에 이름·
+        상태·진행 세그먼트가 전부 있고, 밖은 기록 줄과 평소의 종이다.
+      </div>
+    </figcaption>
+    <div class="device">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>
+      <div class="screen">
+        <div class="eyebrow">알레르기 트래커</div>
+        <div class="card">
+          <div class="display">두부</div>
+          <div class="cardsub">
+            <span class="s">관찰 중 · 3일 중 2일째</span>
+            <span class="r">기록 보기 →</span>
+          </div>
+          <div class="seg"><i class="on"></i><i class="on"></i><i></i></div>
+        </div>
+
+        <div class="log">
+          <div class="r done"><span class="dy">1일</span><span class="st">이상 없음</span><span class="tm">오후 6:20</span></div>
+          <div class="r today"><span class="dy">2일</span><span class="st">오늘 · 관찰 중</span><span class="tm">—</span></div>
+          <div class="r wait"><span class="dy">3일</span><span class="st">예정</span><span class="tm">7월 29일</span></div>
+        </div>
+
+        <div style="margin-top:22px">
+          <button class="btn">오늘 이상 없음</button>
+          <button class="btn ghost">반응 기록</button>
+        </div>
+
+        <div class="tally">
+          <div class="safe"><span class="k">안전</span><span class="v">8</span></div>
+          <div class="test"><span class="k">관찰 중</span><span class="v">1</span></div>
+          <div class="re"><span class="k">반응</span><span class="v">2</span></div>
+          <div class="un"><span class="k">안 먹어봄</span><span class="v">45</span></div>
+        </div>
+
+        <div class="foot">
+          <div class="navrow"><span>새 재료 시작하기</span><span class="chev">→</span></div>
+          <div class="navrow"><span>캘린더</span><span class="chev">→</span></div>
+          <div class="navrow"><span>설정</span><span class="chev">→</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="note">
+      <b>색 규칙</b> — 카드 배경만 바뀐다. 호박/초록/빨강 틴트, 텍스트는 짝이 되는 진한 값.<br>
+      <b>모션</b> — 체크인하면 세그먼트 한 칸이 채워지고 기록 줄이 한 줄 자라난다(220ms).<br>
+      <b>비용</b> — 서체 없음, 팔레트 변경 없음. 전부 기존 토큰.
+    </div>
+  </figure>
+
+  <figure class="slot E">
+    <figcaption>
+      <span class="n">E</span>
+      <div class="t">띠 — The Band</div>
+      <div class="d">
+        가장 조용한 안. 종이는 종이로 두고, 이름 아래 <b>화면 폭을 꽉 채운 색 띠</b>
+        하나가 상태를 든다. 점이 아니라 면이지만 화면을 지배하지는 않는다. 남은
+        3일은 띠 오른쪽의 점 세 개.
+      </div>
+    </figcaption>
+    <div class="device">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>
+      <div class="screen">
+        <div class="eyebrow">알레르기 트래커</div>
+        <div class="display">두부</div>
+
+        <div class="band">
+          <div class="l">
+            <div class="w">관찰 중</div>
+            <div class="d">3일 중 2일째 · 7월 29일 확인</div>
+          </div>
+          <div class="dots"><i class="on"></i><i class="on"></i><i></i></div>
+        </div>
+
+        <div class="log">
+          <div class="r done"><span class="st">1일 · 이상 없음</span><span class="tm">오후 6:20</span></div>
+          <div class="r today"><span class="st">2일 · 오늘</span><span class="tm">관찰 중</span></div>
+          <div class="r wait"><span class="st">3일 · 예정</span><span class="tm">7월 29일</span></div>
+        </div>
+
+        <div style="margin-top:22px">
+          <button class="btn">오늘 이상 없음</button>
+          <button class="btn ghost">반응 기록</button>
+        </div>
+
+        <div class="tally">
+          <div class="safe"><span class="k">안전</span><span class="v">8</span></div>
+          <div class="test"><span class="k">관찰 중</span><span class="v">1</span></div>
+          <div class="re"><span class="k">반응</span><span class="v">2</span></div>
+          <div class="un"><span class="k">안 먹어봄</span><span class="v">45</span></div>
+        </div>
+
+        <div class="foot">
+          <div class="navrow"><span>새 재료 시작하기</span><span class="chev">→</span></div>
+          <div class="navrow"><span>캘린더</span><span class="chev">→</span></div>
+          <div class="navrow"><span>설정</span><span class="chev">→</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="note">
+      <b>색 규칙</b> — 띠 배경만 바뀐다. 전면 대비 색 면적 약 1/5.<br>
+      <b>모션</b> — 점이 하나씩 차오르고, 상태가 바뀔 때 띠가 교차 페이드.<br>
+      <b>비용</b> — 없음. D보다도 변경 범위가 작다.
+    </div>
+  </figure>
+
+</div>
+
+<footer class="tail">
+  <h3>세 안의 색 면적</h3>
+  <table>
+    <tr><th>안</th><th>색 면적</th><th>느낌</th><th>변경 범위</th></tr>
+    <tr><td><b>B′</b> 색면</td><td>화면의 약 1/2</td><td>방 건너편에서도 읽힘. 3일 내리 강함</td><td>홈 히어로 전면 재작성</td></tr>
+    <tr><td><b>D</b> 카드</td><td>화면의 약 1/4</td><td>“이 재료가 관찰 중” — 상태가 물건이 됨</td><td>홈 히어로 + 기록 줄</td></tr>
+    <tr><td><b>E</b> 띠</td><td>화면의 약 1/5</td><td>가장 조용함. 지금과 가장 가까움</td><td>가장 작음</td></tr>
+  </table>
+
+  <h3 style="margin-top:24px">어느 안을 골라도 같이 가는 것</h3>
+  <p>
+    <b>상태 3(반응 기록됨)은 디자인이 아니라 버그 수정이다.</b> 지금 반응을 기록하면
+    홈이 초록 “8가지 안전”으로 떨어진다(<code>app/index.tsx:181-195</code>). 세 안 모두
+    이 분기를 새로 만들어야 하고, 그건 <code>deriveStatus</code>가 아니라 홈의 렌더 분기에서
+    끝난다 — 스키마 변경 없음, 도메인 로직 변경 없음.
+  </p>
+  <p>
+    <b>M6 (Dynamic Type)</b> 도 여전히 남아 있다. 다만 이번 회차는 서체를 바꾸지 않으므로
+    선행 조건은 아니고, 뒤로 미뤄도 되는 별도 작업이다.
+  </p>
+</footer>
+
+</body>
+</html>

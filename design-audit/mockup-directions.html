@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>세 가지 방향 — Allergy Tracker mockup</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   MOCKUP — three visual directions, 2026-07-28
+   Companion to mockup-observation-ledger.html. Same conventions:
+   static, no scripts, no network, screens drawn at 375 × 812 pt
+   (iPhone 12 mini logical size — the dogfood device).
+   Content is the real EXPO_PUBLIC_DEMO=1 fixture (src/db/demoData.ts):
+   두부 active on day 2 of 3; 안전 8 · 관찰 중 1 · 반응 2 · 안 먹어봄 45.
+   Every pixel value here is the value to type into the RN StyleSheet.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* shipped tokens — src/ui/tokens.ts. ✓ = ratio vs #FAF7F0 paper */
+  --surface:#FAF7F0;
+  --ink:#26241F;          /* 14.5:1 */
+  --ink-2:#6E675A;        /* 5.23:1  — every secondary string */
+  --ink-3:#8B8578;        /* 3.43:1  — marks & rules only, never text */
+  --rule:#E4DED2;
+  --accent:#BE4F26;       /* 4.84:1 with #FFF */
+  --amber-tx:#96631A;     /* 4.79:1  — amber for TEXT */
+  --amber-mk:#B0761F;     /* marks & fills only */
+  --green:#2E7D4F;        /* 4.72:1 */
+  --red:#A8432B;          /* 5.60:1 */
+  --amber-tint:#F3E5C9;
+  --green-tint:#DFEEDF;
+  --red-tint:#F3DED7;
+
+  /* studio ground — cool, so the app's warm paper reads as a sample */
+  --stage:#DCDDD8;
+  --stage-ink:#33352F;
+  --stage-2:#6B6E66;
+  --stage-rule:#C6C8C1;
+
+  --app: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+         "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  /* Direction A display face. AppleMyungjo ships with macOS; the RN build
+     would bundle a subset via expo-font rather than rely on this. */
+  --serif: "AppleMyungjo", "Nanum Myeongjo", "Noto Serif KR",
+           "Apple SD Gothic Neo", serif;
+  --mono: ui-monospace, "SF Mono", Menlo, "Roboto Mono", monospace;
+
+  /* Direction A paper grain — inline SVG turbulence, no network */
+  --grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.055'/></svg>");
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background:var(--stage);
+  color:var(--stage-ink);
+  font-family:var(--mono);
+  -webkit-font-smoothing:antialiased;
+  padding:48px 24px 80px;
+}
+
+/* ─── stage chrome ─────────────────────────────────────────────── */
+.masthead{max-width:1400px;margin:0 auto 48px}
+.masthead .kicker{
+  font-size:10px;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--stage-2);margin-bottom:14px;
+}
+.masthead h1{
+  font-family:var(--app);font-size:clamp(30px,5vw,46px);font-weight:900;
+  letter-spacing:-.02em;line-height:1.04;max-width:18ch;
+}
+.masthead h1 em{font-style:normal;color:var(--accent)}
+.masthead p{
+  font-family:var(--app);font-size:15px;line-height:1.6;color:var(--stage-2);
+  max-width:66ch;margin-top:16px;
+}
+.masthead dl{
+  display:flex;flex-wrap:wrap;gap:0 40px;margin-top:26px;
+  padding-top:18px;border-top:1px solid var(--stage-rule);font-size:11px;
+}
+.masthead dt{color:var(--stage-2);letter-spacing:.08em;text-transform:uppercase;font-size:9.5px}
+.masthead dd{margin-top:4px;font-weight:600}
+
+.rack{
+  max-width:1400px;margin:0 auto;
+  display:grid;gap:56px 40px;
+  grid-template-columns:repeat(auto-fit,minmax(375px,max-content));
+  justify-content:center;
+}
+.slot{width:375px}
+.slot > figcaption{margin-bottom:14px}
+@media (min-width:900px){ .slot > figcaption{min-height:168px} }
+.slot .n{
+  display:inline-block;font-size:10px;font-weight:700;letter-spacing:.14em;
+  background:var(--stage-ink);color:var(--stage);padding:3px 7px;
+}
+.slot .n.rec{background:var(--accent);color:#fff}
+.slot .t{font-family:var(--app);font-size:15px;font-weight:800;margin-top:9px;color:var(--stage-ink)}
+.slot .d{font-size:11px;line-height:1.6;color:var(--stage-2);margin-top:5px;max-width:36ch}
+.slot .d b{color:var(--stage-ink);font-weight:700}
+
+/* ─── device ───────────────────────────────────────────────────── */
+.device{
+  width:375px;height:812px;background:var(--surface);
+  border:9px solid #16181A;border-radius:42px;overflow:hidden;
+  position:relative;font-family:var(--app);color:var(--ink);
+  box-shadow:0 22px 44px -18px rgba(0,0,0,.42);
+}
+.notch{
+  position:absolute;top:9px;left:50%;transform:translateX(-50%);
+  width:118px;height:26px;background:#16181A;border-radius:14px;z-index:5;
+}
+.statusbar{
+  height:50px;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 4px;font-size:13px;font-weight:700;letter-spacing:-.01em;
+  position:relative;z-index:3;
+}
+.statusbar .r{display:flex;gap:5px;align-items:center;font-size:11px}
+.screen{
+  padding:4px 20px 0;height:762px;display:flex;flex-direction:column;
+  overflow:hidden;position:relative;z-index:2;
+}
+
+/* shared app type scale */
+.eyebrow{font-size:10px;line-height:12px;font-weight:700;letter-spacing:2.2px;color:var(--ink-2);padding-bottom:12px;padding-left:10px}
+.body   {font-size:15px;line-height:21px;font-weight:600}
+.meta   {font-size:13px;line-height:18px;font-weight:700}
+
+/* shared controls */
+.btn{
+  display:block;width:100%;text-align:center;border-radius:999px;
+  font-size:15px;font-weight:700;padding:14px 0;border:0;
+  background:var(--accent);color:#fff;letter-spacing:-.01em;
+}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink);padding:12.5px 0}
+.btn + .btn{margin-top:10px}
+
+.navrow{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:15px 10px;border-top:1px solid var(--rule);
+}
+.navrow span:first-child{font-size:15px;font-weight:700}
+.navrow .chev{color:var(--ink-2);font-size:15px}
+.foot{margin-top:auto;padding-bottom:22px}
+
+/* shared tally band */
+.tally{
+  display:flex;margin-top:20px;
+  border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+}
+.tally div{flex:1;padding:11px 0 10px;text-align:center;border-left:1px solid var(--rule)}
+.tally div:first-child{border-left:0}
+.tally .k{display:block;font-size:10.5px;font-weight:700;color:var(--ink-2)}
+.tally .v{display:block;font-size:19px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:2px}
+.tally .safe .v{color:var(--green)} .tally .test .v{color:var(--amber-tx)}
+.tally .re   .v{color:var(--red)}   .tally .un   .v{color:var(--ink-2)}
+
+/* ═══ DIRECTION A — 관찰 일지 ══════════════════════════════════════ */
+.A .device::before{
+  content:"";position:absolute;inset:0;background:var(--grain);
+  pointer-events:none;z-index:1;mix-blend-mode:multiply;
+}
+/* the eyebrow becomes a ledger masthead: label + rule to the margin */
+.A .masthead-rule{
+  display:flex;align-items:center;gap:10px;padding-bottom:14px;
+}
+.A .masthead-rule .lbl{
+  font-size:9.5px;font-weight:700;letter-spacing:2.6px;color:var(--ink-2);
+}
+.A .masthead-rule .ln{flex:1;height:1px;background:var(--ink-3);opacity:.5}
+.A .display{
+  font-family:var(--serif);font-size:56px;line-height:60px;font-weight:400;
+  letter-spacing:-1px;color:var(--ink);
+}
+.A .subline{
+  display:flex;align-items:baseline;margin-top:10px;padding-left:2px;
+}
+.A .subline .s{flex:1;font-size:13px;font-weight:700;color:var(--amber-tx)}
+.A .subline .r{font-size:12px;color:var(--ink-2)}
+
+/* THE SIGNATURE — a real ruled ledger, double-rule at the head */
+.A .ledger{
+  margin-top:20px;border-top:3px double var(--ink);
+}
+.A .ledger .hd{
+  display:flex;justify-content:space-between;padding:7px 2px 8px;
+  border-bottom:1px solid var(--ink);
+}
+.A .ledger .hd span{
+  font-size:9px;font-weight:700;letter-spacing:1.6px;color:var(--ink-2);
+}
+.A .ledger .row{
+  display:grid;grid-template-columns:34px 1fr auto;align-items:baseline;
+  gap:10px;padding:13px 2px 12px;border-bottom:1px solid var(--rule);
+  position:relative;
+}
+.A .ledger .row::before{
+  content:"";position:absolute;left:0;bottom:-1px;height:2px;width:0;
+}
+.A .ledger .row.done::before{width:100%;background:var(--green)}
+.A .ledger .row.today::before{width:100%;background:var(--amber-mk)}
+.A .ledger .dy{
+  font-family:var(--serif);font-size:19px;font-weight:400;color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+.A .ledger .row.wait .dy{color:var(--ink-3)}
+.A .ledger .st{font-size:14px;font-weight:800}
+.A .ledger .row.done  .st{color:var(--green)}
+.A .ledger .row.today .st{color:var(--amber-tx)}
+.A .ledger .row.wait  .st{color:var(--ink-3);font-weight:600}
+.A .ledger .tm{font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.A .ledger .foot{
+  margin-top:0;padding:9px 2px 0;border-top:1px solid var(--ink);
+  font-size:10.5px;color:var(--ink-2);display:flex;justify-content:space-between;
+}
+
+/* ═══ DIRECTION B — 신호 ═══════════════════════════════════════════ */
+.B .device{background:var(--amber-tint)}
+.B .field{
+  position:absolute;top:0;left:0;right:0;height:428px;
+  background:var(--amber-tint);z-index:0;
+}
+/* window progress rides the very top edge, above the notch line */
+.B .progress{
+  position:absolute;top:0;left:0;right:0;height:4px;display:flex;gap:2px;
+  padding:0 4px;z-index:6;
+}
+.B .progress i{flex:1;background:var(--amber-mk);opacity:.25;border-radius:0 0 2px 2px}
+.B .progress i.on{opacity:1}
+.B .screen{padding-top:4px}
+.B .eyebrow{color:var(--amber-tx)}
+.B .display{
+  font-size:76px;line-height:74px;font-weight:900;letter-spacing:-3.5px;
+  color:var(--ink);margin-top:34px;
+}
+.B .statusword{
+  font-size:15px;font-weight:900;letter-spacing:-.2px;color:var(--amber-tx);
+  margin-top:16px;padding-left:3px;
+}
+.B .dayline{
+  font-size:13px;font-weight:700;color:var(--amber-tx);opacity:.85;
+  margin-top:5px;padding-left:3px;
+}
+.B .record{
+  margin-top:auto;padding-bottom:22px;font-size:12px;color:var(--amber-tx);
+  padding-left:3px;
+}
+.B .hero{height:378px;display:flex;flex-direction:column}
+.B .lower{
+  background:var(--surface);margin:0 -20px;padding:20px 20px 0;flex:1;
+  display:flex;flex-direction:column;
+}
+.B .tally{margin-top:18px}
+
+/* ═══ DIRECTION C — 정제 ═══════════════════════════════════════════ */
+.C .display{
+  font-size:58px;line-height:58px;font-weight:900;letter-spacing:-2px;
+}
+.C .accentrule{height:5px;width:64px;background:var(--amber-mk);margin-top:16px}
+.C .subline{display:flex;align-items:baseline;margin-top:12px;padding-left:2px}
+.C .subline .s{flex:1;font-size:13px;font-weight:700;color:var(--amber-tx)}
+.C .subline .r{font-size:12px;color:var(--ink-2)}
+.C .strip{display:grid;grid-template-columns:repeat(3,1fr);margin-top:22px}
+.C .strip .cell{padding:10px 0 9px;border-top:1px solid var(--rule);border-left:1px solid var(--rule);position:relative}
+.C .strip .cell:first-child{border-left:0}
+.C .strip .cell > *{padding-left:10px}
+.C .strip .cell::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--rule)}
+.C .strip .cell.done::after{height:3px;background:var(--green)}
+.C .strip .cell.today::after{height:3px;background:var(--amber-mk)}
+.C .strip .cell.wait::after{height:3px;background:var(--amber-mk);opacity:.28}
+.C .strip .day{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ink-2)}
+.C .strip .state{font-size:13px;font-weight:800;margin-top:6px}
+.C .strip .cell.done .state{color:var(--green)}
+.C .strip .cell.today .state{color:var(--amber-tx)}
+.C .strip .cell.wait .state{color:var(--ink-3)}
+.C .strip .stamp{font-size:10.5px;font-weight:500;color:var(--ink-2);margin-top:3px;min-height:13px}
+
+/* ─── specimen strip under each device ─────────────────────────── */
+.spec{
+  width:375px;margin-top:18px;padding-top:16px;
+  border-top:1px solid var(--stage-rule);
+}
+.spec h4{
+  font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--stage-2);margin-bottom:10px;font-weight:600;
+}
+.spec .line{
+  display:flex;align-items:baseline;gap:10px;margin-bottom:7px;
+  font-family:var(--app);
+}
+.spec .line .lb{
+  font-family:var(--mono);font-size:9px;color:var(--stage-2);
+  width:74px;flex:none;letter-spacing:.06em;
+}
+.spec .sw{display:flex;gap:6px;margin-top:12px}
+.spec .sw i{
+  width:32px;height:20px;display:block;border:1px solid rgba(0,0,0,.14);
+}
+.spec .mo{
+  font-family:var(--mono);font-size:10px;line-height:1.65;color:var(--stage-2);
+  margin-top:14px;padding-top:12px;border-top:1px dashed var(--stage-rule);
+}
+.spec .mo b{color:var(--stage-ink);font-weight:700}
+
+.tail{
+  max-width:1400px;margin:64px auto 0;padding-top:24px;
+  border-top:1px solid var(--stage-rule);
+}
+.tail h3{font-family:var(--app);font-size:17px;font-weight:800;margin-bottom:12px}
+.tail p{font-family:var(--app);font-size:14px;line-height:1.65;color:var(--stage-2);max-width:72ch;margin-bottom:10px}
+.tail p b{color:var(--stage-ink)}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="kicker">Allergy Tracker · 시각 방향 검토 · 2026-07-28</div>
+  <h1>같은 화면, <em>세 가지</em> 방향</h1>
+  <p>
+    셋 다 홈 화면의 관찰 진행 상태다. 내용은 실제 데모 픽스처(두부, 3일 중 2일째)로
+    고정했고, 바뀌는 것은 서체·모션·색 면적·질감뿐이다. 셋 다 현재 셋업으로 구현
+    가능하다 — 새 의존성 없음, 스키마 변경 없음, expo-font와 reanimated는 이미 설치돼 있다.
+  </p>
+  <dl>
+    <div><dt>Device</dt><dd>375 × 812 pt · iPhone 12 mini</dd></div>
+    <div><dt>Fixture</dt><dd>src/db/demoData.ts</dd></div>
+    <div><dt>Contrast</dt><dd>WCAG AA 유지 (기존 토큰 사용)</dd></div>
+    <div><dt>Dark mode</dt><dd>범위 밖 — design-spec.md §11</dd></div>
+  </dl>
+</header>
+
+<div class="rack">
+
+  <!-- ══════════════ A ══════════════ -->
+  <figure class="slot A">
+    <figcaption>
+      <span class="n rec">A · 추천</span>
+      <div class="t">관찰 일지 — The Field Journal</div>
+      <div class="d">
+        제품의 실체가 <b>소아과에 가져가는 기록부</b>라는 점을 화면이 먼저 말한다.
+        표시용 명조 + UI용 고딕의 고전적 이중 서체. 3일 창은 60pt 스트립이 아니라
+        진짜 <b>장부</b>가 된다 — 이중괘선 머리, 날짜, 시각, 상태. 색은 절제하고
+        장부의 밑줄에서만 커진다. 종이 그레인은 거의 보이지 않는 수준.
+      </div>
+    </figcaption>
+
+    <div class="device">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>
+      <div class="screen">
+        <div class="masthead-rule">
+          <span class="lbl">관찰 일지</span><span class="ln"></span>
+        </div>
+
+        <div class="display">두부</div>
+        <div class="subline">
+          <span class="s">관찰 중 · 3일 중 2일째</span>
+          <span class="r">기록 보기 →</span>
+        </div>
+
+        <div class="ledger">
+          <div class="hd"><span>일자</span><span>기록</span></div>
+          <div class="row done">
+            <span class="dy">1</span><span class="st">이상 없음</span><span class="tm">오후 6:20</span>
+          </div>
+          <div class="row today">
+            <span class="dy">2</span><span class="st">오늘 · 관찰 중</span><span class="tm">—</span>
+          </div>
+          <div class="row wait">
+            <span class="dy">3</span><span class="st">예정</span><span class="tm">—</span>
+          </div>
+          <div class="foot"><span>7월 27일 시작</span><span>7월 29일 확인</span></div>
+        </div>
+
+        <div style="margin-top:22px">
+          <button class="btn">오늘 이상 없음</button>
+          <button class="btn ghost">반응 기록</button>
+        </div>
+
+        <div class="tally">
+          <div class="safe"><span class="k">안전</span><span class="v">8</span></div>
+          <div class="test"><span class="k">관찰 중</span><span class="v">1</span></div>
+          <div class="re"><span class="k">반응</span><span class="v">2</span></div>
+          <div class="un"><span class="k">안 먹어봄</span><span class="v">45</span></div>
+        </div>
+
+        <div class="foot">
+          <div class="navrow"><span>새 재료 시작하기</span><span class="chev">→</span></div>
+          <div class="navrow"><span>캘린더</span><span class="chev">→</span></div>
+          <div class="navrow"><span>설정</span><span class="chev">→</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <h4>Type · Color · Motion</h4>
+      <div class="line"><span class="lb">display 56</span><span style="font-family:var(--serif);font-size:26px">두부 · 안전 8</span></div>
+      <div class="line"><span class="lb">ledger 19</span><span style="font-family:var(--serif);font-size:17px">1 2 3</span></div>
+      <div class="line"><span class="lb">ui 15/13</span><span style="font-size:14px;font-weight:600">오늘 이상 없음 · 관찰 중</span></div>
+      <div class="sw">
+        <i style="background:#FAF7F0"></i><i style="background:#26241F"></i>
+        <i style="background:#2E7D4F"></i><i style="background:#B0761F"></i>
+        <i style="background:#A8432B"></i><i style="background:#BE4F26"></i>
+      </div>
+      <div class="mo">
+        <b>모션</b> — 체크인 시 해당 행의 밑줄이 좌→우로 그어진다(220ms, ease-out).
+        잉크가 스미듯 상태 텍스트가 fade-in. 튀는 스프링 없음.<br>
+        <b>비용</b> — 명조 서브셋 1종(~900KB). 20px 미만에는 절대 쓰지 않음.
+      </div>
+    </div>
+  </figure>
+
+  <!-- ══════════════ B ══════════════ -->
+  <figure class="slot B">
+    <figcaption>
+      <span class="n">B</span>
+      <div class="t">신호 — The Signal</div>
+      <div class="d">
+        신호등이 인터페이스 <b>전체</b>가 된다. 홈 상단이 상태 그 자체인 색면이고,
+        재료 이름이 76px로 그 위에 앉는다. 관찰 창은 화면 맨 윗변의 세그먼트 바.
+        <b>방 건너편에서도 읽힌다.</b> 다만 3일 내내 호박색 화면을 보게 된다 —
+        아기 건강 앱에서 그건 경고로 읽힐 수 있다.
+      </div>
+    </figcaption>
+
+    <div class="device">
+      <div class="progress"><i class="on"></i><i class="on"></i><i></i></div>
+      <div class="field"></div>
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>
+      <div class="screen">
+        <div class="hero">
+          <div class="eyebrow" style="padding-left:3px">알레르기 트래커</div>
+          <div class="display">두부</div>
+          <div class="statusword">관찰 중</div>
+          <div class="dayline">3일 중 2일째 · 7월 29일 확인</div>
+          <div class="record">기록 보기 →</div>
+        </div>
+
+        <div class="lower">
+          <button class="btn">오늘 이상 없음</button>
+          <button class="btn ghost">반응 기록</button>
+
+          <div class="tally">
+            <div class="safe"><span class="k">안전</span><span class="v">8</span></div>
+            <div class="test"><span class="k">관찰 중</span><span class="v">1</span></div>
+            <div class="re"><span class="k">반응</span><span class="v">2</span></div>
+            <div class="un"><span class="k">안 먹어봄</span><span class="v">45</span></div>
+          </div>
+
+          <div class="foot">
+            <div class="navrow"><span>새 재료 시작하기</span><span class="chev">→</span></div>
+            <div class="navrow"><span>캘린더</span><span class="chev">→</span></div>
+            <div class="navrow"><span>설정</span><span class="chev">→</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <h4>Type · Color · Motion</h4>
+      <div class="line"><span class="lb">display 76</span><span style="font-size:30px;font-weight:900;letter-spacing:-1.6px">두부</span></div>
+      <div class="line"><span class="lb">status 15</span><span style="font-size:15px;font-weight:900">관찰 중</span></div>
+      <div class="line"><span class="lb">ui 15/13</span><span style="font-size:14px;font-weight:600">오늘 이상 없음 · 3일 중 2일째</span></div>
+      <div class="sw">
+        <i style="background:#F3E5C9"></i><i style="background:#DFEEDF"></i>
+        <i style="background:#F3DED7"></i><i style="background:#26241F"></i>
+        <i style="background:#BE4F26"></i>
+      </div>
+      <div class="mo">
+        <b>모션</b> — 상태 전환 시 색면 전체가 교차 페이드(호박→초록, 320ms).
+        상단 세그먼트가 하루씩 채워진다.<br>
+        <b>위험</b> — 색면 위 텍스트 대비 재검증 필요. 승인된 "중립 + 색은 하나만
+        크게" 규칙을 정면으로 뒤집는다.
+      </div>
+    </div>
+  </figure>
+
+  <!-- ══════════════ C ══════════════ -->
+  <figure class="slot C">
+    <figcaption>
+      <span class="n">C</span>
+      <div class="t">정제 — Sharpened Restraint</div>
+      <div class="d">
+        현재 방향을 유지하되 훨씬 높은 완성도로 실행한다. 진짜 모듈러 타입 스케일,
+        더 조인 자간, 히어로 아래 굵은 상태 괘선 하나. 위험이 가장 낮고 전부
+        점진적으로 배포 가능하다. 다만 <b>손에 쥐었을 때 달라진 느낌은 가장 적다.</b>
+      </div>
+    </figcaption>
+
+    <div class="device">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>
+      <div class="screen">
+        <div class="eyebrow">알레르기 트래커</div>
+
+        <div class="display">두부</div>
+        <div class="accentrule"></div>
+        <div class="subline">
+          <span class="s">관찰 중 · 3일 중 2일째</span>
+          <span class="r">기록 보기 →</span>
+        </div>
+
+        <div class="strip">
+          <div class="cell done">
+            <div class="day">1일</div><div class="state">이상 없음</div><div class="stamp">오후 6:20</div>
+          </div>
+          <div class="cell today">
+            <div class="day">2일</div><div class="state">오늘</div><div class="stamp">관찰 중</div>
+          </div>
+          <div class="cell wait">
+            <div class="day">3일</div><div class="state">예정</div><div class="stamp"></div>
+          </div>
+        </div>
+
+        <div style="margin-top:22px">
+          <button class="btn">오늘 이상 없음</button>
+          <button class="btn ghost">반응 기록</button>
+        </div>
+
+        <div class="tally">
+          <div class="safe"><span class="k">안전</span><span class="v">8</span></div>
+          <div class="test"><span class="k">관찰 중</span><span class="v">1</span></div>
+          <div class="re"><span class="k">반응</span><span class="v">2</span></div>
+          <div class="un"><span class="k">안 먹어봄</span><span class="v">45</span></div>
+        </div>
+
+        <div class="foot">
+          <div class="navrow"><span>새 재료 시작하기</span><span class="chev">→</span></div>
+          <div class="navrow"><span>캘린더</span><span class="chev">→</span></div>
+          <div class="navrow"><span>설정</span><span class="chev">→</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <h4>Type · Color · Motion</h4>
+      <div class="line"><span class="lb">display 58</span><span style="font-size:28px;font-weight:900;letter-spacing:-1.1px">두부</span></div>
+      <div class="line"><span class="lb">title 30</span><span style="font-size:20px;font-weight:900">안전 8가지</span></div>
+      <div class="line"><span class="lb">ui 15/13</span><span style="font-size:14px;font-weight:600">오늘 이상 없음 · 관찰 중</span></div>
+      <div class="sw">
+        <i style="background:#FAF7F0"></i><i style="background:#26241F"></i>
+        <i style="background:#2E7D4F"></i><i style="background:#B0761F"></i>
+        <i style="background:#A8432B"></i><i style="background:#BE4F26"></i>
+      </div>
+      <div class="mo">
+        <b>모션</b> — 셀 밑줄이 채워지고 카운트가 롤업. 전환은 전부 180ms 이하.<br>
+        <b>비용</b> — 없음. 서체 번들 없음, 팔레트 변경 없음. 전부 기존 토큰.
+      </div>
+    </div>
+  </figure>
+
+</div>
+
+<footer class="tail">
+  <h3>A에 이식할 만한 B의 아이디어 하나</h3>
+  <p>
+    B의 전면 색면은 과하지만, <b>상태가 실제 면적을 갖는다</b>는 발상은 옳다.
+    A를 고른다면 히어로 블록에만 옅은 상태 틴트를 깔아(전체 화면이 아니라
+    장부 머리까지) 색이 점이 아니라 면이 되게 하는 절충안을 권한다.
+  </p>
+  <h3>셋 다 공통으로 남아 있는 것</h3>
+  <p>
+    감사 계획의 <b>M6 (Dynamic Type)</b> 은 어느 방향을 골라도 해야 한다 —
+    <code>ROW_H = 44</code> 고정 높이와 <code>numberOfLines={1}</code> 이 남아 있고,
+    코드베이스 어디에서도 <code>fontScale</code> 을 읽지 않는다. 서체를 바꾸는
+    방향(A·B)에서는 이게 <b>선행 조건</b>에 가깝다.
+  </p>
+</footer>
+
+</body>
+</html>
