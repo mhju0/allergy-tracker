@@ -1,5 +1,5 @@
 import * as Notifications from 'expo-notifications';
-import i18n from '../i18n';
+import i18n, { foodLabel } from '../i18n';
 import type { PlannedNotification } from '../domain/notifications';
 
 export function initNotificationHandler(): void {
@@ -24,27 +24,29 @@ export async function ensurePermission(): Promise<boolean> {
   return req.granted;
 }
 
-function content(p: PlannedNotification, foodLabel: string) {
+function content(p: PlannedNotification, label: string) {
   if (p.kind === 'checkin') {
     return {
-      title: i18n.t('notif.checkinTitle', { day: p.day, food: foodLabel }),
-      body: i18n.t('notif.checkinBody', { food: foodLabel }),
+      title: i18n.t('notif.checkinTitle', { day: p.day, food: label }),
+      body: i18n.t('notif.checkinBody', { food: label }),
     };
   }
   return {
-    title: i18n.t('notif.windowEndTitle', { food: foodLabel }),
-    body: i18n.t('notif.windowEndBody', { food: foodLabel }),
+    title: i18n.t('notif.windowEndTitle', { food: label }),
+    body: i18n.t('notif.windowEndBody', { food: label }),
   };
 }
 
+// Takes the food row, not a display string: resolving the Korean name is this
+// module's job, since it already owns every other word the user reads here.
 export async function scheduleTrialNotifications(
-  trialId: string, foodLabel: string, planned: PlannedNotification[], now: Date,
+  trialId: string, food: { isCustom: boolean; name: string }, planned: PlannedNotification[],
 ): Promise<void> {
+  const label = foodLabel(food);
   for (const p of planned) {
-    if (p.fireAt.getTime() <= now.getTime()) continue; // never schedule the past
     await Notifications.scheduleNotificationAsync({
       identifier: `${trialId}:${p.kind}${p.kind === 'checkin' ? p.day : ''}`,
-      content: content(p, foodLabel),
+      content: content(p, label),
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: p.fireAt },
     });
   }

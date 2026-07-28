@@ -20,7 +20,7 @@ export function useStartTrialFlow(foods: FoodWithStatus[], windowDays: number) {
     starting.current = true;
     try {
       await ensurePermission(); // contextual ask; denial degrades gracefully
-      const res = await startTrial(food.id, foodLabel(food), windowDays, new Date());
+      const res = await startTrial(food, windowDays, new Date());
       if (res.ok) {
         onStarted?.();
         return;
@@ -42,13 +42,13 @@ export function useStartTrialFlow(foods: FoodWithStatus[], windowDays: number) {
             try {
               // The window may have elapsed while the alert sat open — try starting
               // first so implicit-safe autoclose wins over cancelling a clean trial.
-              const first = await startTrial(food.id, foodLabel(food), windowDays, new Date());
+              const first = await startTrial(food, windowDays, new Date());
               if (first.ok) {
                 onStarted?.();
                 return;
               }
               await cancelTrial(activeTrialId, new Date());
-              const retry = await startTrial(food.id, foodLabel(food), windowDays, new Date());
+              const retry = await startTrial(food, windowDays, new Date());
               if (retry.ok) onStarted?.();
               else Alert.alert(t('food.trialBlocked'));
             } catch {

@@ -12,7 +12,7 @@ async function getActiveTrial(): Promise<Trial | undefined> {
 }
 
 export async function startTrial(
-  foodId: string, foodLabel: string, windowDays: number, now: Date,
+  f: { id: string; isCustom: boolean; name: string }, windowDays: number, now: Date,
 ): Promise<{ ok: true } | { ok: false; reason: 'trial_in_progress' }> {
   const active = await getActiveTrial();
   const decision = decideStartTrial(active, now);
@@ -23,9 +23,9 @@ export async function startTrial(
       .where(eq(trial.id, decision.autoCloseSafeTrialId));
     await cancelTrialNotifications(decision.autoCloseSafeTrialId);
   }
-  const t = { id: newId(), foodId, startedAt: now, windowDays, outcome: null, endedAt: null };
+  const t = { id: newId(), foodId: f.id, startedAt: now, windowDays, outcome: null, endedAt: null };
   await db.insert(trial).values(t);
-  await scheduleTrialNotifications(t.id, foodLabel, computeTrialNotifications(now, windowDays), now);
+  await scheduleTrialNotifications(t.id, f, computeTrialNotifications(now, windowDays, now));
   return { ok: true };
 }
 
