@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AppState, Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, AppState, Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,7 +11,7 @@ import { deriveHomeState, trialDay, type HomeState } from '../src/domain/homeSta
 import type { Food, Reaction } from '../src/db/schema';
 import type { TFunction } from 'i18next';
 import { buildLedger, DayLedger } from '../src/ui/DayLedger';
-import { fieldColor, StateField } from '../src/ui/StateField';
+import { StateField, useFieldFade } from '../src/ui/StateField';
 import { Button } from '../src/ui/Button';
 import { CheckinPill } from '../src/ui/CheckinPill';
 import { press } from '../src/ui/pressable';
@@ -94,7 +94,7 @@ function Dashboard() {
   for (const f of foods) counts[f.status]++;
 
   const active = state.kind === 'observing' || state.kind === 'confirm' ? state : null;
-  const latest = active?.trial;
+  const field = useFieldFade(state.kind);
 
   const ledger = active
     ? buildLedger(
@@ -119,7 +119,7 @@ function Dashboard() {
   const reactedDetail = state.kind === 'reacted' ? reactions.find((r) => r.trialId === state.trial.id) : undefined;
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1, backgroundColor: fieldColor[state.kind] }}>
+    <Animated.ScrollView style={{ backgroundColor: field }} contentContainerStyle={{ flexGrow: 1 }}>
       <View style={{ paddingHorizontal: layout.screenInset, paddingTop: insets.top + 4 }}>
         {state.kind === 'empty' ? (
           <StateField
@@ -278,7 +278,7 @@ function Dashboard() {
         </Pressable>
         </View>
       </View>
-    </ScrollView>
+    </Animated.ScrollView>
   );
 }
 

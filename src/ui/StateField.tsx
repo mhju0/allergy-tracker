@@ -1,4 +1,5 @@
-import { Pressable, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Pressable, Text, View } from 'react-native';
 import type { HomeState } from '../domain/homeState';
 import { colors, layout } from './tokens';
 import { press } from './pressable';
@@ -29,6 +30,35 @@ const markColor: Record<Kind, string> = {
   safe: colors.green,
   reacted: colors.red,
 };
+
+// Cross-fades the field when the state changes — confirming safe should feel
+// like amber becoming green, not a jump cut.
+//
+// This uses RN's own Animated rather than reanimated. reanimated is installed
+// but has never been used here, so reaching for it would newly depend on the
+// worklets babel plugin being wired correctly for the sake of one colour tween.
+// backgroundColor cannot use the native driver either way, so there is nothing
+// to win: a single 320ms interpolation on the JS thread is not a dropped frame.
+const FADE_MS = 320;
+
+export function useFieldFade(kind: Kind): Animated.AnimatedInterpolation<string> {
+  const previous = useRef(kind);
+  const progress = useRef(new Animated.Value(1)).current;
+  const [[from, to], setPair] = useState<[Kind, Kind]>([kind, kind]);
+
+  useEffect(() => {
+    if (previous.current === kind) return;
+    setPair([previous.current, kind]);
+    previous.current = kind;
+    progress.setValue(0);
+    Animated.timing(progress, { toValue: 1, duration: FADE_MS, useNativeDriver: false }).start();
+  }, [kind, progress]);
+
+  return progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [fieldColor[from], fieldColor[to]],
+  });
+}
 
 export function StateField({
   kind, eyebrow, name, stateWord, subline, recordLabel, onPressRecord, filled, total,
