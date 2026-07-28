@@ -36,15 +36,17 @@ export function deriveHomeState<F>(foods: HomeFood<F>[], now: Date): HomeState<F
   const closed = latestClosed(foods);
   if (!closed) return { kind: 'empty' };
 
-  // BUG (fixed in the next commit): every closed trial reports `safe`, so a
-  // food that just reacted renders the green safe-count screen. This mirrors
-  // app/index.tsx:181-195 as shipped.
-  return {
-    kind: 'safe',
-    food: closed.food,
-    trial: closed.trial,
-    safeCount: foods.filter((f) => f.status === 'safe').length,
-  };
+  // The branch Home never had. Both states persist until the next trial starts
+  // — that genuinely is the last thing that happened. See §9 of the plan for
+  // why there is no time-based decay.
+  return closed.trial.outcome === 'reacted'
+    ? { kind: 'reacted', food: closed.food, trial: closed.trial }
+    : {
+        kind: 'safe',
+        food: closed.food,
+        trial: closed.trial,
+        safeCount: foods.filter((f) => f.status === 'safe').length,
+      };
 }
 
 // The non-cancelled trial that ended most recently, across every food.
