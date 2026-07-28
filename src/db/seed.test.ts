@@ -4,7 +4,7 @@
 // never ones with trial history. Asserted on the generated SQL via a
 // capturing sqlite-proxy driver, per the no-incidental-behavior test rule.
 const mockCaptured: { sql: string; params: unknown[] }[] = [];
-// false = demo-seeded fresh install (custom 퀴노아 only, no catalog rows);
+// false = demo-seeded fresh install (custom 아마씨 only, no catalog rows);
 // true = catalog already seeded (upgrade path → reconcile branch).
 let mockCatalogSeeded = false;
 
@@ -16,9 +16,9 @@ jest.mock('./client', () => {
       const q = sql.trim().toLowerCase();
       if (!q.startsWith('select')) return { rows: [] };
       // A food query filtering on is_custom sees catalog rows only when
-      // mockCatalogSeeded; an unfiltered one always sees the custom 퀴노아 row.
+      // mockCatalogSeeded; an unfiltered one always sees the custom 아마씨 row.
       if (q.includes('from "food"')) {
-        return q.includes('"is_custom"') ? { rows: mockCatalogSeeded ? [['egg']] : [] } : { rows: [['quinoa']] };
+        return q.includes('"is_custom"') ? { rows: mockCatalogSeeded ? [['egg']] : [] } : { rows: [['demo-food-flaxseed']] };
       }
       return { rows: [['b1']] }; // baby row always exists
     }),
@@ -28,7 +28,7 @@ jest.mock('./client', () => {
 import { seedIfEmpty } from './seed';
 import { CATALOG } from './catalog';
 
-test('seedIfEmpty seeds the catalog even when only custom foods exist (demo seeds 퀴노아 first)', async () => {
+test('seedIfEmpty seeds the catalog even when only custom foods exist (demo seeds 아마씨 first)', async () => {
   mockCaptured.length = 0;
   mockCatalogSeeded = false;
   await seedIfEmpty();

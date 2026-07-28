@@ -13,7 +13,7 @@ export async function seedIfEmpty(): Promise<void> {
     await db.insert(baby).values({ id: newId(), name: null, birthdate: null, defaultWindowDays: 3 });
   }
   // Check for SEEDED foods specifically — a custom food (e.g. the demo's
-  // 퀴노아, inserted before this runs) must not suppress catalog seeding.
+  // 아마씨, inserted before this runs) must not suppress catalog seeding.
   const existing = await db
     .select({ id: food.id })
     .from(food)

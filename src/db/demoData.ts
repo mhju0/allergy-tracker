@@ -165,7 +165,7 @@ export function buildDemoHistory(now: Date): {
   return {
     // welcomedAt set so demo installs (screenshots) skip the first-run welcome card
     babyRow: { id: 'demo-baby', name: '하율', birthdate: at(240, 0), defaultWindowDays: WINDOW, welcomedAt: at(45, 0) },
-    foods: [{ id: 'demo-food-quinoa', name: '퀴노아', isCustom: true, allergenGroup: null }],
+    foods: [{ id: 'demo-food-flaxseed', name: '아마씨', isCustom: true, allergenGroup: null }],
     trials, reactions, checkins,
   };
 }

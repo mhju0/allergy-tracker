@@ -1,4 +1,5 @@
 import ko from './ko.json';
+import { CATALOG } from '../db/catalog';
 
 // This project deliberately has no @types/node, so declare the three node
 // globals this test needs rather than adding a dependency for a test file.
@@ -65,6 +66,13 @@ describe('i18n keys', () => {
     ['home.sub', ['observing', 'confirm', 'safe', 'reacted']],
   ])('%s family is complete (interpolated at the call site)', (prefix, members) => {
     for (const m of members) expect(typeof resolve(`${prefix}.${m}`)).toBe('string');
+  });
+
+  // Catalog labels are looked up dynamically (t(food.name)), so the static
+  // scan above can't see them: a catalog id with no foodName key ships as the
+  // raw string "foodName.pistachio" in the food list.
+  it('every catalog id has a Korean name', () => {
+    expect(CATALOG.filter((c) => typeof resolve(`foodName.${c.id}`) !== 'string')).toEqual([]);
   });
 
   it('no key still says 테스트 — the app standardised on 관찰', () => {
