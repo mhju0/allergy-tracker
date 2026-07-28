@@ -6,10 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBaby, useCheckins, useFoodsWithStatus, useReactions } from '../src/data/queries';
 import { confirmSafe, updateBabySettings } from '../src/data/mutations';
 import { foodLabel } from '../src/i18n';
-import { autoclosedBy, windowEnd, type FoodStatus } from '../src/domain/status';
-import { deriveHomeState, trialDay, type HomeState } from '../src/domain/homeState';
-import type { Food, Reaction } from '../src/db/schema';
-import type { TFunction } from 'i18next';
+import { autoclosedBy, type FoodStatus } from '../src/domain/status';
+import { describeHome } from '../src/domain/homeState';
 import { buildLedger, DayLedger } from '../src/ui/DayLedger';
 import { StateField, useFieldFade } from '../src/ui/StateField';
 import { Button } from '../src/ui/Button';
@@ -89,7 +87,7 @@ function Dashboard() {
   }, [bump]);
   const now = new Date();
 
-  const state = deriveHomeState(foods, now);
+  const { state, subline, filled } = describeHome(foods, reactions, now, t);
   const counts: Record<FoodStatus, number> = { safe: 0, testing: 0, reacted: 0, untried: 0 };
   for (const f of foods) counts[f.status]++;
 
@@ -109,8 +107,6 @@ function Dashboard() {
   // Starting a food auto-closes a previous elapsed trial as 안전, silently.
   const autoclosed = active ? autoclosedBy(foods, active.trial) : undefined;
 
-  const reactedDetail = state.kind === 'reacted' ? reactions.find((r) => r.trialId === state.trial.id) : undefined;
-
   return (
     <Animated.ScrollView style={{ backgroundColor: field }} contentContainerStyle={{ flexGrow: 1 }}>
       <View style={{ paddingHorizontal: layout.screenInset, paddingTop: insets.top + 4 }}>
@@ -120,7 +116,7 @@ function Dashboard() {
             eyebrow={t('home.title')}
             name={t('home.emptyTitle')}
             stateWord=""
-            subline={t('home.empty')}
+            subline={subline}
           />
         ) : (
           <StateField
@@ -128,11 +124,11 @@ function Dashboard() {
             eyebrow={t('home.title')}
             name={foodLabel(state.food)}
             stateWord={t(`home.state.${state.kind}`)}
-            subline={sublineFor(state, reactedDetail, t)}
+            subline={subline}
             recordLabel={t('home.viewRecord')}
             onPressRecord={() =>
               router.push({ pathname: '/food/[id]', params: { id: state.food.id, from: 'home' } })}
-            filled={segmentsFilled(state)}
+            filled={filled}
             total={state.trial.windowDays}
           />
         )}
@@ -273,47 +269,4 @@ function Dashboard() {
       </View>
     </Animated.ScrollView>
   );
-}
-
-// The field's secondary line. Each state says something different enough that
-// a single interpolated string would be dishonest for three of the four.
-function sublineFor(
-  state: Extract<HomeState<Food>, { trial: unknown }>,
-  reaction: Reaction | undefined,
-  t: TFunction,
-): string {
-  switch (state.kind) {
-    case 'observing':
-      return t('home.sub.observing', {
-        day: state.day,
-        total: state.trial.windowDays,
-        date: windowEnd(state.trial).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }),
-      });
-    case 'confirm':
-      return t('home.sub.confirm', { total: state.trial.windowDays });
-    case 'safe':
-      return t('home.sub.safe', { total: state.trial.windowDays, count: state.safeCount });
-    case 'reacted':
-      return reaction
-        ? t('home.sub.reacted', {
-            day: trialDay(state.trial, reaction.occurredAt),
-            severity: t(`reaction.severityLevel.${reaction.severity}`),
-            symptoms: reaction.symptoms.map((s) => t(`reaction.symptom.${s}`)).join(', '),
-          })
-        : t('status.reacted');
-  }
-}
-
-// How many window segments are lit. A closed trial lights every day it
-// actually ran — a reaction on day 2 of 3 lights two, not three.
-function segmentsFilled(state: Extract<HomeState<Food>, { trial: unknown }>): number {
-  switch (state.kind) {
-    case 'observing':
-      return state.day;
-    case 'confirm':
-    case 'safe':
-      return state.trial.windowDays;
-    case 'reacted':
-      return state.trial.endedAt ? trialDay(state.trial, state.trial.endedAt) : state.trial.windowDays;
-  }
 }

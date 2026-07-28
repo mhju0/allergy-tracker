@@ -1,4 +1,6 @@
-import { isWindowElapsed, latestTrial, MS_PER_DAY, type FoodStatus, type TrialLike } from './status';
+import {
+  isWindowElapsed, latestTrial, windowEnd, MS_PER_DAY, type FoodStatus, type TrialLike,
+} from './status';
 
 // What Home shows. Derived, never stored — same discipline as deriveStatus.
 //
@@ -47,6 +49,74 @@ export function deriveHomeState<F>(foods: HomeFood<F>[], now: Date): HomeState<F
         trial: closed.trial,
         safeCount: foods.filter((f) => f.status === 'safe').length,
       };
+}
+
+// ── what Home renders ────────────────────────────────────────────────────────
+// The two derivations below used to sit at the bottom of app/index.tsx: pure,
+// module-scope, and not exported, so nothing could test them. They switch over
+// the state machine above, which makes them the same module's business.
+
+type ReactionLike = { trialId: string; occurredAt: Date; severity: string; symptoms: string[] };
+type Translate = (key: string, opts?: Record<string, unknown>) => string;
+
+export type HomeView<F> = {
+  state: HomeState<F>;
+  subline: string; // the field's secondary line
+  filled: number; // window segments lit
+};
+
+// One call for the whole field: state, its line, and how much of the window it
+// has run. Home finds nothing out for itself.
+export function describeHome<F>(
+  foods: HomeFood<F>[], reactions: ReactionLike[], now: Date, t: Translate,
+): HomeView<F> {
+  const state = deriveHomeState(foods, now);
+  if (state.kind === 'empty') return { state, subline: t('home.empty'), filled: 0 };
+  const reaction = state.kind === 'reacted'
+    ? reactions.find((r) => r.trialId === state.trial.id)
+    : undefined;
+  return { state, subline: subline(state, reaction, t), filled: segmentsFilled(state) };
+}
+
+type WithTrial<F> = Extract<HomeState<F>, { trial: unknown }>;
+
+// Each state says something different enough that a single interpolated string
+// would be dishonest for three of the four.
+function subline<F>(state: WithTrial<F>, reaction: ReactionLike | undefined, t: Translate): string {
+  switch (state.kind) {
+    case 'observing':
+      return t('home.sub.observing', {
+        day: state.day,
+        total: state.trial.windowDays,
+        date: windowEnd(state.trial).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }),
+      });
+    case 'confirm':
+      return t('home.sub.confirm', { total: state.trial.windowDays });
+    case 'safe':
+      return t('home.sub.safe', { total: state.trial.windowDays, count: state.safeCount });
+    case 'reacted':
+      return reaction
+        ? t('home.sub.reacted', {
+            day: trialDay(state.trial, reaction.occurredAt),
+            severity: t(`reaction.severityLevel.${reaction.severity}`),
+            symptoms: reaction.symptoms.map((s) => t(`reaction.symptom.${s}`)).join(', '),
+          })
+        : t('status.reacted');
+  }
+}
+
+// A closed trial lights every day it actually ran — a reaction on day 2 of 3
+// lights two, not three.
+function segmentsFilled<F>(state: WithTrial<F>): number {
+  switch (state.kind) {
+    case 'observing':
+      return state.day;
+    case 'confirm':
+    case 'safe':
+      return state.trial.windowDays;
+    case 'reacted':
+      return state.trial.endedAt ? trialDay(state.trial, state.trial.endedAt) : state.trial.windowDays;
+  }
 }
 
 // The non-cancelled trial that ended most recently, across every food.

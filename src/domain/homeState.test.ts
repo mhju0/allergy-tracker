@@ -1,4 +1,4 @@
-import { deriveHomeState, trialDay, type HomeFood } from './homeState';
+import { describeHome, deriveHomeState, trialDay, type HomeFood } from './homeState';
 import { deriveStatus, latestTrial, MS_PER_DAY, type TrialLike } from './status';
 
 const D = (s: string) => new Date(s);
@@ -124,5 +124,67 @@ describe('deriveHomeState', () => {
     expect(s.kind).toBe('safe');
     if (s.kind !== 'safe') throw new Error('unreachable');
     expect(s.food).toBe('감자');
+  });
+});
+
+// describeHome is the whole field in one call. These two derivations used to be
+// unexported functions at the bottom of app/index.tsx, where the only way to
+// check them was to read them.
+describe('describeHome', () => {
+  // Stand-in for i18next: echoes the key, then its interpolations, so an
+  // assertion reads as the sentence Home would actually build.
+  const t = (key: string, opts?: Record<string, unknown>) =>
+    opts ? `${key}|${Object.entries(opts).map(([k, v]) => `${k}=${v}`).join(',')}` : key;
+
+  test('empty → the empty line, nothing lit', () => {
+    const v = describeHome([], [], NOW, t);
+    expect(v.state.kind).toBe('empty');
+    expect(v.subline).toBe('home.empty');
+    expect(v.filled).toBe(0);
+  });
+
+  test('observing → the day of the window, that many segments lit', () => {
+    const v = describeHome([food('두부', [mk({ startedAt: D('2026-07-26T08:00:00Z') })])], [], NOW, t);
+    expect(v.subline).toContain('home.sub.observing|day=3,total=3');
+    expect(v.filled).toBe(3);
+  });
+
+  test('confirm → the full window is lit', () => {
+    const v = describeHome([food('두부', [mk({ startedAt: D('2026-07-20T08:00:00Z') })])], [], NOW, t);
+    expect(v.state.kind).toBe('confirm');
+    expect(v.subline).toBe('home.sub.confirm|total=3');
+    expect(v.filled).toBe(3);
+  });
+
+  test('safe → counts every safe food', () => {
+    const closed = mk({ outcome: 'safe', endedAt: D('2026-07-27T10:00:00Z') });
+    const v = describeHome([
+      food('두부', [closed]),
+      food('감자', [mk({ outcome: 'safe', endedAt: D('2026-07-25T10:00:00Z') })]),
+    ], [], NOW, t);
+    expect(v.subline).toBe('home.sub.safe|total=3,count=2');
+    expect(v.filled).toBe(3);
+  });
+
+  test('reacted → severity and symptoms, and only the days it ran are lit', () => {
+    const started = D('2026-07-26T10:00:00Z');
+    const reactedAt = D('2026-07-27T14:00:00Z'); // day 2 of 3
+    const trial = mk({ startedAt: started, outcome: 'reacted', endedAt: reactedAt });
+    const v = describeHome(
+      [food('달걀', [trial])],
+      [{ trialId: trial.id, occurredAt: reactedAt, severity: 'moderate', symptoms: ['hives', 'rash'] }],
+      NOW, t,
+    );
+    expect(v.subline).toBe(
+      'home.sub.reacted|day=2,severity=reaction.severityLevel.moderate,'
+      + 'symptoms=reaction.symptom.hives, reaction.symptom.rash',
+    );
+    expect(v.filled).toBe(2); // NOT 3 — the window stopped when the reaction landed
+  });
+
+  test('reacted with the reaction row missing → falls back, never crashes', () => {
+    const trial = mk({ outcome: 'reacted', endedAt: D('2026-07-27T10:00:00Z') });
+    const v = describeHome([food('달걀', [trial])], [], NOW, t);
+    expect(v.subline).toBe('status.reacted');
   });
 });
