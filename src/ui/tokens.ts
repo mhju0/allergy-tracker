@@ -15,6 +15,18 @@ const amberTint = '#F3E5C9';
 const greenTint = '#DFEEDF';
 const redTint = '#F3DED7';
 
+// Home's state field (2026-07-28). One step deeper than the tints above, which
+// keep their own jobs on chips, dots and calendar cells — these are additive.
+//
+// The rule on a field is: THE FIELD CARRIES THE COLOR, `ink` CARRIES THE TEXT.
+// No amber/green/red string is ever set on one. Measured, that pairing fails:
+// amberText on fieldAmber is 3.6:1. `ink` clears 10:1 on all three, and the
+// tint has already said "amber" — repeating it in the type is redundant.
+const fieldAmber = '#EBD5A8'; // ink 10.79:1
+const fieldGreen = '#CBE3CB'; // ink 11.36:1
+const fieldRed = '#EDCBC0'; // ink 10.26:1
+const inkOnField = '#585245'; // >=5.13:1 on all three — inkSecondary fails on fieldRed at 3.99
+
 const paper = '#FAF7F0';
 const ink = '#26241F'; // 14.5:1
 const muted = '#8B8578'; // 3.43:1 — MARKS ONLY (glyph strokes, dot outlines)
@@ -40,6 +52,10 @@ export const colors = {
   greenTint,
   redTint,
   dayOutMonth,
+  fieldAmber,
+  fieldGreen,
+  fieldRed,
+  inkOnField,
 
   // status.fg is rendered as TEXT (StatusChip label, home tally, detail
   // subline), so these are the readable variants throughout.

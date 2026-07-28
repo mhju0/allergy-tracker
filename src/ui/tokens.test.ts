@@ -60,4 +60,35 @@ describe('contrast', () => {
   it('red stays readable on redTint (the emergency advisory rule)', () => {
     expect(contrast(colors.red, colors.redTint)).toBeGreaterThanOrEqual(AA_TEXT);
   });
+
+  // Home's state field. Everything readable on one is ink or inkOnField —
+  // these two assertions are what let the field go a step deeper than the
+  // tints without anyone re-checking by eye.
+  const fields: [string, string][] = [
+    ['fieldAmber', colors.fieldAmber],
+    ['fieldGreen', colors.fieldGreen],
+    ['fieldRed', colors.fieldRed],
+  ];
+
+  it.each(fields)('ink meets AA on %s', (_name, bg) => {
+    expect(contrast(colors.ink, bg)).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it.each(fields)('inkOnField meets AA on %s', (_name, bg) => {
+    expect(contrast(colors.inkOnField, bg)).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  // The reason inkOnField exists. If someone deletes it and reaches for the
+  // ordinary secondary ink, this fails rather than shipping 4.33:1 on red.
+  it('inkSecondary is NOT safe on the red field — inkOnField is why', () => {
+    expect(contrast(colors.inkSecondary, colors.fieldRed)).toBeLessThan(AA_TEXT);
+    expect(contrast(colors.inkOnField, colors.fieldRed)).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  // The field has to read as a distinct surface against paper, but it is not
+  // text and owes no ratio — this only guards against someone lightening it
+  // until the seam disappears entirely.
+  it.each(fields)('%s is distinguishable from paper', (_name, bg) => {
+    expect(contrast(bg, colors.paper)).toBeGreaterThan(1.2);
+  });
 });

@@ -113,11 +113,17 @@ chips, dots and calendar cells. These are additive.
 | `fieldAmber` | `#EBD5A8` | **10.79:1** | 1.34 |
 | `fieldGreen` | `#CBE3CB` | **11.36:1** | 1.28 |
 | `fieldRed` | `#EDCBC0` | **10.26:1** | 1.41 |
-| `inkOnField` | `#655F52` | — | ≥4.90:1 on all three fields |
+| `inkOnField` | `#585245` | — | ≥5.13:1 on all three fields |
 
 `inkOnField` is the secondary line (day count, symptom summary). Verified:
-5.09 on amber, 5.26 on green, 4.90 on red. `inkSecondary` (`#6E675A`) was
-measured first and **fails on red at 4.33** — it must not be used on a field.
+5.40 on amber, 5.68 on green, 5.13 on red. `inkSecondary` (`#6E675A`) must not
+be used on a field — it measures **3.99 on `fieldRed`**.
+
+> **Corrected 2026-07-28.** This table first specified `inkOnField` as
+> `#655F52`, measured against the *original tints* rather than the deeper
+> fields actually chosen. On the fields it is 4.41 / 4.65 / 4.20 — failing on
+> two of three. The assertions added in step 3 caught it before any UI
+> consumed the token, which is the entire reason `tokens.test.ts` exists.
 
 Marks on the field (the progress segments) use the existing `amber`/`green`/
 `red` mark values, which need only 3:1 as non-text UI and clear it.
