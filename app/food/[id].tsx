@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBaby, useFoodsWithStatus } from '../../src/data/queries';
-import { cancelTrial, confirmSafe } from '../../src/data/mutations';
+import { cancelTrial } from '../../src/data/mutations';
 import { useStartTrialFlow } from '../../src/data/useStartTrialFlow';
 import { foodLabel } from '../../src/i18n';
 import { isWindowElapsed } from '../../src/domain/status';
@@ -13,6 +13,7 @@ import { buildRecords, reactionSummary, type RecordKind } from '../../src/domain
 import { Button } from '../../src/ui/Button';
 import { CheckinPill } from '../../src/ui/CheckinPill';
 import { buildLedger, DayLedger } from '../../src/ui/DayLedger';
+import { MarkSafeButton } from '../../src/ui/MarkSafeButton';
 import { press } from '../../src/ui/pressable';
 import { colors, layout, statusIcon } from '../../src/ui/tokens';
 
@@ -131,9 +132,7 @@ export default function FoodDetail() {
 
       {activeHere ? (
         <View style={{ gap: 10 }}>
-          {isWindowElapsed(activeHere, now) && (
-            <Button label={t('home.markSafe')} onPress={() => confirmSafe(activeHere.id, new Date())} />
-          )}
+          {isWindowElapsed(activeHere, now) && <MarkSafeButton trial={activeHere} />}
           <Button
             label={t('home.logReaction')}
             variant="secondary"

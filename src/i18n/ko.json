@@ -10,6 +10,10 @@
     "tryNewFood": "새 재료 시작하기",
     "dayOf": "{{total}}일 중 {{day}}일째",
     "markSafe": "안전으로 표시",
+    "markSafeNoRecordTitle": "기록된 관찰이 없어요",
+    "markSafeNoRecordBody": "{{total}}일 동안 “이상 없음” 기록이 하나도 없어요. 반응이 없었던 걸로 기억한다면 그대로 표시해도 괜찮아요.",
+    "markSafeAnyway": "네, 이상 없었어요",
+    "markSafeLater": "나중에",
     "logReaction": "반응 기록",
     "empty": "아직 관찰 기록이 없어요. “새 재료 시작하기”를 눌러보세요.",
     "calendar": "캘린더",
@@ -24,8 +28,8 @@
     },
     "sub": {
       "observing": "{{total}}일 중 {{day}}일째 · {{date}} 확인",
-      "confirm": "{{total}}일 관찰이 끝났어요 — 반응이 없었다면 안전으로 표시하세요",
-      "safe": "{{total}}일 관찰 · 반응 없음 · 이제 {{count}}가지 안전",
+      "confirm": "{{total}}일 관찰이 {{date}}에 끝났어요 · {{observed}}/{{total}}일 기록됨",
+      "safe": "{{total}}일 중 {{observed}}일 기록 · 이제 {{count}}가지 안전",
       "reacted": "{{day}}일째 · {{severity}} · {{symptoms}}"
     },
     "emptyTitle": "시작해 볼까요"
@@ -141,6 +145,7 @@
     "none": "없음",
     "colFood": "재료",
     "colStatus": "상태",
+    "statusObserved": "{{label}} (관찰 기록 {{observed}}/{{of}}일)",
     "colLastTried": "마지막 시도"
   },
   "calendar": {

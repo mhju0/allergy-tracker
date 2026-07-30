@@ -46,6 +46,37 @@ describe('buildReport', () => {
     expect(html).toContain('reaction.severityLevel.moderate · reaction.symptom.hives, reaction.symptom.rash');
   });
 
+  // 안전 alone read the same whether the parent watched every day or never
+  // opened the app, and the doctor holding the printout had no way to tell.
+  test('a safe food carries how much of its window was actually observed', () => {
+    const watched = mk({
+      outcome: 'safe', endedAt: D('2026-07-13T09:00:00Z'),
+      checkins: [
+        { id: 'c1', trialId: 't', occurredAt: D('2026-07-10T20:00:00Z') },
+        { id: 'c2', trialId: 't', occurredAt: D('2026-07-11T20:00:00Z') },
+      ],
+    });
+    const html = buildReport({
+      ...base,
+      foods: [{ food: foodRow('두부'), status: 'safe', trials: [watched], latest: watched }],
+    }, NOW, t);
+    expect(html).toContain('report.statusObserved(status.safe,2,3)');
+  });
+
+  test('a safe food nobody observed says so, rather than printing a bare 안전', () => {
+    const unwatched = mk({ outcome: 'safe', endedAt: D('2026-07-13T09:00:00Z') });
+    const html = buildReport({
+      ...base,
+      foods: [{ food: foodRow('두부'), status: 'safe', trials: [unwatched], latest: unwatched }],
+    }, NOW, t);
+    expect(html).toContain('report.statusObserved(status.safe,0,3)');
+  });
+
+  test('a reacted food is not qualified — the reaction is its own evidence', () => {
+    const html = buildReport(base, NOW, t);
+    expect(html).toContain('<td>status.reacted</td>');
+  });
+
   // The join that used to be an O(n·m) flatMap().find() in the screen.
   test('each reaction is attributed to the food whose trial it belongs to', () => {
     const other = mk({ outcome: 'safe', endedAt: D('2026-07-05T09:00:00Z') });

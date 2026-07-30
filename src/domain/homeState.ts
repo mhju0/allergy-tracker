@@ -1,5 +1,5 @@
 import {
-  isWindowElapsed, latestTrial, windowEnd, MS_PER_DAY, type FoodStatus, type TrialLike,
+  coverage, isWindowElapsed, latestTrial, windowEnd, MS_PER_DAY, type FoodStatus, type TrialLike,
 } from './status';
 import type { RecordedTrial } from './records';
 
@@ -90,10 +90,22 @@ function subline<F>(state: WithTrial<F>, reaction: ReactionLike | undefined, t: 
         total: state.trial.windowDays,
         date: windowEnd(state.trial).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }),
       });
+    // Both of these are the app talking about a window it is calling safe, so
+    // both say how much of it was actually watched — and confirm dates the end
+    // of the window, because this state persists indefinitely and "관찰이
+    // 끝났어요" reads the same on day 4 as it does three weeks later.
     case 'confirm':
-      return t('home.sub.confirm', { total: state.trial.windowDays });
+      return t('home.sub.confirm', {
+        total: state.trial.windowDays,
+        date: windowEnd(state.trial).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }),
+        observed: coverage(state.trial).observed,
+      });
     case 'safe':
-      return t('home.sub.safe', { total: state.trial.windowDays, count: state.safeCount });
+      return t('home.sub.safe', {
+        total: state.trial.windowDays,
+        observed: coverage(state.trial).observed,
+        count: state.safeCount,
+      });
     case 'reacted':
       return reaction
         ? t('home.sub.reacted', {

@@ -1,5 +1,5 @@
 import { reactionSummary, type RecordedTrial } from '../domain/records';
-import type { TrialLike } from '../domain/status';
+import { coverage, latestTrial, type TrialLike } from '../domain/status';
 import { foodLabel } from '../i18n';
 
 export function escapeHtml(s: string): string {
@@ -47,7 +47,7 @@ export function buildReport<F extends { isCustom: boolean; name: string }>(
       .filter((f) => f.trials.some((tr) => tr.outcome !== 'cancelled'))
       .map((f) => ({
         food: foodLabel(f.food),
-        status: t(`status.${f.status}`),
+        status: statusCell(f.status, f.trials, t),
         lastTried: f.latest ? koDate(f.latest.startedAt) : '',
       })),
     reactionRows: reactions.map(({ food, r }) => ({
@@ -57,6 +57,16 @@ export function buildReport<F extends { isCustom: boolean; name: string }>(
       note: r.note ?? '',
     })),
   });
+}
+
+// 안전 alone tells a doctor nothing about how the conclusion was reached — the
+// same word covered a window watched every day and one nobody opened the app
+// for. Only the safe cell is qualified: a reaction is its own evidence, and an
+// untried food has no window to report on.
+function statusCell(status: string, trials: RecordedTrial[], t: Translate): string {
+  const label = t(`status.${status}`);
+  const latest = status === 'safe' ? latestTrial(trials) : undefined;
+  return latest ? t('report.statusObserved', { label, ...coverage(latest) }) : label;
 }
 
 type ReportView = {

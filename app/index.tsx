@@ -4,7 +4,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBaby, useFoodsWithStatus } from '../src/data/queries';
-import { confirmSafe, updateBabySettings } from '../src/data/mutations';
+import { updateBabySettings } from '../src/data/mutations';
 import { foodLabel } from '../src/i18n';
 import { autoclosedBy, type FoodStatus } from '../src/domain/status';
 import { describeHome } from '../src/domain/homeState';
@@ -12,6 +12,7 @@ import { buildLedger, DayLedger } from '../src/ui/DayLedger';
 import { StateField, useFieldFade } from '../src/ui/StateField';
 import { Button } from '../src/ui/Button';
 import { CheckinPill } from '../src/ui/CheckinPill';
+import { MarkSafeButton } from '../src/ui/MarkSafeButton';
 import { press } from '../src/ui/pressable';
 import { colors, layout } from '../src/ui/tokens';
 
@@ -149,9 +150,7 @@ function Dashboard() {
           {state.kind === 'observing' && (
             <CheckinPill foodId={state.food.id} trial={state.trial} now={now} filled />
           )}
-          {state.kind === 'confirm' && (
-            <Button label={t('home.markSafe')} onPress={() => confirmSafe(state.trial.id, new Date())} />
-          )}
+          {state.kind === 'confirm' && <MarkSafeButton trial={state.trial} />}
           {active && (
             <Button
               label={t('home.logReaction')}

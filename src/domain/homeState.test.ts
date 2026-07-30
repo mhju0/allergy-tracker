@@ -150,20 +150,38 @@ describe('describeHome', () => {
     expect(v.filled).toBe(3);
   });
 
-  test('confirm → the full window is lit', () => {
+  test('confirm → the full window is lit, dated, and says how little was seen', () => {
     const v = describeHome([food('두부', [mk({ startedAt: D('2026-07-20T08:00:00Z') })])], NOW, t);
     expect(v.state.kind).toBe('confirm');
-    expect(v.subline).toBe('home.sub.confirm|total=3');
+    // this state persists indefinitely, so the line carries the window's end
+    // date and its observed count rather than a bare "관찰이 끝났어요"
+    expect(v.subline).toBe('home.sub.confirm|total=3,date=7월 23일,observed=0');
     expect(v.filled).toBe(3);
   });
 
-  test('safe → counts every safe food', () => {
-    const closed = mk({ outcome: 'safe', endedAt: D('2026-07-27T10:00:00Z') });
+  test('confirm → check-ins on the same day count once', () => {
+    const startedAt = D('2026-07-20T08:00:00Z');
+    const v = describeHome([food('두부', [mk({
+      startedAt,
+      checkins: [
+        { id: 'c1', trialId: 'x', occurredAt: D('2026-07-21T02:00:00Z') },
+        { id: 'c2', trialId: 'x', occurredAt: D('2026-07-21T09:00:00Z') },
+        { id: 'c3', trialId: 'x', occurredAt: D('2026-07-22T09:00:00Z') },
+      ],
+    })])], NOW, t);
+    expect(v.subline).toContain('observed=2');
+  });
+
+  test('safe → counts every safe food, and how much of the window was watched', () => {
+    const closed = mk({
+      outcome: 'safe', endedAt: D('2026-07-27T10:00:00Z'),
+      checkins: [{ id: 'c1', trialId: 'x', occurredAt: D('2026-07-27T02:00:00Z') }],
+    });
     const v = describeHome([
       food('두부', [closed]),
       food('감자', [mk({ outcome: 'safe', endedAt: D('2026-07-25T10:00:00Z') })]),
     ], NOW, t);
-    expect(v.subline).toBe('home.sub.safe|total=3,count=2');
+    expect(v.subline).toBe('home.sub.safe|total=3,observed=1,count=2');
     expect(v.filled).toBe(3);
   });
 
