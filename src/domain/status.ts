@@ -44,6 +44,28 @@ export function deriveStatus(trials: TrialLike[]): FoodStatus {
   }
 }
 
+// How much of a window was actually observed. Derived, never stored — same
+// discipline as deriveStatus.
+//
+// A trial that ends without check-ins is not the same record as one watched
+// every day, and until now nothing anywhere could tell them apart: the ledger
+// painted a closed-safe window green regardless, and the doctor's report
+// printed a bare 안전. Everything that claims safety asks this first.
+export type Observed = Pick<TrialLike, 'startedAt' | 'windowDays'> & {
+  checkins: { occurredAt: Date }[];
+};
+
+export function coverage(t: Observed): { observed: number; of: number } {
+  let observed = 0;
+  for (let i = 0; i < t.windowDays; i++) {
+    const day = new Date(t.startedAt.getTime() + i * MS_PER_DAY);
+    // Days, not rows: two check-ins on one day are one observed day, and a
+    // check-in outside the window counts for nothing.
+    if (t.checkins.some((c) => isSameLocalDay(c.occurredAt, day))) observed++;
+  }
+  return { observed, of: t.windowDays };
+}
+
 export type StartDecision =
   | { allowed: true; autoCloseSafeTrialId: string | null }
   | { allowed: false; reason: 'trial_in_progress' };

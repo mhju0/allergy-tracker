@@ -1,5 +1,5 @@
 import {
-  autoclosedBy, deriveStatus, decideStartTrial, isWindowElapsed, latestTrial,
+  autoclosedBy, coverage, deriveStatus, decideStartTrial, isWindowElapsed, latestTrial,
   pendingAutoclose, windowEnd, MS_PER_DAY, TrialLike,
 } from './status';
 
@@ -49,6 +49,33 @@ describe('window math', () => {
   });
   test('elapsed exactly at boundary', () => {
     expect(isWindowElapsed(t, windowEnd(t))).toBe(true);
+  });
+});
+
+// Local dates on purpose: coverage counts calendar days, not 24h blocks.
+describe('coverage', () => {
+  const obs = (windowDays: number, ...days: string[]) => ({
+    startedAt: new Date('2026-07-16T18:00:00'),
+    windowDays,
+    checkins: days.map((d) => ({ occurredAt: new Date(d) })),
+  });
+
+  test('a window nobody watched → 0 of 3', () => {
+    expect(coverage(obs(3))).toEqual({ observed: 0, of: 3 });
+  });
+  test('one check-in per day → 3 of 3', () => {
+    expect(coverage(obs(3, '2026-07-16T20:00:00', '2026-07-17T09:00:00', '2026-07-18T09:00:00')))
+      .toEqual({ observed: 3, of: 3 });
+  });
+  test('two check-ins on one day are one observed day', () => {
+    expect(coverage(obs(3, '2026-07-17T09:00:00', '2026-07-17T21:00:00')))
+      .toEqual({ observed: 1, of: 3 });
+  });
+  test('a check-in after the window counts for nothing', () => {
+    expect(coverage(obs(3, '2026-07-19T09:00:00'))).toEqual({ observed: 0, of: 3 });
+  });
+  test('the denominator is the trial’s own window, not 3', () => {
+    expect(coverage(obs(1, '2026-07-16T20:00:00'))).toEqual({ observed: 1, of: 1 });
   });
 });
 
