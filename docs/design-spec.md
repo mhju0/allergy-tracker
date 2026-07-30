@@ -121,9 +121,25 @@ deriveStatus(trials, reactions, now) →
   latest trial and flips its outcome to `reacted`.
 - **Implicit confirmation:** starting a new trial while the previous trial's
   window has fully elapsed with zero reactions auto-closes that previous
-  trial as `safe`. (Moving on to the next food *is* the confirmation.)
+  trial. (Moving on to the next food *is* the confirmation.) It closes as
+  `safe` only if at least one day of the window was actually observed; with
+  **zero** check-ins it closes `cancelled` (미완료) and the food returns to
+  untried, because elapsed time is not evidence of safety.
   If the previous trial's window has NOT elapsed, starting a new trial is
   blocked (see Rule 2). A reaction is always an explicit log.
+
+### Rule 1b — observation coverage
+`coverage(trial)` → how many of the window's calendar days carry a check-in.
+Derived, never stored. Every surface that claims safety discloses it: the home
+subline, the day ledger (an unrecorded day reads 기록 없음, never 이상 없음),
+and the pediatrician report's status column. Marking a 0-coverage window safe
+by hand is allowed but confirmed first — the parent's memory is evidence, the
+passage of time is not.
+
+Days are **calendar** days, so a trial started at 23:30 touches four of them;
+only the first `windowDays` count, and check-ins outside that set are refused
+(`isObservableDay`). A day filled in after the fact records `backfilledAt` and
+is shown as a recollection, not as an observation made at the time.
 - `cancelled` trials are ignored by status derivation (food reverts to its
   previous state's logic — derivation just skips them).
 
@@ -137,9 +153,15 @@ is always allowed and just creates a new trial.
 
 `expo-notifications`, all local, no server:
 
-- Starting a trial schedules one check-in per day of the window
-  ("Day 2 of egg — any symptoms?") plus a window-end prompt
-  ("Egg's watch window is done — mark it safe?").
+- Starting a trial schedules one check-in per day of the window: day 1 on the
+  evening of the feed itself (the day immediate reactions happen), the rest at
+  09:00 ("Day 2 of egg — any symptoms?"). Check-in banners carry an 이상 없음
+  action button so the day can be recorded without opening the app.
+- The window-end prompt fires when the window actually closes, floored to
+  09:00 so a 03:00 close is not a 03:00 notification, and never moved earlier
+  — the 안전으로 표시 button does not exist until the window has elapsed. If it
+  goes unanswered it repeats twice more (+1 day, +3 days) in a warmer register,
+  then stops. Nothing nags past that.
 - Logging an outcome (or cancelling the trial) cancels its pending
   notifications.
 - Notification permission is requested at **first trial start** (in context),
