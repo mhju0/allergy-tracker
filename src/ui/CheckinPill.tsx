@@ -42,7 +42,8 @@ export function CheckinPill(
     if (checkingIn.current) return;
     checkingIn.current = true;
     try {
-      await logCheckin(foodId, new Date());
+      const at = new Date();
+      await logCheckin(foodId, at, at);
     } catch {
       Alert.alert(t('errors.generic'));
     } finally {

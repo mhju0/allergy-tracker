@@ -44,6 +44,17 @@ export function deriveStatus(trials: TrialLike[]): FoodStatus {
   }
 }
 
+// Which days a check-in may be dated to. The ledger offers missed days, so the
+// date became an input — and an observation can only belong to a day the window
+// actually covered, and only to one that has happened.
+export function isObservableDay(
+  t: Pick<TrialLike, 'startedAt' | 'windowDays'>, occurredAt: Date, now: Date,
+): boolean {
+  return occurredAt.getTime() <= now.getTime()
+    && occurredAt.getTime() >= t.startedAt.getTime()
+    && occurredAt.getTime() < windowEnd(t).getTime();
+}
+
 // How much of a window was actually observed. Derived, never stored — same
 // discipline as deriveStatus.
 //

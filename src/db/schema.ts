@@ -40,6 +40,10 @@ export const checkin = sqliteTable('checkin', {
   id: text('id').primaryKey(),
   trialId: text('trial_id').notNull().references(() => trial.id),
   occurredAt: integer('occurred_at', { mode: 'timestamp' }).notNull(),
+  // null = logged on the day itself. Set when the parent filled a missed day in
+  // afterwards: a recalled observation is still evidence, but it is not the
+  // same evidence as one made at the time, and the record must not blur them.
+  backfilledAt: integer('backfilled_at', { mode: 'timestamp' }),
   note: text('note'),
 });
 

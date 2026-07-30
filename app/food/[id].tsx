@@ -128,7 +128,7 @@ export default function FoodDetail() {
         </View>
       </View>
 
-      {latest && <DayLedger days={buildLedger(latest, now, t)} />}
+      {latest && <DayLedger days={buildLedger(latest, now, t)} backfillFoodId={activeHere ? food.id : undefined} />}
 
       {activeHere ? (
         <View style={{ gap: 10 }}>

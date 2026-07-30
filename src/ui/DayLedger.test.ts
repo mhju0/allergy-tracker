@@ -1,3 +1,8 @@
+// buildLedger is pure, but its module now offers the backfill action and so
+// reaches the db client. Stub it out — the mutation's own guards live in
+// domain/status (isObservableDay) and are tested there.
+jest.mock('../data/mutations', () => ({ logCheckin: jest.fn() }));
+
 import { buildLedger } from './DayLedger';
 import type { CheckinLike, RecordedTrial } from '../domain/records';
 
@@ -13,7 +18,7 @@ const trial = (over: Partial<RecordedTrial>): RecordedTrial => ({
 });
 // buildLedger reads check-in rows off the trial; only the instant matters here.
 let c = 0;
-const at = (d: Date): CheckinLike => ({ id: `c${c++}`, trialId: 't1', occurredAt: d });
+const at = (d: Date): CheckinLike => ({ id: `c${c++}`, trialId: 't1', occurredAt: d, backfilledAt: null });
 const on = (...dates: Date[]) => dates.map(at);
 const react = (d: Date) => [{ id: 'r1', trialId: 't1', occurredAt: d, severity: 'mild', symptoms: ['hives'] }];
 
@@ -74,6 +79,23 @@ describe('buildLedger', () => {
   it('a safe window with no check-ins at all clears nothing', () => {
     const days = buildLedger(trial({ outcome: 'safe', endedAt: D('2026-07-19T09:00:00') }), AFTER, t);
     expect(states(days)).toEqual(['unobserved', 'unobserved', 'unobserved']);
+  });
+
+  it('a day filled in afterwards is stamped as a recollection, not a clock time', () => {
+    const days = buildLedger(trial({
+      checkins: [{
+        id: 'c9', trialId: 't1',
+        occurredAt: D('2026-07-16T09:00:00'), backfilledAt: D('2026-07-18T20:11:00'),
+      }],
+    }), DURING, t);
+    expect(days[0].state).toBe('cleared');
+    // borrowing the tap's clock would invent a time the observation never had
+    expect(days[0].stamp).toBe('ledger.recalled');
+  });
+
+  it('each cell carries the day it stands for, so a backfill can be dated', () => {
+    const days = buildLedger(trial({}), DURING, t);
+    expect(days.map((d) => d.date.getDate())).toEqual([16, 17, 18]);
   });
 
   it('an active trial never marks a day as today once the window has elapsed', () => {

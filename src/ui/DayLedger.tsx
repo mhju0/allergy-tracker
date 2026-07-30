@@ -1,7 +1,9 @@
-import { Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { logCheckin } from '../data/mutations';
 import { MS_PER_DAY, isSameLocalDay } from '../domain/status';
 import type { RecordedTrial } from '../domain/records';
+import { press } from './pressable';
 import { colors, layout } from './tokens';
 
 // The observation window, rendered as one named cell per day instead of an
@@ -13,6 +15,7 @@ import { colors, layout } from './tokens';
 // which is a real per-install column.
 export type LedgerDay = {
   label: string;
+  date: Date; // the day this cell stands for — what a backfill would be dated
   state: 'cleared' | 'today' | 'reacted' | 'unobserved' | 'pending' | 'stopped';
   stamp: string;
 };
@@ -49,68 +52,108 @@ export function buildLedger(
   return Array.from({ length: trial.windowDays }, (_, i) => {
     const date = new Date(trial.startedAt.getTime() + i * MS_PER_DAY);
     const label = t('ledger.day', { n: i + 1 });
-    const checkin = trial.checkins.find((c) => isSameLocalDay(c.occurredAt, date))?.occurredAt;
+    const checkin = trial.checkins.find((c) => isSameLocalDay(c.occurredAt, date));
 
     if (reactionAt && isSameLocalDay(reactionAt, date)) {
-      return { label, state: 'reacted' as const, stamp: time(reactionAt) };
+      return { label, date, state: 'reacted' as const, stamp: time(reactionAt) };
     }
     // A trial that ended early stops covering the days after it — say so once
     // rather than leaving them looking merely unrecorded.
     const stoppedEarly = endedDay !== null && date.getTime() > endedDay.getTime() && !isSameLocalDay(endedDay, date);
-    if (stoppedEarly) return { label, state: 'stopped' as const, stamp: '' };
-    if (checkin) return { label, state: 'cleared' as const, stamp: time(checkin) };
+    if (stoppedEarly) return { label, date, state: 'stopped' as const, stamp: '' };
+    // A day filled in later has no honest time of day, so it is stamped as the
+    // recollection it is rather than borrowing the tap's clock.
+    if (checkin) {
+      return {
+        label, date, state: 'cleared' as const,
+        stamp: checkin.backfilledAt ? t('ledger.recalled') : time(checkin.occurredAt),
+      };
+    }
     if (trial.outcome === null && isSameLocalDay(date, now)) {
-      return { label, state: 'today' as const, stamp: t('ledger.notYet') };
+      return { label, date, state: 'today' as const, stamp: t('ledger.notYet') };
     }
     // A day that came and went with nothing recorded stays unrecorded. This
     // used to read 이상 없음 on any completed-safe window, which is the app
     // claiming an observation nobody made — the one thing a medical record
     // must never do. 'pending' is now only ever a day still to come.
-    if (date.getTime() <= now.getTime()) return { label, state: 'unobserved' as const, stamp: '' };
-    return { label, state: 'pending' as const, stamp: '' };
+    if (date.getTime() <= now.getTime()) return { label, date, state: 'unobserved' as const, stamp: '' };
+    return { label, date, state: 'pending' as const, stamp: '' };
   });
 }
 
-export function DayLedger({ days }: { days: LedgerDay[] }) {
+// `backfillFoodId` turns the missed days into the recovery path. A parent who
+// lost a day to a normal busy Tuesday had no way to say so afterwards — the
+// day was gone, and the window silently got weaker. Passing the food id (only
+// while its trial is open) makes every 기록 없음 cell one tap from being
+// filled in. Data access in a ui/ component follows CheckinPill's precedent.
+export function DayLedger({ days, backfillFoodId }: { days: LedgerDay[]; backfillFoodId?: string }) {
   const { t } = useTranslation();
+
+  const backfill = (d: LedgerDay) => {
+    if (!backfillFoodId) return;
+    const date = d.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+    Alert.alert(t('ledger.backfillTitle', { date }), t('ledger.backfillBody'), [
+      {
+        text: t('ledger.backfillYes'),
+        onPress: async () => {
+          const res = await logCheckin(backfillFoodId, d.date, new Date());
+          if (!res.ok) Alert.alert(t('errors.generic'));
+        },
+      },
+      { text: t('ledger.backfillNo'), style: 'cancel' },
+    ]);
+  };
+
   return (
     <View
-      accessible
+      accessible={!backfillFoodId}
       accessibilityLabel={days.map((d) => `${d.label} ${t(`ledger.state.${d.state}`)}`).join(', ')}
       style={{ flexDirection: 'row', marginTop: 18 }}
     >
-      {days.map((d, i) => (
-        <View
-          key={d.label}
-          style={{
-            flex: 1,
-            borderTopWidth: 1,
-            borderLeftWidth: i === 0 ? 0 : 1,
-            borderColor: colors.hairline,
-            paddingTop: 10,
-            paddingBottom: 9,
-          }}
-        >
-          <View style={{ paddingLeft: layout.rowInset, paddingRight: 4 }}>
-            <Text style={{ fontSize: 11, fontWeight: '700', letterSpacing: 0.6, color: colors.inkSecondary }}>
-              {d.label}
-            </Text>
-            <Text style={{ fontSize: 13, fontWeight: '800', color: FG[d.state], marginTop: 6 }}>
-              {t(`ledger.state.${d.state}`)}
-            </Text>
-            <Text style={{ fontSize: 10.5, color: colors.inkSecondary, marginTop: 3, minHeight: 13 }}>
-              {d.stamp}
-            </Text>
-          </View>
-          {/* the rule under each cell IS its state — this replaces the 3px bar */}
-          <View
-            style={{
-              position: 'absolute', left: 0, right: 0, bottom: 0,
-              height: RULE[d.state].height, backgroundColor: RULE[d.state].color,
-            }}
-          />
-        </View>
-      ))}
+      {days.map((d, i) => {
+        const fillable = backfillFoodId !== undefined && d.state === 'unobserved';
+        return (
+          <Pressable
+            key={d.label}
+            disabled={!fillable}
+            accessibilityRole={fillable ? 'button' : undefined}
+            accessibilityLabel={fillable ? t('ledger.backfillA11y', { day: d.label }) : `${d.label} ${t(`ledger.state.${d.state}`)}`}
+            onPress={() => backfill(d)}
+            style={press({
+              flex: 1,
+              borderTopWidth: 1,
+              borderLeftWidth: i === 0 ? 0 : 1,
+              borderColor: colors.hairline,
+              paddingTop: 10,
+              paddingBottom: 9,
+            })}
+          >
+            <View style={{ paddingLeft: layout.rowInset, paddingRight: 4 }}>
+              <Text style={{ fontSize: 11, fontWeight: '700', letterSpacing: 0.6, color: colors.inkSecondary }}>
+                {d.label}
+              </Text>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: FG[d.state], marginTop: 6 }}>
+                {t(`ledger.state.${d.state}`)}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 10.5, color: fillable ? colors.green : colors.inkSecondary,
+                  fontWeight: fillable ? '700' : '400', marginTop: 3, minHeight: 13,
+                }}
+              >
+                {fillable ? t('ledger.backfillHint') : d.stamp}
+              </Text>
+            </View>
+            {/* the rule under each cell IS its state — this replaces the 3px bar */}
+            <View
+              style={{
+                position: 'absolute', left: 0, right: 0, bottom: 0,
+                height: RULE[d.state].height, backgroundColor: RULE[d.state].color,
+              }}
+            />
+          </Pressable>
+        );
+      })}
     </View>
   );
 }

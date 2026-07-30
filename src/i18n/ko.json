@@ -333,6 +333,13 @@
   "ledger": {
     "day": "{{n}}일",
     "notYet": "기록 전",
+    "recalled": "나중에 기록",
+    "backfillHint": "+ 기록",
+    "backfillA11y": "{{day}} 기록 없음, 눌러서 기록하기",
+    "backfillTitle": "{{date}}, 이상 없었나요?",
+    "backfillBody": "그날 특별한 증상이 없었다면 지금 기록해도 괜찮아요. 나중에 채운 기록으로 남아요.",
+    "backfillYes": "이상 없었어요",
+    "backfillNo": "기억나지 않아요",
     "state": {
       "cleared": "이상 없음",
       "today": "오늘",

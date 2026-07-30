@@ -1,7 +1,7 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import { db } from '../db/client';
 import { baby, checkin, food, reaction, trial, type Trial } from '../db/schema';
-import { decideStartTrial, isWindowElapsed, latestTrial } from '../domain/status';
+import { decideStartTrial, isObservableDay, isSameLocalDay, isWindowElapsed, latestTrial } from '../domain/status';
 import { computeTrialNotifications } from '../domain/notifications';
 import { cancelTrialNotifications, scheduleTrialNotifications } from '../services/notify';
 import { newId } from './ids';
@@ -46,13 +46,26 @@ export async function logReaction(
   return { ok: true };
 }
 
+export type CheckinFailure = 'no_active_trial' | 'outside_window' | 'already_logged';
+
+// `occurredAt` used to be implicit — always the moment of the tap. The ledger
+// now offers missed days, so the day is an input, and an input at a trust
+// boundary gets bounded here rather than in the two screens that pass it.
 export async function logCheckin(
-  foodId: string, now: Date,
-): Promise<{ ok: true } | { ok: false; reason: 'no_active_trial' }> {
+  foodId: string, occurredAt: Date, now: Date,
+): Promise<{ ok: true } | { ok: false; reason: CheckinFailure }> {
   const trials = await db.select().from(trial).where(eq(trial.foodId, foodId));
   const latest = latestTrial(trials);
   if (!latest || latest.outcome !== null) return { ok: false, reason: 'no_active_trial' };
-  await db.insert(checkin).values({ id: newId(), trialId: latest.id, occurredAt: now, note: null });
+  if (!isObservableDay(latest, occurredAt, now)) return { ok: false, reason: 'outside_window' };
+  const logged = await db.select().from(checkin).where(eq(checkin.trialId, latest.id));
+  if (logged.some((c) => isSameLocalDay(c.occurredAt, occurredAt))) {
+    return { ok: false, reason: 'already_logged' };
+  }
+  await db.insert(checkin).values({
+    id: newId(), trialId: latest.id, occurredAt, note: null,
+    backfilledAt: isSameLocalDay(occurredAt, now) ? null : now,
+  });
   return { ok: true };
 }
 

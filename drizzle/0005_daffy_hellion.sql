@@ -1,0 +1,1 @@
+ALTER TABLE `checkin` ADD `backfilled_at` integer;

@@ -1,6 +1,6 @@
 import {
-  autoclosedBy, coverage, deriveStatus, decideStartTrial, isWindowElapsed, latestTrial,
-  pendingAutoclose, windowEnd, MS_PER_DAY, TrialLike,
+  autoclosedBy, coverage, deriveStatus, decideStartTrial, isObservableDay, isWindowElapsed,
+  latestTrial, pendingAutoclose, windowEnd, MS_PER_DAY, TrialLike,
 } from './status';
 
 const D = (s: string) => new Date(s);
@@ -49,6 +49,30 @@ describe('window math', () => {
   });
   test('elapsed exactly at boundary', () => {
     expect(isWindowElapsed(t, windowEnd(t))).toBe(true);
+  });
+});
+
+// The ledger lets a parent fill in a day they missed, so the date reaching
+// logCheckin is user input. This is the bound on it.
+describe('isObservableDay', () => {
+  const t = mk({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 });
+  const NOW = D('2026-07-04T12:00:00Z'); // window elapsed
+
+  test('a day inside the window that has already happened', () => {
+    expect(isObservableDay(t, D('2026-07-02T10:00:00Z'), NOW)).toBe(true);
+  });
+  test('the start instant itself is day 1', () => {
+    expect(isObservableDay(t, D('2026-07-01T10:00:00Z'), NOW)).toBe(true);
+  });
+  test('a moment before the trial started belongs to no day of it', () => {
+    expect(isObservableDay(t, D('2026-07-01T09:59:59Z'), NOW)).toBe(false);
+  });
+  test('the window end is past the last day, not on it', () => {
+    expect(isObservableDay(t, windowEnd(t), NOW)).toBe(false);
+    expect(isObservableDay(t, new Date(windowEnd(t).getTime() - 1), NOW)).toBe(true);
+  });
+  test('a day that has not happened yet cannot have been observed', () => {
+    expect(isObservableDay(t, D('2026-07-03T10:00:00Z'), D('2026-07-02T12:00:00Z'))).toBe(false);
   });
 });
 

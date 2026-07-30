@@ -157,7 +157,7 @@ export function buildDemoHistory(now: Date): {
       if (occurredAt.getTime() < startedAt.getTime()) continue; // day 1 before the feed
       if (endedAt && occurredAt.getTime() > endedAt.getTime()) continue;
       if (occurredAt.getTime() > now.getTime()) continue;
-      checkins.push({ id: `demo-c${i + 1}-${day}`, trialId: id, occurredAt, note: null });
+      checkins.push({ id: `demo-c${i + 1}-${day}`, trialId: id, occurredAt, backfilledAt: null, note: null });
     }
 
   });

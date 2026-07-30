@@ -20,7 +20,9 @@ export type ReactionLike = {
   note?: string | null;
 };
 
-export type CheckinLike = { id: string; trialId: string; occurredAt: Date };
+export type CheckinLike = {
+  id: string; trialId: string; occurredAt: Date; backfilledAt?: Date | null;
+};
 
 export type RecordedTrial = TrialLike & { reactions: ReactionLike[]; checkins: CheckinLike[] };
 

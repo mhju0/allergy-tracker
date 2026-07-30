@@ -134,7 +134,7 @@ function Dashboard() {
           paddingHorizontal: layout.screenInset, paddingTop: 20,
         }}
       >
-        {ledger && <DayLedger days={ledger} />}
+        {ledger && active && <DayLedger days={ledger} backfillFoodId={active.food.id} />}
 
         {autoclosed && (
           <Text style={{ fontSize: 12, fontWeight: '700', color: colors.green, marginTop: 10, paddingLeft: layout.rowInset }}>
