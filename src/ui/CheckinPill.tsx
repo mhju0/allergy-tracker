@@ -3,7 +3,7 @@ import { Alert, Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { logCheckin } from '../data/mutations';
 import type { RecordedTrial } from '../domain/records';
-import { isSameLocalDay } from '../domain/status';
+import { isObservableDay, isSameLocalDay } from '../domain/status';
 import { press } from './pressable';
 import { colors, radii } from './tokens';
 
@@ -23,6 +23,11 @@ export function CheckinPill(
   // The trial carries its own check-ins, so this no longer reads the whole
   // table (or the clock) to answer a question about one trial.
   const doneToday = trial.checkins.find((c) => isSameLocalDay(c.occurredAt, now));
+
+  // Today may not be a day this window covers — past the close, or the fourth
+  // calendar day a late-evening start spills into. logCheckin rejects those, so
+  // offering the button would be offering an action that quietly does nothing.
+  if (!doneToday && !isObservableDay(trial, now, now)) return null;
 
   if (doneToday) {
     const time = doneToday.occurredAt.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });

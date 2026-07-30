@@ -95,7 +95,7 @@ export function buildDemoHistory(now: Date): {
   //
   // Back-to-back foods hand over on the same morning: the window runs out and
   // the parent introduces the next one, which is exactly the implicit-safe
-  // autoclose the app is built around (decideStartTrial → autoCloseSafeTrialId).
+  // autoclose the app is built around (decideStartTrial → autoClose).
   // For that handoff to be legal the next feed has to land at or after the
   // previous window's end, i.e. no earlier in the day than the previous feed.
   // Nudging each feed in a run a few minutes later satisfies that without the

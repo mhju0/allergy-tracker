@@ -44,15 +44,27 @@ export function deriveStatus(trials: TrialLike[]): FoodStatus {
   }
 }
 
-// Which days a check-in may be dated to. The ledger offers missed days, so the
-// date became an input — and an observation can only belong to a day the window
-// actually covered, and only to one that has happened.
+// Which days a check-in may be dated to: exactly the days coverage counts and
+// the ledger draws, and only ones that have happened.
+//
+// Deliberately not `startedAt <= occurredAt < windowEnd` — the window is 72
+// hours but observation is by calendar day, so a trial started at 23:30 runs
+// across FOUR of them. That fourth, partial day passed the instant test while
+// having no ledger cell and no place in coverage: the check-in was stored, the
+// pill collapsed to its ✓ done-state, and the observed count never moved.
 export function isObservableDay(
   t: Pick<TrialLike, 'startedAt' | 'windowDays'>, occurredAt: Date, now: Date,
 ): boolean {
-  return occurredAt.getTime() <= now.getTime()
-    && occurredAt.getTime() >= t.startedAt.getTime()
-    && occurredAt.getTime() < windowEnd(t).getTime();
+  if (occurredAt.getTime() > now.getTime()) return false;
+  if (occurredAt.getTime() < t.startedAt.getTime()) return false; // before the food was eaten
+  return observedDays(t).some((day) => isSameLocalDay(occurredAt, day));
+}
+
+function observedDays(t: Pick<TrialLike, 'startedAt' | 'windowDays'>): Date[] {
+  return Array.from(
+    { length: t.windowDays },
+    (_, i) => new Date(t.startedAt.getTime() + i * MS_PER_DAY),
+  );
 }
 
 // How much of a window was actually observed. Derived, never stored — same
@@ -67,13 +79,11 @@ export type Observed = Pick<TrialLike, 'startedAt' | 'windowDays'> & {
 };
 
 export function coverage(t: Observed): { observed: number; of: number } {
-  let observed = 0;
-  for (let i = 0; i < t.windowDays; i++) {
-    const day = new Date(t.startedAt.getTime() + i * MS_PER_DAY);
-    // Days, not rows: two check-ins on one day are one observed day, and a
-    // check-in outside the window counts for nothing.
-    if (t.checkins.some((c) => isSameLocalDay(c.occurredAt, day))) observed++;
-  }
+  // Days, not rows: two check-ins on one day are one observed day, and a
+  // check-in outside the window counts for nothing. Same day list isObservableDay
+  // admits, so the guard and the count can never disagree.
+  const observed = observedDays(t)
+    .filter((day) => t.checkins.some((c) => isSameLocalDay(c.occurredAt, day))).length;
   return { observed, of: t.windowDays };
 }
 

@@ -67,12 +67,22 @@ describe('isObservableDay', () => {
   test('a moment before the trial started belongs to no day of it', () => {
     expect(isObservableDay(t, D('2026-07-01T09:59:59Z'), NOW)).toBe(false);
   });
-  test('the window end is past the last day, not on it', () => {
+  test('the last day of the window is the third one, not the closing instant', () => {
+    expect(isObservableDay(t, D('2026-07-03T13:00:00Z'), NOW)).toBe(true); // 22:00 on day 3
     expect(isObservableDay(t, windowEnd(t), NOW)).toBe(false);
-    expect(isObservableDay(t, new Date(windowEnd(t).getTime() - 1), NOW)).toBe(true);
   });
   test('a day that has not happened yet cannot have been observed', () => {
     expect(isObservableDay(t, D('2026-07-03T10:00:00Z'), D('2026-07-02T12:00:00Z'))).toBe(false);
+  });
+
+  // The window is 72 hours but observation is by calendar day, so a late start
+  // spills into a fourth one. It has no ledger cell and no place in coverage,
+  // so a check-in there was stored and then counted by nothing.
+  test('the fourth calendar day a late-evening start spills into is not a day of the window', () => {
+    const late = mk({ startedAt: D('2026-07-01T14:30:00Z'), windowDays: 3 }); // 23:30 KST
+    const fourth = D('2026-07-04T05:00:00Z'); // 14:00 KST on day four, still inside the 72h
+    expect(fourth.getTime()).toBeLessThan(windowEnd(late).getTime());
+    expect(isObservableDay(late, fourth, D('2026-07-04T06:00:00Z'))).toBe(false);
   });
 });
 

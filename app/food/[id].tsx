@@ -138,13 +138,9 @@ export default function FoodDetail() {
             variant="secondary"
             onPress={() => router.push({ pathname: '/log-reaction', params: { foodId: food.id } })}
           />
-          {/* Only while the window is running. Past the close, "today" is not a
-              day the window covers — logCheckin rejects it, so the button was
-              live but inert. The remaining moves are 안전으로 표시 and filling
-              a missed day from the ledger. */}
-          {!isWindowElapsed(activeHere, now) && (
-            <CheckinPill foodId={food.id} trial={activeHere} now={now} />
-          )}
+          {/* Hides itself when today is not a day this window covers — past
+              the close there is nothing to check in for. */}
+          <CheckinPill foodId={food.id} trial={activeHere} now={now} />
           <Button label={t('food.cancelTrial')} variant="danger"
             onPress={() => Alert.alert(
               t('food.cancelConfirmTitle', { food: foodLabel(food) }),
