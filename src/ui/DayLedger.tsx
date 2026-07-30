@@ -13,7 +13,7 @@ import { colors, layout } from './tokens';
 // which is a real per-install column.
 export type LedgerDay = {
   label: string;
-  state: 'cleared' | 'today' | 'reacted' | 'pending' | 'stopped';
+  state: 'cleared' | 'today' | 'reacted' | 'unobserved' | 'pending' | 'stopped';
   stamp: string;
 };
 
@@ -21,6 +21,7 @@ const RULE: Record<LedgerDay['state'], { color: string; height: number }> = {
   cleared: { color: colors.green, height: 3 },
   today: { color: colors.amber, height: 3 },
   reacted: { color: colors.red, height: 3 },
+  unobserved: { color: colors.hairline, height: 1 },
   pending: { color: colors.hairline, height: 1 },
   stopped: { color: colors.hairline, height: 1 },
 };
@@ -29,6 +30,7 @@ const FG: Record<LedgerDay['state'], string> = {
   cleared: colors.green,
   today: colors.amberText,
   reacted: colors.red,
+  unobserved: colors.inkSecondary,
   pending: colors.inkSecondary,
   stopped: colors.inkSecondary,
 };
@@ -57,12 +59,14 @@ export function buildLedger(
     const stoppedEarly = endedDay !== null && date.getTime() > endedDay.getTime() && !isSameLocalDay(endedDay, date);
     if (stoppedEarly) return { label, state: 'stopped' as const, stamp: '' };
     if (checkin) return { label, state: 'cleared' as const, stamp: time(checkin) };
-    // A completed-safe window reads as cleared even on days with no check-in —
-    // the outcome is recorded, the individual observation simply was not.
-    if (trial.outcome === 'safe') return { label, state: 'cleared' as const, stamp: '' };
     if (trial.outcome === null && isSameLocalDay(date, now)) {
       return { label, state: 'today' as const, stamp: t('ledger.notYet') };
     }
+    // A day that came and went with nothing recorded stays unrecorded. This
+    // used to read 이상 없음 on any completed-safe window, which is the app
+    // claiming an observation nobody made — the one thing a medical record
+    // must never do. 'pending' is now only ever a day still to come.
+    if (date.getTime() <= now.getTime()) return { label, state: 'unobserved' as const, stamp: '' };
     return { label, state: 'pending' as const, stamp: '' };
   });
 }

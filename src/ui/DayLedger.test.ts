@@ -36,13 +36,13 @@ describe('buildLedger', () => {
 
   it('a check-in clears its day and stamps the time', () => {
     const days = buildLedger(trial({ checkins: on(D('2026-07-17T19:04:00')) }), DURING, t);
-    expect(states(days)).toEqual(['pending', 'cleared', 'pending']);
+    expect(states(days)).toEqual(['unobserved', 'cleared', 'pending']);
     expect(days[1].stamp).toMatch(/7:04|19:04|오후/);
   });
 
   it("marks the active trial's current day as today, and later days as pending", () => {
     const days = buildLedger(trial({}), DURING, t);
-    expect(states(days)).toEqual(['pending', 'today', 'pending']);
+    expect(states(days)).toEqual(['unobserved', 'today', 'pending']);
     expect(days[1].stamp).toBe('ledger.notYet');
   });
 
@@ -58,17 +58,22 @@ describe('buildLedger', () => {
     const days = buildLedger(trial({
       outcome: 'reacted', endedAt: D('2026-07-17T14:30:00'), reactions: react(D('2026-07-17T14:30:00')),
     }), AFTER, t);
-    expect(states(days)).toEqual(['pending', 'reacted', 'stopped']);
+    expect(states(days)).toEqual(['unobserved', 'reacted', 'stopped']);
   });
 
-  it('a completed-safe window reads cleared throughout, even on days with no check-in', () => {
+  it('a completed-safe window still shows which days nobody actually watched', () => {
     const days = buildLedger(trial({
       outcome: 'safe', endedAt: D('2026-07-19T09:00:00'), checkins: on(D('2026-07-17T19:00:00')),
     }), AFTER, t);
-    expect(states(days)).toEqual(['cleared', 'cleared', 'cleared']);
-    // the outcome is recorded; the individual observation simply was not
-    expect(days[0].stamp).toBe('');
+    // was ['cleared','cleared','cleared'] — a safe outcome used to repaint every
+    // unlogged day 이상 없음, which is an observation the app invented
+    expect(states(days)).toEqual(['unobserved', 'cleared', 'unobserved']);
     expect(days[1].stamp).not.toBe('');
+  });
+
+  it('a safe window with no check-ins at all clears nothing', () => {
+    const days = buildLedger(trial({ outcome: 'safe', endedAt: D('2026-07-19T09:00:00') }), AFTER, t);
+    expect(states(days)).toEqual(['unobserved', 'unobserved', 'unobserved']);
   });
 
   it('an active trial never marks a day as today once the window has elapsed', () => {
