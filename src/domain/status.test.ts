@@ -112,17 +112,35 @@ describe('latestTrial', () => {
 });
 
 describe('decideStartTrial', () => {
+  // Trials reaching this decision carry their check-ins: whether the window was
+  // ever observed is what decides which outcome an autoclose writes.
+  const obs = (over: Partial<TrialLike>, ...days: string[]) => ({
+    ...mk(over), checkins: days.map((d) => ({ occurredAt: D(d) })),
+  });
+
   test('no active trial → allowed, nothing to close', () => {
     expect(decideStartTrial(undefined, D('2026-07-04T10:00:00Z')))
-      .toEqual({ allowed: true, autoCloseSafeTrialId: null });
+      .toEqual({ allowed: true, autoClose: null });
   });
-  test('active trial, window elapsed → allowed with implicit-safe close', () => {
-    const t = mk({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 });
+  test('an elapsed window that was observed closes 안전', () => {
+    const t = obs({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 }, '2026-07-02T10:00:00Z');
     expect(decideStartTrial(t, D('2026-07-04T10:00:00Z')))
-      .toEqual({ allowed: true, autoCloseSafeTrialId: t.id });
+      .toEqual({ allowed: true, autoClose: { trialId: t.id, outcome: 'safe' } });
+  });
+  // Elapsed time is not evidence. This used to write 'safe', so starting the
+  // next food could print 안전 for a food nobody ever watched.
+  test('an elapsed window nobody observed closes 미완료, not 안전', () => {
+    const t = obs({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 });
+    expect(decideStartTrial(t, D('2026-07-04T10:00:00Z')))
+      .toEqual({ allowed: true, autoClose: { trialId: t.id, outcome: 'cancelled' } });
+  });
+  test('a single backfilled day is still an observation', () => {
+    const t = obs({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 }, '2026-07-03T10:00:00Z');
+    const d = decideStartTrial(t, D('2026-07-04T10:00:00Z'));
+    expect(d.allowed && d.autoClose?.outcome).toBe('safe');
   });
   test('active trial inside window → blocked', () => {
-    const t = mk({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 });
+    const t = obs({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 });
     expect(decideStartTrial(t, D('2026-07-03T10:00:00Z')))
       .toEqual({ allowed: false, reason: 'trial_in_progress' });
   });
@@ -132,19 +150,29 @@ describe('decideStartTrial', () => {
 // themselves — the picker predicting it, Home reconstructing it from
 // timestamps. These are those two questions, asked of the rule.
 describe('pendingAutoclose', () => {
-  const entry = (status: 'testing' | 'safe' | 'untried', latest?: TrialLike) => ({ status, latest });
+  const obs = (over: Partial<TrialLike>, ...days: string[]) => ({
+    ...mk(over), checkins: days.map((d) => ({ occurredAt: D(d) })),
+  });
+  const entry = (status: 'testing' | 'safe' | 'untried', latest?: ReturnType<typeof obs>) =>
+    ({ status, latest });
 
-  test('elapsed active trial → that food would be closed', () => {
-    const t = mk({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 });
-    const foods = [entry('safe', mk({ outcome: 'safe' })), entry('testing', t)];
-    expect(pendingAutoclose(foods, D('2026-07-04T10:00:00Z'))).toBe(foods[1]);
+  test('elapsed observed trial → that food would be closed 안전', () => {
+    const t = obs({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 }, '2026-07-02T10:00:00Z');
+    const foods = [entry('safe', obs({ outcome: 'safe' })), entry('testing', t)];
+    expect(pendingAutoclose(foods, D('2026-07-04T10:00:00Z')))
+      .toEqual({ food: foods[1], outcome: 'safe' });
+  });
+  test('elapsed unobserved trial → the picker is told it would be 미완료', () => {
+    const t = obs({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 });
+    const foods = [entry('testing', t)];
+    expect(pendingAutoclose(foods, D('2026-07-04T10:00:00Z'))?.outcome).toBe('cancelled');
   });
   test('window still running → nothing would be closed', () => {
-    const t = mk({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 });
+    const t = obs({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 });
     expect(pendingAutoclose([entry('testing', t)], D('2026-07-03T09:00:00Z'))).toBeUndefined();
   });
   test('no active trial → nothing would be closed', () => {
-    expect(pendingAutoclose([entry('safe', mk({ outcome: 'safe' }))], D('2026-07-04T10:00:00Z')))
+    expect(pendingAutoclose([entry('safe', obs({ outcome: 'safe' }))], D('2026-07-04T10:00:00Z')))
       .toBeUndefined();
   });
 });
@@ -155,18 +183,24 @@ describe('autoclosedBy', () => {
 
   test('the trial closed at the new trial’s start instant', () => {
     const closed = mk({ id: 'old', outcome: 'safe', endedAt: started });
-    const foods = [{ latest: closed }, { latest: newTrial }];
-    expect(autoclosedBy(foods, newTrial)).toBe(foods[0]);
+    const foods = [{ trials: [closed] }, { trials: [newTrial] }];
+    expect(autoclosedBy(foods, newTrial)).toEqual({ food: foods[0], outcome: 'safe' });
+  });
+  // latestTrial hides cancelled trials, so reading each food's `latest` would
+  // have made the 미완료 autoclose invisible — a silent write, undisclosed.
+  test('an unobserved window closed 미완료 is still reported', () => {
+    const closed = mk({ id: 'old', outcome: 'cancelled', endedAt: started });
+    expect(autoclosedBy([{ trials: [closed] }], newTrial)?.outcome).toBe('cancelled');
   });
   test('a trial closed a moment earlier was not this start’s doing', () => {
     const closed = mk({ id: 'old', outcome: 'safe', endedAt: D('2026-07-04T09:59:59Z') });
-    expect(autoclosedBy([{ latest: closed }], newTrial)).toBeUndefined();
+    expect(autoclosedBy([{ trials: [closed] }], newTrial)).toBeUndefined();
   });
   test('a reacted trial is never an autoclose', () => {
     const closed = mk({ id: 'old', outcome: 'reacted', endedAt: started });
-    expect(autoclosedBy([{ latest: closed }], newTrial)).toBeUndefined();
+    expect(autoclosedBy([{ trials: [closed] }], newTrial)).toBeUndefined();
   });
   test('the starting trial never reports itself', () => {
-    expect(autoclosedBy([{ latest: newTrial }], newTrial)).toBeUndefined();
+    expect(autoclosedBy([{ trials: [newTrial] }], newTrial)).toBeUndefined();
   });
 });

@@ -1,14 +1,19 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import { db } from '../db/client';
-import { baby, checkin, food, reaction, trial, type Trial } from '../db/schema';
+import { baby, checkin, food, reaction, trial, type Checkin, type Trial } from '../db/schema';
 import { decideStartTrial, isObservableDay, isSameLocalDay, isWindowElapsed, latestTrial } from '../domain/status';
 import { computeTrialNotifications } from '../domain/notifications';
 import { cancelTrialNotifications, scheduleTrialNotifications } from '../services/notify';
 import { newId } from './ids';
 
-async function getActiveTrial(): Promise<Trial | undefined> {
+// Carries its check-ins: the autoclose outcome depends on whether the window
+// was ever observed, so the decision cannot be made from the trial row alone.
+async function getActiveTrial(): Promise<(Trial & { checkins: Checkin[] }) | undefined> {
   const rows = await db.select().from(trial).where(isNull(trial.outcome));
-  return rows[0];
+  const active = rows[0];
+  if (!active) return undefined;
+  const checkins = await db.select().from(checkin).where(eq(checkin.trialId, active.id));
+  return { ...active, checkins };
 }
 
 export async function startTrial(
@@ -17,11 +22,11 @@ export async function startTrial(
   const active = await getActiveTrial();
   const decision = decideStartTrial(active, now);
   if (!decision.allowed) return { ok: false, reason: decision.reason };
-  if (decision.autoCloseSafeTrialId) {
+  if (decision.autoClose) {
     await db.update(trial)
-      .set({ outcome: 'safe', endedAt: now })
-      .where(eq(trial.id, decision.autoCloseSafeTrialId));
-    await cancelTrialNotifications(decision.autoCloseSafeTrialId);
+      .set({ outcome: decision.autoClose.outcome, endedAt: now })
+      .where(eq(trial.id, decision.autoClose.trialId));
+    await cancelTrialNotifications(decision.autoClose.trialId);
   }
   const t = { id: newId(), foodId: f.id, startedAt: now, windowDays, outcome: null, endedAt: null };
   await db.insert(trial).values(t);

@@ -93,7 +93,7 @@ export default function Foods() {
     return out;
   }, [foods, query, filter, i18n.language, t]);
 
-  // The food that a start would auto-close as 안전, per the rule itself.
+  // The food that a start would auto-close, and as what — per the rule itself.
   const autocloses = useMemo(() => pendingAutoclose(foods, new Date()), [foods]);
 
   const submitNew = async () => {
@@ -175,8 +175,9 @@ export default function Foods() {
               records that food as 안전 (the implicit-safe autoclose). Say so
               before the tap — it is the app's most consequential write. */}
           {autocloses && (
-            <Text style={{ fontSize: 12, fontWeight: '700', color: colors.green, marginTop: 3 }}>
-              {t('foods.pickHintAutoclose', { food: foodLabel(autocloses.food) })}
+            <Text style={{ fontSize: 12, fontWeight: '700', color: autocloses.outcome === 'safe' ? colors.green : colors.inkSecondary, marginTop: 3 }}>
+              {t(autocloses.outcome === 'safe' ? 'foods.pickHintAutoclose' : 'foods.pickHintAutocloseUnobserved',
+                { food: foodLabel(autocloses.food.food) })}
             </Text>
           )}
         </View>

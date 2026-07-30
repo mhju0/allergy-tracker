@@ -95,7 +95,8 @@ function Dashboard() {
 
   const ledger = active ? buildLedger(active.trial, now, t) : null;
 
-  // Starting a food auto-closes a previous elapsed trial as 안전, silently.
+  // Starting a food silently closes a previous elapsed trial — 안전 if it was
+  // observed at all, 미완료 if it never was. Either way, say which.
   const autoclosed = active ? autoclosedBy(foods, active.trial) : undefined;
 
   return (
@@ -137,8 +138,14 @@ function Dashboard() {
         {ledger && active && <DayLedger days={ledger} backfillFoodId={active.food.id} />}
 
         {autoclosed && (
-          <Text style={{ fontSize: 12, fontWeight: '700', color: colors.green, marginTop: 10, paddingLeft: layout.rowInset }}>
-            {t('home.autoclosed', { food: foodLabel(autoclosed.food) })}
+          <Text
+            style={{
+              fontSize: 12, fontWeight: '700', marginTop: 10, paddingLeft: layout.rowInset,
+              color: autoclosed.outcome === 'safe' ? colors.green : colors.inkSecondary,
+            }}
+          >
+            {t(autoclosed.outcome === 'safe' ? 'home.autoclosed' : 'home.autoclosedUnobserved',
+              { food: foodLabel(autoclosed.food.food) })}
           </Text>
         )}
 
