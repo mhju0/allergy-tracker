@@ -29,22 +29,31 @@ export default function RootLayout() {
     }
   }, [success]);
 
+  useEffect(() => { void registerCheckinAction(); }, []);
+
   // The 이상 없음 button on the check-in banner. It lands here rather than in
   // services/notify because writing the row needs data/mutations, which already
-  // imports notify — the listener is the one place both sides can meet.
+  // imports notify — this is the one place both sides can meet.
+  //
+  // The hook, NOT addNotificationResponseReceivedListener: that listener never
+  // fires for the response that cold-launched the app, which is the ordinary
+  // case here. A 09:00 prompt arrives with the app killed, so the tap meant to
+  // record the day would have recorded nothing at all.
+  const response = Notifications.useLastNotificationResponse();
   useEffect(() => {
-    void registerCheckinAction();
-    const sub = Notifications.addNotificationResponseReceivedListener((res) => {
-      if (res.actionIdentifier !== CHECKIN_ACTION) return;
-      const { foodId } = res.notification.request.content.data ?? {};
-      if (typeof foodId !== 'string') return;
-      const at = new Date();
-      // logCheckin owns the guards: a closed trial or an already-logged day
-      // makes this a no-op rather than a duplicate row.
-      void logCheckin(foodId, at, at);
-    });
-    return () => sub.remove();
-  }, []);
+    // A cold launch delivers the response before the db has been migrated.
+    if (!seeded || response?.actionIdentifier !== CHECKIN_ACTION) return;
+    // The hook keeps returning this response until it is cleared, and an
+    // uncleared one would re-fire on a later render — dating a check-in to
+    // whatever day the app happened to re-render on.
+    Notifications.clearLastNotificationResponse();
+    const { foodId } = response.notification.request.content.data ?? {};
+    if (typeof foodId !== 'string') return;
+    const at = new Date();
+    // logCheckin owns the guards: a closed trial, a day outside the window, or
+    // one already logged makes this a no-op rather than a bad row.
+    void logCheckin(foodId, at, at);
+  }, [response, seeded]);
 
   if (error || seedError) {
     return (

@@ -25,7 +25,8 @@ export async function ensurePermission(): Promise<boolean> {
 }
 
 export const CHECKIN_CATEGORY = 'checkin';
-export const CHECKIN_ACTION = 'checkin-clear';
+// No ':' or '-': expo-notifications reserves those in category and action ids.
+export const CHECKIN_ACTION = 'checkinClear';
 
 // Puts 이상 없음 on the banner itself. Opening the app first is the single
 // biggest thing standing between a prompt and a recorded observation.

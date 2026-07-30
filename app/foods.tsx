@@ -172,8 +172,9 @@ export default function Foods() {
             {t('foods.pickHint', { days: windowDays })}
           </Text>
           {/* Starting a food while the previous window has elapsed silently
-              records that food as 안전 (the implicit-safe autoclose). Say so
-              before the tap — it is the app's most consequential write. */}
+              closes it — 안전 if it was observed at all, 미완료 if it never
+              was. Say which before the tap: it is the app's most consequential
+              write, and the parent cannot see it happen. */}
           {autocloses && (
             <Text style={{ fontSize: 12, fontWeight: '700', color: autocloses.outcome === 'safe' ? colors.green : colors.inkSecondary, marginTop: 3 }}>
               {t(autocloses.outcome === 'safe' ? 'foods.pickHintAutoclose' : 'foods.pickHintAutocloseUnobserved',
