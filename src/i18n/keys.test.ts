@@ -65,6 +65,8 @@ describe('i18n keys', () => {
     ['home.state', ['observing', 'confirm', 'safe', 'reacted']],
     ['home.sub', ['observing', 'confirm', 'safe', 'reacted']],
     ['ledger.state', ['cleared', 'today', 'reacted', 'unobserved', 'pending', 'stopped']],
+    ['notif', ['checkinTitle', 'checkinBody', 'windowEndTitle', 'windowEndBody',
+      'windowEndAgainTitle', 'windowEndAgainBody']],
   ])('%s family is complete (interpolated at the call site)', (prefix, members) => {
     for (const m of members) expect(typeof resolve(`${prefix}.${m}`)).toBe('string');
   });

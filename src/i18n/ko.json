@@ -133,6 +133,8 @@
   "notif": {
     "checkinTitle": "{{day}}일째: {{food}}",
     "checkinBody": "{{food}} 먹인 후 증상은 없었나요?",
+    "windowEndAgainTitle": "{{food}} 기록이 아직 열려 있어요",
+    "windowEndAgainBody": "관찰 기간은 끝났어요. 기억나는 대로 마무리해도 괜찮아요.",
     "windowEndTitle": "{{food}}: 관찰 기간 종료",
     "windowEndBody": "반응이 없었다면 앱에서 {{food}}을(를) 안전으로 표시하세요."
   },
