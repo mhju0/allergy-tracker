@@ -31,7 +31,6 @@ real device.
 ![React Native 0.86](https://img.shields.io/badge/React%20Native-0.86-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 [![CI](https://github.com/mhju0/allergy-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/mhju0/allergy-tracker/actions/workflows/ci.yml)
-![License](https://img.shields.io/badge/license-MIT-8B8578)
 
 </td>
 </tr>
@@ -45,6 +44,11 @@ real device.
 </picture>
 
 </div>
+
+## License
+
+Copyright (c) 2026 Michael Ju. All rights reserved.
+No license is granted for use, copying, modification, or distribution of this code as of 2026-07-30. This repository is public for portfolio review purposes only.
 
 ## There is no status column
 
@@ -198,7 +202,7 @@ the share sheet yourself.
 
 ## Status
 
-Feature-complete and in maintenance mode. [MIT](LICENSE) © 2026 Michael Ju.
+Feature-complete and in maintenance mode. © 2026 Michael Ju.
 
 > [!IMPORTANT]
 > 이 앱은 기록 보조 도구이며 의학적 조언이 아닙니다 — a tracking aid, not medical

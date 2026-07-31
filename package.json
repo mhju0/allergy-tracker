@@ -2,7 +2,7 @@
   "name": "allergy-tracker",
   "main": "expo-router/entry",
   "version": "1.0.0",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "description": "Baby food-allergy tracker — one food at a time, traffic-light statuses. Native iOS, 100% on-device.",
   "repository": "github.com/mhju0/allergy-tracker",
   "dependencies": {
