@@ -1,4 +1,4 @@
-# CLAUDE.md — Allergy Tracker (local, not published)
+# CLAUDE.md — Allergy Tracker
 
 ## Project
 Baby food-allergy tracker. Native iOS via **Expo + React Native + TypeScript**,
