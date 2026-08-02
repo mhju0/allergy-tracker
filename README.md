@@ -45,11 +45,6 @@ real device.
 
 </div>
 
-## License
-
-Copyright (c) 2026 Michael Ju. All rights reserved.
-No license is granted for use, copying, modification, or distribution of this code as of 2026-07-30. This repository is public for portfolio review purposes only.
-
 ## There is no status column
 
 Every food's status is computed from its trial history, every time it is read.
@@ -207,3 +202,8 @@ Feature-complete and in maintenance mode. © 2026 Michael Ju.
 > [!IMPORTANT]
 > 이 앱은 기록 보조 도구이며 의학적 조언이 아닙니다 — a tracking aid, not medical
 > advice. Always consult your paediatrician about allergies.
+
+## License
+
+Copyright (c) 2026 Michael Ju. All rights reserved.
+No license is granted for use, copying, modification, or distribution of this code as of 2026-07-30. This repository is public for portfolio review purposes only.
