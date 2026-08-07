@@ -31,6 +31,11 @@ slug `allergy-tracker`.
 >   audited down: duplicates that would split one food's record (동태/명태),
 >   foods that mislead in a trial context (매실, 분유, 참치), and ones too
 >   uncommon in Korea to earn a row were cut.
+> - **No user-added foods.** The free-text "직접 추가" path in §2/§7 was
+>   removed on 2026-08-07 (owner decision): the catalog is the whole list.
+>   `food.isCustom` survives as a legacy column so an install from an older
+>   build keeps rendering any row a parent typed — its `name` is literal
+>   Korean, not an i18n key, so the seed reconcile must not sweep it up.
 > - `deriveStatus(trials)` needs neither `now` nor the reactions list — an
 >   active trial never has reactions attached, so trial history alone
 >   determines status.

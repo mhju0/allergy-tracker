@@ -94,12 +94,6 @@ export async function cancelTrial(trialId: string, now: Date): Promise<void> {
   await cancelTrialNotifications(trialId);
 }
 
-export async function addCustomFood(name: string): Promise<string> {
-  const id = newId();
-  await db.insert(food).values({ id, name: name.trim(), isCustom: true, allergenGroup: null });
-  return id;
-}
-
 export async function updateBabySettings(
   patch: Partial<{ name: string | null; birthdate: Date | null; welcomedAt: Date | null }>,
 ): Promise<void> {

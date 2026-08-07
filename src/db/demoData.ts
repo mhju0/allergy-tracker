@@ -1,4 +1,4 @@
-import type { Baby, Checkin, Food, Reaction, Trial } from './schema';
+import type { Baby, Checkin, Reaction, Trial } from './schema';
 
 // Demo fixture: ~30 days of realistic weaning history so the app looks
 // lived-in for demos. Inserted only when EXPO_PUBLIC_DEMO=1 and
@@ -73,7 +73,6 @@ function pick(index: number, salt: string, n: number): number {
 
 export function buildDemoHistory(now: Date): {
   babyRow: Baby;
-  foods: Food[];
   trials: Trial[];
   reactions: Reaction[];
   checkins: Checkin[];
@@ -165,7 +164,6 @@ export function buildDemoHistory(now: Date): {
   return {
     // welcomedAt set so demo installs (screenshots) skip the first-run welcome card
     babyRow: { id: 'demo-baby', name: '하율', birthdate: at(240, 0), defaultWindowDays: WINDOW, welcomedAt: at(45, 0) },
-    foods: [{ id: 'demo-food-flaxseed', name: '아마씨', isCustom: true, allergenGroup: null }],
     trials, reactions, checkins,
   };
 }

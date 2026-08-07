@@ -132,7 +132,7 @@ progress bar and the record are the same object.
 - **A calendar that means something** — days a food actually cleared are green,
   days under observation amber, reactions red. Future days are never shaded.
 - **120 curated Korean weaning foods**, 44 of them flagged 고위험 — the big-9
-  allergen groups plus Korean staples (메밀, 잣, 밤) — and free-text custom foods.
+  allergen groups plus Korean staples (메밀, 잣, 밤).
 - **A doctor-ready PDF** of every food tried and every reaction logged, plus a
   JSON export — both generated on device and handed to the share sheet.
 

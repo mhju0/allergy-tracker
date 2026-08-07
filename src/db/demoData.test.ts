@@ -56,7 +56,6 @@ describe('buildDemoHistory', () => {
   it('uses unique ids across all rows', () => {
     const ids = [
       d.babyRow.id,
-      ...d.foods.map((f) => f.id),
       ...d.trials.map((t) => t.id),
       ...d.reactions.map((r) => r.id),
       ...d.checkins.map((c) => c.id),

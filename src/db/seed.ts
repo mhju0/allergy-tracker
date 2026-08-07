@@ -29,7 +29,12 @@ export async function seedIfEmpty(): Promise<void> {
     .onConflictDoNothing();
   // ...and drop seeded foods REMOVED from the catalog since (they'd render as
   // raw i18n keys), but never ones the user has trial history for — those keep
-  // a legacy name in ko.json. Custom foods (the demo's 아마씨) are never touched.
+  // a legacy name in ko.json.
+  //
+  // The is_custom guard outlives the feature it was written for. User-added
+  // foods were removed in 2026-08, but an install from an older build can still
+  // hold one, and its name is literal Korean rather than an i18n key — so it
+  // must not be swept up here just for being absent from CATALOG.
   await db.delete(food).where(
     and(
       eq(food.isCustom, false),
@@ -45,7 +50,6 @@ export async function seedDemoIfEmpty(now: Date): Promise<void> {
   const existing = await db.select({ id: baby.id }).from(baby).limit(1);
   if (existing.length > 0) return;
   const demo = buildDemoHistory(now);
-  await db.insert(food).values(demo.foods);
   await db.insert(baby).values(demo.babyRow);
   await db.insert(trial).values(demo.trials);
   await db.insert(reaction).values(demo.reactions);
