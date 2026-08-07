@@ -1,0 +1,1568 @@
+<meta charset="utf-8">
+<title>다섯 가지 방향 — Allergy Tracker UI</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   MOCKUP round 3 — 2026-08-07 — full-redesign directions
+   Rounds 1–2 tuned the state field inside the existing editorial
+   language. This round asks a different question: what ELSE could this
+   app be? Five complete languages, ordered by distance from what ships
+   today (01 nearest, 05 furthest).
+
+   Static. No scripts, no network, no webfonts (system faces only).
+   Every frame 375 × 812 pt — iPhone 12 mini, the owner's device.
+   Content is the real demo fixture (src/db/demoData.ts) resolved
+   against 2026-08-07: 두부 day 2 of 3, 달걀 reacted 7/31, 8 safe /
+   1 observing / 2 reacted / 45 untried.
+
+   THEME: deliberately single-theme. The stage is a darkroom so the five
+   mock palettes are the only color on the page, and each .scr paints its
+   own ground and text explicitly — a mock must render its own colors on
+   any host, never inherit the viewer's.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* stage — warm near-black, no accent by design */
+  --stage:#191817;
+  --stage-panel:#211F1D;
+  --stage-fg:#EDE9E1;
+  --stage-2:#9C968B;
+  --stage-3:#6E6960;
+  --stage-rule:#312E2A;
+
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,"Roboto Mono",monospace;
+  --app:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--stage);
+  color:var(--stage-fg);
+  font-family:var(--mono);
+  font-size:14px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  padding:56px 0 100px;
+}
+
+:where(a,button,[tabindex]):focus-visible{outline:2px solid var(--stage-fg);outline-offset:3px}
+
+.wrap{max-width:1220px;margin:0 auto;padding:0 28px}
+
+/* ── masthead ──────────────────────────────────────────────────── */
+.kicker{
+  font-size:10px;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--stage-3);
+}
+.masthead h1{
+  font-family:var(--app);
+  font-size:clamp(34px,6vw,58px);font-weight:900;letter-spacing:-.035em;
+  line-height:1.02;margin:16px 0 0;text-wrap:balance;color:var(--stage-fg);
+}
+.deck{
+  max-width:60ch;margin-top:22px;color:var(--stage-2);font-size:13.5px;line-height:1.75;
+}
+.deck b{color:var(--stage-fg);font-weight:600}
+
+.legend{
+  margin-top:34px;border-top:1px solid var(--stage-rule);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+}
+.legend div{
+  padding:16px 20px 16px 0;border-right:1px solid var(--stage-rule);
+}
+.legend div:last-child{border-right:0}
+.legend dt{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--stage-3);margin-bottom:7px}
+.legend dd{font-size:12.5px;color:var(--stage-2);line-height:1.6}
+
+/* ── direction band ────────────────────────────────────────────── */
+.dir{margin-top:96px;border-top:1px solid var(--stage-rule);padding-top:26px}
+
+.dir-head{display:flex;gap:24px;align-items:baseline;flex-wrap:wrap}
+.dir-no{
+  font-size:12px;letter-spacing:.24em;color:var(--stage-3);
+  font-variant-numeric:tabular-nums;padding-top:8px;
+}
+.dir-name{
+  font-family:var(--app);font-size:clamp(28px,4.4vw,42px);font-weight:900;
+  letter-spacing:-.03em;line-height:1;color:var(--stage-fg);
+}
+.dir-latin{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--stage-3)}
+
+.dir-body{
+  margin-top:20px;display:grid;gap:28px;
+  grid-template-columns:minmax(0,1fr);
+}
+@media(min-width:900px){.dir-body{grid-template-columns:minmax(280px,34ch) minmax(0,1fr);gap:44px}}
+
+.thesis{font-size:14px;line-height:1.72;color:var(--stage-2)}
+.thesis strong{color:var(--stage-fg);font-weight:600}
+.thesis .lede{
+  font-family:var(--app);font-size:17px;line-height:1.55;color:var(--stage-fg);
+  font-weight:600;letter-spacing:-.01em;margin-bottom:14px;text-wrap:balance;
+}
+
+.swatches{display:flex;gap:0;margin:22px 0 18px;border:1px solid var(--stage-rule)}
+.swatches i{flex:1;height:38px;display:block}
+
+.notes{border-top:1px solid var(--stage-rule);margin-top:4px}
+.notes dt{
+  font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--stage-3);padding-top:14px;
+}
+.notes dd{font-size:12.5px;color:var(--stage-2);line-height:1.65;padding-bottom:14px;border-bottom:1px solid var(--stage-rule)}
+.notes dd:last-child{border-bottom:0}
+.notes .cost{color:#D9A05B}
+
+/* ── phone rail ────────────────────────────────────────────────── */
+.rail{
+  display:flex;gap:22px;overflow-x:auto;padding-bottom:18px;
+  scroll-snap-type:x proximity;
+}
+.rail>figure{scroll-snap-align:start;flex:0 0 auto}
+figcaption{
+  font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--stage-3);margin-top:11px;
+}
+
+.frame{
+  width:375px;height:812px;overflow:hidden;position:relative;
+  border-radius:38px;box-shadow:0 0 0 1px var(--stage-rule),0 24px 60px rgba(0,0,0,.5);
+}
+.scr{
+  width:375px;height:812px;font-family:var(--app);
+  display:flex;flex-direction:column;position:relative;
+  font-size:15px;line-height:1.45;
+}
+/* status bar + home indicator, drawn per-screen so they take the mock's ink */
+.sbar{
+  height:48px;flex:0 0 48px;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 30px 6px;font-size:12.5px;font-weight:700;letter-spacing:.01em;
+}
+.sbar .rgt{display:flex;gap:5px;align-items:center;font-size:10px;letter-spacing:.06em}
+.hbar{position:absolute;left:50%;bottom:9px;width:134px;height:5px;border-radius:3px;transform:translateX(-50%)}
+
+.tab{font-variant-numeric:tabular-nums}
+
+/* A frame is a FIXED 812pt flex column. Overflowing content must clip — that is
+   what a scrolled list looks like — not squash. Without this, the default
+   flex-shrink:1 compresses every row on the long list screens; the filter pills,
+   having the least content, collapsed to a 3px rule. Elements that genuinely
+   want to grow set flex:1 on their own (higher-specificity) rule and still win. */
+.scr > *{flex-shrink:0}
+
+/* ══════════════════════════════════════════════════════════════════
+   00 · 현재 — what ships today (reference)
+   ═══════════════════════════════════════════════════════════════ */
+.ref{background:#FAF7F0;color:#26241F}
+.ref .field{background:#EBD5A8;padding:12px 22px 0}
+.ref .eyebrow{font-size:10px;font-weight:700;letter-spacing:.22em;color:#585245}
+.ref .big{font-size:72px;font-weight:900;letter-spacing:-.04em;line-height:1.03;margin-top:26px;color:#26241F}
+.ref .state{font-size:16px;font-weight:900;margin-top:16px;color:#26241F}
+.ref .sub{font-size:13px;font-weight:700;color:#585245;margin-top:5px;line-height:1.45}
+.ref .rec{font-size:12px;color:#585245;margin-top:18px;padding-bottom:22px}
+.ref .segs{display:flex;gap:2px}
+.ref .segs i{flex:1;height:5px;background:#B0761F}
+.ref .segs i.off{opacity:.22}
+.ref .below{flex:1;padding:20px 22px 0;display:flex;flex-direction:column}
+.ref .ledger{display:flex;margin-top:0}
+.ref .ledger div{flex:1;border-top:1px solid #E4DED2;padding:10px 4px 9px 10px;position:relative}
+.ref .ledger div+div{border-left:1px solid #E4DED2}
+.ref .ledger .d{font-size:11px;font-weight:700;letter-spacing:.05em;color:#6E675A}
+.ref .ledger .s{font-size:13px;font-weight:800;margin-top:6px}
+.ref .ledger .t{font-size:10.5px;color:#6E675A;margin-top:3px;min-height:13px}
+.ref .ledger .rule{position:absolute;left:0;right:0;bottom:0;height:3px}
+.ref .pill{
+  margin-top:20px;background:#BE4F26;color:#fff;border-radius:999px;
+  text-align:center;padding:15px;font-size:16px;font-weight:800;
+}
+.ref .btn2{
+  margin-top:10px;border:1.5px solid #26241F;border-radius:999px;
+  text-align:center;padding:14px;font-size:15px;font-weight:700;
+}
+.ref .tally{display:flex;border-top:1px solid #E4DED2;border-bottom:1px solid #E4DED2;margin-top:20px}
+.ref .tally div{flex:1;text-align:center;padding:11px 0}
+.ref .tally div+div{border-left:1px solid #E4DED2}
+.ref .tally .l{font-size:10.5px;font-weight:700;color:#6E675A}
+.ref .tally .n{font-size:19px;font-weight:900;margin-top:2px}
+.ref .nav{margin-top:auto;padding-bottom:26px}
+.ref .nav a{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:15px 10px;border-top:1px solid #E4DED2;
+  font-size:15px;font-weight:700;color:#26241F;text-decoration:none;
+}
+.ref .nav a span{color:#6E675A;font-weight:400}
+
+/* ══════════════════════════════════════════════════════════════════
+   01 · 차트 CHART
+   ═══════════════════════════════════════════════════════════════ */
+.ch{
+  background:#F4F5F3;color:#1D211E;
+  background-image:
+    linear-gradient(to right,rgba(45,62,52,.05) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(45,62,52,.05) 1px,transparent 1px);
+  background-size:9px 9px;
+}
+.ch .pad{padding:0 20px}
+.ch .hdr{
+  border-top:2px solid #1D211E;border-bottom:1px solid #C9CFC9;
+  display:flex;margin:0 20px;
+}
+.ch .hdr div{flex:1;padding:7px 0 8px}
+.ch .hdr div+div{border-left:1px solid #C9CFC9;padding-left:10px}
+.ch .hdr dt{font-size:8.5px;letter-spacing:.16em;color:#33506E;font-weight:700;text-transform:uppercase}
+.ch .hdr dd{font-family:var(--mono);font-size:12px;font-weight:600;margin-top:3px;color:#1D211E}
+.ch .name{
+  display:flex;align-items:flex-end;gap:12px;margin-top:26px;padding:0 20px;
+}
+.ch .name h2{font-size:54px;font-weight:900;letter-spacing:-.045em;line-height:.94}
+.ch .stamp{
+  font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;
+  border:2px solid currentColor;padding:3px 7px;margin-bottom:8px;white-space:nowrap;
+}
+.ch .stamp.amb{color:#8A6410}
+.ch .stamp.red{color:#9E3521}
+.ch .risk{
+  font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.08em;
+  color:#9E3521;border:1px solid #9E3521;padding:2px 4px;margin-bottom:11px;
+}
+.ch .meta{font-family:var(--mono);font-size:11.5px;color:#5F6862;margin-top:9px;padding:0 20px;letter-spacing:-.01em}
+
+.ch table{width:calc(100% - 40px);margin:22px 20px 0;border-collapse:collapse;font-family:var(--mono)}
+.ch caption{
+  text-align:left;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:#33506E;font-weight:700;padding-bottom:5px;
+}
+.ch th,.ch td{
+  border:1px solid #C9CFC9;padding:7px 8px;font-size:11.5px;text-align:left;
+  font-variant-numeric:tabular-nums;
+}
+.ch thead th{background:#E7EAE6;font-size:9px;letter-spacing:.12em;color:#33506E;font-weight:700}
+.ch td.k{color:#5F6862;width:64px;background:#EFF1ED}
+.ch td b{font-weight:700}
+.ch .ok{color:#1F6B45}
+.ch .now{color:#8A6410}
+.ch .no{color:#9E3521}
+.ch .pend{color:#93998F}
+
+.ch .act{margin:20px 20px 0;display:flex;flex-direction:column;gap:8px}
+.ch .bar{
+  display:flex;justify-content:space-between;align-items:center;
+  border:2px solid #1D211E;background:#1D211E;color:#F4F5F3;
+  padding:14px 16px;font-size:15.5px;font-weight:800;
+}
+.ch .bar span{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;opacity:.72}
+.ch .bar.gh{background:transparent;color:#1D211E}
+.ch .foot{
+  margin-top:auto;border-top:1px solid #C9CFC9;
+  display:flex;font-family:var(--mono);
+}
+.ch .foot a{
+  flex:1;text-align:center;padding:11px 0 8px;text-decoration:none;color:#1D211E;
+}
+.ch .foot a+a{border-left:1px solid #C9CFC9}
+.ch .foot .l{font-size:8.5px;letter-spacing:.14em;color:#5F6862}
+.ch .foot .n{font-size:19px;font-weight:700;margin-top:1px;font-variant-numeric:tabular-nums}
+.ch .nav{display:flex;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;border-top:1px solid #C9CFC9;padding-bottom:22px}
+.ch .nav a{flex:1;text-align:center;padding:13px 0;color:#33506E;text-decoration:none;font-weight:700}
+.ch .nav a+a{border-left:1px solid #C9CFC9}
+
+.ch .rx{margin:20px 20px 0;border:1px solid #C9CFC9;border-left:3px solid #9E3521}
+.ch .rx div{display:flex;border-bottom:1px solid #C9CFC9}
+.ch .rx div:last-child{border-bottom:0}
+.ch .rx dt{
+  font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:#33506E;font-weight:700;
+  width:66px;flex:0 0 66px;padding:9px 8px;background:#EFF1ED;text-transform:uppercase;
+}
+.ch .rx dd{padding:9px 10px;font-size:12.5px;line-height:1.5}
+
+.ch .search{
+  margin:16px 20px 0;border:1px solid #1D211E;display:flex;align-items:center;
+  font-family:var(--mono);font-size:12px;padding:9px 10px;color:#5F6862;gap:8px;background:#fff;
+}
+.ch .lrow{
+  display:flex;align-items:center;gap:8px;padding:9px 20px;
+  border-bottom:1px solid #DDE1DC;font-size:14.5px;
+}
+.ch .lrow .nm{flex:1;font-weight:600}
+.ch .lrow .dt{font-family:var(--mono);font-size:10.5px;color:#5F6862;font-variant-numeric:tabular-nums}
+.ch .lrow .st{
+  font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.06em;
+  border:1.5px solid currentColor;padding:1px 4px;width:44px;text-align:center;
+}
+.ch .lhdr{
+  display:flex;padding:12px 20px 5px;font-family:var(--mono);font-size:8.5px;
+  letter-spacing:.16em;color:#33506E;font-weight:700;border-bottom:1px solid #1D211E;text-transform:uppercase;
+}
+.ch .lhdr .nm{flex:1}
+
+/* ══════════════════════════════════════════════════════════════════
+   02 · 표본 SPECIMEN
+   ═══════════════════════════════════════════════════════════════ */
+.sp{background:#EDE8DC;color:#2E2A22}
+.sp .top{display:flex;justify-content:space-between;align-items:baseline;padding:6px 24px 0;font-size:9.5px;letter-spacing:.2em;color:#6B6152;font-weight:700}
+.sp .plate{
+  margin:16px 24px 0;background:#F6F2E8;border:1px solid #D3CAB6;position:relative;
+  padding:26px 22px 20px;
+}
+/* mounting corners — the specimen is held to the board */
+.sp .plate::before,.sp .plate::after{
+  content:"";position:absolute;width:17px;height:17px;border:1.5px solid #A8987C;
+}
+.sp .plate::before{top:8px;left:8px;border-right:0;border-bottom:0}
+.sp .plate::after{top:8px;right:8px;border-left:0;border-bottom:0}
+.sp .cnr{position:absolute;width:17px;height:17px;border:1.5px solid #A8987C;bottom:8px}
+.sp .cnr.l{left:8px;border-right:0;border-top:0}
+.sp .cnr.r{right:8px;border-left:0;border-top:0}
+.sp .acc{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:#8C3B2E}
+.sp .plate h2{font-size:50px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-top:12px}
+.sp .plate .lat{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:#6B6152;margin-top:7px;font-style:italic}
+.sp .seal{
+  display:inline-flex;align-items:center;gap:6px;margin-top:16px;
+  font-size:12.5px;font-weight:800;letter-spacing:.02em;
+}
+.sp .seal i{width:11px;height:11px;border-radius:999px;display:block}
+.sp .label{
+  margin:0 24px;border:1px solid #D3CAB6;border-top:0;background:#F6F2E8;
+}
+.sp .label div{display:flex;border-top:1px solid #E0D8C6;font-size:12.5px}
+.sp .label dt{
+  width:74px;flex:0 0 74px;padding:8px 10px;font-size:9px;letter-spacing:.16em;
+  color:#6B6152;font-weight:700;border-right:1px solid #E0D8C6;text-transform:uppercase;
+}
+.sp .label dd{padding:8px 11px;font-variant-numeric:tabular-nums}
+.sp .slots{display:flex;gap:7px;margin:18px 24px 0}
+.sp .slots div{
+  flex:1;border:1px solid #D3CAB6;background:#F6F2E8;padding:9px 8px 8px;text-align:center;
+}
+.sp .slots .d{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:#6B6152}
+.sp .slots .v{font-size:12px;font-weight:800;margin-top:6px}
+.sp .slots .u{height:3px;margin-top:8px}
+.sp .cta{margin:20px 24px 0;display:flex;flex-direction:column;gap:9px}
+.sp .cta a{
+  text-decoration:none;text-align:center;padding:15px;font-size:15.5px;font-weight:800;
+  background:#2E2A22;color:#F6F2E8;letter-spacing:.01em;
+}
+.sp .cta a.gh{background:transparent;color:#2E2A22;border:1.5px solid #2E2A22}
+.sp .rail2{margin-top:auto;padding:18px 24px 26px}
+.sp .rail2 .cap{font-size:9px;letter-spacing:.2em;color:#6B6152;font-weight:700;padding-bottom:8px;border-bottom:1px solid #D3CAB6}
+.sp .rail2 a{display:flex;justify-content:space-between;padding:13px 2px;border-bottom:1px solid #D3CAB6;text-decoration:none;color:#2E2A22;font-size:14px;font-weight:700}
+.sp .rail2 a span{color:#6B6152;font-weight:400}
+
+.sp .grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:14px 20px 0;
+  overflow:hidden;
+}
+.sp .cell{
+  background:#F6F2E8;border:1px solid #D3CAB6;padding:11px 8px 9px;text-align:center;position:relative;
+}
+.sp .cell svg{display:block;margin:0 auto 7px;width:34px;height:34px}
+.sp .cell .n{font-size:12.5px;font-weight:700;letter-spacing:-.01em}
+.sp .cell .s{font-size:9.5px;font-weight:700;margin-top:3px;display:flex;align-items:center;justify-content:center;gap:4px}
+.sp .cell .s i{width:6px;height:6px;border-radius:999px;display:block}
+.sp .cell .pn{position:absolute;top:4px;left:5px;font-family:var(--mono);font-size:7.5px;color:#A8987C;letter-spacing:.06em}
+.sp .cell .hr{position:absolute;top:4px;right:5px;font-family:var(--mono);font-size:7.5px;color:#8C3B2E;font-weight:700}
+.sp .cell.dim{opacity:.5}
+.sp .gsec{
+  padding:16px 20px 6px;font-size:9px;letter-spacing:.2em;color:#6B6152;font-weight:700;
+}
+
+
+/* 02 additions — plate glyph, high-risk badge, family headers, plain rows */
+.sp .acc span{color:#6B6152;letter-spacing:.06em}
+.sp .pmark{position:absolute;top:42px;right:20px;width:46px;height:46px}
+.sp .risk{
+  display:inline-block;margin-top:12px;font-size:9.5px;font-weight:800;letter-spacing:.06em;
+  color:#8C3B2E;border:1px solid #8C3B2E;padding:2px 5px;
+}
+.sp .rail2 a:first-child{border-top:1px solid #D3CAB6}
+.sp .cell .hrl{font-size:8.5px;font-weight:800;color:#8C3B2E;margin-top:3px;letter-spacing:.04em}
+.sp .srch{
+  margin:12px 24px 0;border:1px solid #2E2A22;background:#F6F2E8;display:flex;align-items:center;
+  gap:8px;padding:9px 11px;font-size:13.5px;color:#6B6152;
+}
+.sp .fam{
+  display:flex;align-items:center;gap:8px;padding:15px 20px 7px;
+  font-size:10px;letter-spacing:.18em;color:#6B6152;font-weight:700;
+}
+.sp .fam svg{width:19px;height:19px;flex:0 0 19px}
+.sp .fam em{font-style:normal;font-size:8.5px;color:#8C3B2E;border:1px solid #8C3B2E;padding:1px 4px;letter-spacing:.04em}
+.sp .prow{
+  display:flex;align-items:center;gap:8px;padding:11px 24px;
+  border-bottom:1px solid #DFD7C4;font-size:15px;
+}
+.sp .prow .nm{flex:1;font-weight:600}
+.sp .prow .tg{font-size:11.5px;font-weight:800}
+.sp .prow .hr{font-size:9px;font-weight:800;color:#8C3B2E;border:1px solid #8C3B2E;padding:1px 4px}
+
+/* the glyph sheet — stage furniture, not a phone */
+.thesis .fix{
+  border-left:2px solid var(--stage-2);padding-left:13px;margin-top:14px;color:var(--stage-fg);
+}
+.notes code{font-family:var(--mono);font-size:11.5px;background:#2A2724;padding:1px 5px;color:#D9A05B}
+.sheet{margin-top:34px;border-top:1px solid var(--stage-rule);padding-top:22px}
+.sheet-cap{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--stage-3);margin-bottom:16px}
+.gsheet{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));
+  gap:1px;background:var(--stage-rule);border:1px solid var(--stage-rule);
+}
+.gsheet div{background:var(--stage-panel);padding:15px 8px 12px;text-align:center;color:var(--stage-fg)}
+.gsheet svg{display:block;margin:0 auto 9px}
+.gsheet .n{font-family:var(--app);font-size:12.5px;font-weight:700}
+.gsheet .c{font-size:10.5px;color:var(--stage-3);margin-top:3px;font-variant-numeric:tabular-nums}
+.gsheet div.cust{background:#2A241C;color:#D9A05B}
+.gsheet div.cust .c{color:#9A7E52}
+.sheet-note{margin-top:20px;font-size:13px;line-height:1.75;color:var(--stage-2);max-width:80ch}
+.sheet-note b{color:var(--stage-fg);font-weight:600}
+
+/* 02 — grouped list: family band, filter pills, in-frame note */
+.sp .fhdr{
+  display:flex;align-items:center;gap:9px;padding:9px 20px 8px;background:#F6F2E8;
+  border-top:1px solid #2E2A22;border-bottom:1px solid #D3CAB6;
+}
+.sp .fhdr svg{width:20px;height:20px;flex:0 0 20px}
+.sp .fhdr .nm{font-size:11px;font-weight:800;letter-spacing:.15em;flex:1}
+.sp .fhdr .ct{font-size:11px;font-weight:700;color:#6B6152;font-variant-numeric:tabular-nums}
+.sp .fhdr .hr{font-size:8.5px;font-weight:800;color:#8C3B2E;border:1px solid #8C3B2E;padding:1px 4px;letter-spacing:.04em}
+.sp .pills{display:flex;gap:6px;padding:12px 24px 2px;overflow:hidden}
+.sp .pills a{
+  text-decoration:none;font-size:11.5px;font-weight:700;padding:5px 11px;white-space:nowrap;
+  border:1.5px solid #D3CAB6;color:#6B6152;
+}
+.sp .pills a.on{background:#2E2A22;border-color:#2E2A22;color:#F6F2E8}
+.sp .note{
+  margin:18px 24px 0;padding-left:12px;border-left:2px solid #D3CAB6;
+  font-size:11.5px;line-height:1.6;color:#6B6152;
+}
+.sp .note b{color:#2E2A22;font-weight:700}
+
+/* ══════════════════════════════════════════════════════════════════
+   03 · 신호 SIGNAL
+   ═══════════════════════════════════════════════════════════════ */
+.sg{background:#EFEBE1;color:#141310}
+.sg .block{padding:0 24px 34px;position:relative}
+.sg .block.amb{background:#DA9A16}
+.sg .block.red{background:#C8351E;color:#F7F3EA}
+.sg .block .kick{font-size:10px;font-weight:800;letter-spacing:.24em;padding-top:6px}
+.sg .mark{margin-top:26px}
+.sg .block h2{font-size:76px;font-weight:900;letter-spacing:-.055em;line-height:.92;margin-top:14px}
+.sg .block .st{font-size:19px;font-weight:900;margin-top:14px;letter-spacing:-.01em}
+.sg .block .sub{font-size:13.5px;font-weight:700;margin-top:6px;line-height:1.45;opacity:.82}
+.sg .win{display:flex;gap:0;border-bottom:3px solid #141310}
+.sg .win div{flex:1;padding:12px 12px 11px;border-top:3px solid #141310}
+.sg .win div+div{border-left:3px solid #141310}
+.sg .win .d{font-size:10.5px;font-weight:800;letter-spacing:.12em}
+.sg .win .v{font-size:13px;font-weight:900;margin-top:7px;display:flex;align-items:center;gap:5px}
+.sg .btns{padding:22px 24px 0;display:flex;flex-direction:column;gap:10px}
+.sg .btns a{
+  text-decoration:none;display:flex;justify-content:space-between;align-items:center;
+  padding:17px 18px;font-size:16.5px;font-weight:900;letter-spacing:-.01em;
+  background:#141310;color:#EFEBE1;
+}
+.sg .btns a.gh{background:transparent;color:#141310;box-shadow:inset 0 0 0 3px #141310}
+.sg .tally{display:flex;margin-top:auto;border-top:3px solid #141310}
+.sg .tally a{flex:1;text-decoration:none;color:#141310;padding:12px 0 10px;text-align:center}
+.sg .tally a+a{border-left:3px solid #141310}
+.sg .tally svg{display:block;margin:0 auto 5px}
+.sg .tally .n{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}
+.sg .tally .l{font-size:9px;font-weight:800;letter-spacing:.08em;margin-top:1px}
+.sg .nav{display:flex;border-top:3px solid #141310;padding-bottom:22px}
+.sg .nav a{flex:1;text-align:center;padding:14px 0;font-size:13px;font-weight:900;color:#141310;text-decoration:none;letter-spacing:.02em}
+.sg .nav a+a{border-left:3px solid #141310}
+.sg .rxbox{margin:20px 24px 0;box-shadow:inset 0 0 0 3px #141310;padding:14px 16px}
+.sg .rxbox div{display:flex;gap:10px;font-size:13.5px;padding:5px 0;align-items:baseline}
+.sg .rxbox dt{font-size:9.5px;font-weight:800;letter-spacing:.14em;width:56px;flex:0 0 56px;padding-top:2px}
+.sg .rxbox dd{font-weight:700}
+
+.sg .lhdr{display:flex;align-items:center;gap:10px;padding:8px 24px 14px}
+.sg .lhdr h2{font-size:34px;font-weight:900;letter-spacing:-.04em}
+.sg .lhdr .c{margin-left:auto;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
+.sg .filters{display:flex;gap:0;border-top:3px solid #141310;border-bottom:3px solid #141310}
+.sg .filters a{flex:1;text-align:center;padding:9px 0;text-decoration:none;color:#141310;font-size:11px;font-weight:900}
+.sg .filters a+a{border-left:3px solid #141310}
+.sg .filters a.on{background:#141310;color:#EFEBE1}
+.sg .row{display:flex;align-items:center;gap:12px;padding:11px 24px;border-bottom:2px solid #141310}
+.sg .row .nm{flex:1;font-size:16px;font-weight:800;letter-spacing:-.01em}
+.sg .row .lb{font-size:11px;font-weight:900;letter-spacing:.04em}
+.sg .row .hr{font-size:8.5px;font-weight:900;background:#C8351E;color:#F7F3EA;padding:2px 4px;letter-spacing:.04em}
+.sg .row.q{border-bottom-width:1px;border-bottom-color:#C9C3B4}
+.sg .gsec{padding:13px 24px 6px;font-size:9.5px;font-weight:900;letter-spacing:.22em;color:#5C574C}
+
+/* ══════════════════════════════════════════════════════════════════
+   04 · 하루 DAILY
+   ═══════════════════════════════════════════════════════════════ */
+.dy{background:#EFEEE9;color:#1A1A1C}
+.dy .top{display:flex;justify-content:space-between;align-items:center;padding:4px 20px 0}
+.dy .top .t{font-size:13px;font-weight:700;color:#6A6E76}
+.dy .top .av{width:30px;height:30px;border-radius:999px;background:#3B4A86;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+.dy .card{
+  margin:16px 16px 0;background:#fff;border-radius:26px;padding:24px 22px;
+  box-shadow:0 1px 2px rgba(20,22,30,.05),0 10px 26px rgba(20,22,30,.055);
+}
+.dy .card .lbl{font-size:12px;font-weight:800;color:#6A6E76;letter-spacing:.02em}
+.dy .card h2{font-size:42px;font-weight:900;letter-spacing:-.04em;line-height:1.05;margin-top:10px}
+.dy .card h2 em{font-style:normal;font-size:19px;font-weight:800;color:#6A6E76;margin-left:8px;letter-spacing:-.01em}
+.dy .dots{display:flex;gap:8px;margin-top:20px}
+.dy .dots div{
+  flex:1;height:52px;border-radius:16px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;background:#F1F2F4;
+}
+.dy .dots .d{font-size:10.5px;font-weight:800;color:#8A8F98}
+.dy .dots .v{font-size:12px;font-weight:800}
+.dy .dots div.done{background:#E3F0E7}
+.dy .dots div.done .d,.dy .dots div.done .v{color:#1F6B45}
+.dy .dots div.now{background:#3B4A86}
+.dy .dots div.now .d{color:#B6BEDD}
+.dy .dots div.now .v{color:#fff}
+.dy .slab{
+  margin:14px 16px 0;background:#3B4A86;color:#fff;border-radius:26px;
+  padding:22px;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 8px 22px rgba(59,74,134,.28);
+}
+.dy .slab .m{font-size:22px;font-weight:900;letter-spacing:-.02em}
+.dy .slab .s{font-size:12.5px;font-weight:600;color:#C2CAE8;margin-top:3px}
+.dy .slab .chk{width:46px;height:46px;border-radius:999px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center}
+.dy .ghost{
+  margin:10px 16px 0;background:#fff;border-radius:22px;padding:17px 22px;
+  display:flex;justify-content:space-between;align-items:center;font-size:15.5px;font-weight:800;
+  box-shadow:0 1px 2px rgba(20,22,30,.05);
+}
+.dy .ghost.warn{color:#9E3521}
+.dy .ghost span{color:#A6ABB4;font-weight:600}
+.dy .stats{display:flex;gap:8px;margin:16px 16px 0}
+.dy .stats a{
+  flex:1;background:#fff;border-radius:18px;padding:13px 4px 11px;text-align:center;
+  text-decoration:none;color:#1A1A1C;box-shadow:0 1px 2px rgba(20,22,30,.05);
+}
+.dy .stats .n{font-size:21px;font-weight:900;font-variant-numeric:tabular-nums}
+.dy .stats .l{font-size:10.5px;font-weight:700;color:#6A6E76;margin-top:2px}
+.dy .rxcard{margin:14px 16px 0;background:#fff;border-radius:26px;padding:20px 22px;box-shadow:0 1px 2px rgba(20,22,30,.05)}
+.dy .rxcard .rw{display:flex;gap:12px;padding:8px 0;font-size:14px;align-items:baseline}
+.dy .rxcard .rw+.rw{border-top:1px solid #EEEFF2}
+.dy .rxcard dt{font-size:11.5px;font-weight:700;color:#8A8F98;width:56px;flex:0 0 56px}
+.dy .rxcard dd{font-weight:700}
+.dy .chips{display:flex;gap:6px;flex-wrap:wrap}
+.dy .chips i{font-style:normal;background:#FBECE8;color:#9E3521;font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px}
+.dy .tabbar{
+  margin-top:auto;background:#fff;border-top:1px solid #E4E5E9;
+  display:flex;padding:9px 0 26px;
+}
+.dy .tabbar a{flex:1;text-align:center;text-decoration:none;color:#9AA0A8;font-size:10.5px;font-weight:700}
+.dy .tabbar a.on{color:#3B4A86}
+.dy .tabbar svg{display:block;margin:0 auto 3px}
+
+.dy .srch{
+  margin:12px 16px 0;background:#fff;border-radius:16px;padding:12px 16px;
+  display:flex;align-items:center;gap:9px;font-size:14.5px;color:#9AA0A8;
+}
+.dy .segs{display:flex;gap:6px;padding:12px 16px 0;overflow:hidden}
+.dy .segs a{
+  text-decoration:none;font-size:12.5px;font-weight:800;padding:7px 13px;border-radius:999px;
+  background:#E6E7EB;color:#5C616A;white-space:nowrap;
+}
+.dy .segs a.on{background:#1A1A1C;color:#fff}
+.dy .list{margin:14px 16px 0;background:#fff;border-radius:22px;overflow:hidden}
+.dy .list .r{display:flex;align-items:center;gap:9px;padding:14px 18px;font-size:15.5px}
+.dy .list .r+.r{border-top:1px solid #F0F1F4}
+.dy .list .nm{flex:1;font-weight:700}
+.dy .list .tag{font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px}
+.dy .list .hr{font-size:10px;font-weight:800;color:#9E3521;border:1px solid #E8C4BB;border-radius:6px;padding:1px 4px}
+.dy .lsec{font-size:11.5px;font-weight:800;color:#8A8F98;padding:16px 22px 0}
+
+/* ══════════════════════════════════════════════════════════════════
+   05 · 야간 NIGHT
+   ═══════════════════════════════════════════════════════════════ */
+.nt{background:#131311;color:#EDE9E0}
+.nt .body{flex:1;display:flex;min-height:0}
+/* the vigil column: the window IS the screen's spine */
+.nt .spine{width:8px;flex:0 0 8px;margin-left:22px;display:flex;flex-direction:column;gap:4px;padding:4px 0 0}
+.nt .spine i{flex:1;display:block;border-radius:4px;background:#2C2A26}
+.nt .spine i.on{background:#E9A93C}
+.nt .spine i.live{background:linear-gradient(#E9A93C 52%,#2C2A26 52%)}
+.nt .spine i.red{background:#F0664A}
+.nt .col{flex:1;padding:2px 24px 0 16px;display:flex;flex-direction:column;min-width:0}
+.nt .kick{font-size:10px;font-weight:700;letter-spacing:.24em;color:#6E695F}
+.nt h2{font-size:66px;font-weight:900;letter-spacing:-.05em;line-height:.95;margin-top:22px}
+.nt .st{font-size:17px;font-weight:800;margin-top:16px;color:#E9A93C}
+.nt .st.red{color:#F0664A}
+.nt .sub{font-size:13.5px;color:#928C80;margin-top:7px;line-height:1.5;font-weight:500}
+.nt .days{margin-top:26px;border-top:1px solid #2C2A26}
+.nt .days div{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #2C2A26}
+.nt .days .d{font-size:11px;font-weight:700;letter-spacing:.1em;color:#6E695F;width:34px;flex:0 0 34px}
+.nt .days .v{font-size:13.5px;font-weight:700;flex:1}
+.nt .days .t{font-size:11px;color:#6E695F;font-variant-numeric:tabular-nums}
+.nt .days .v.ok{color:#5FBF87}
+.nt .days .v.now{color:#E9A93C}
+.nt .days .v.no{color:#F0664A}
+.nt .days .v.pend{color:#5C5850}
+.nt .rxn{margin-top:22px;border-left:2px solid #F0664A;padding:2px 0 2px 14px;display:flex;flex-direction:column;gap:7px}
+.nt .rxn div{display:flex;gap:12px;font-size:13.5px;align-items:baseline}
+.nt .rxn dt{font-size:10px;font-weight:700;letter-spacing:.14em;color:#6E695F;width:48px;flex:0 0 48px}
+.nt .rxn dd{font-weight:600;color:#EDE9E0}
+.nt .rxn dd.q{color:#928C80;font-weight:400;line-height:1.5}
+.nt .cta{padding:0 24px;display:flex;flex-direction:column;gap:9px}
+.nt .cta a{
+  text-decoration:none;border-radius:18px;padding:18px 20px;font-size:17px;font-weight:800;
+  display:flex;justify-content:space-between;align-items:center;
+  background:#E9A93C;color:#131311;letter-spacing:-.01em;
+}
+.nt .cta a.gh{background:transparent;color:#EDE9E0;box-shadow:inset 0 0 0 1.5px #3A3630}
+.nt .cta a small{font-size:11.5px;font-weight:600;opacity:.62}
+.nt .bar{
+  margin-top:20px;display:flex;border-top:1px solid #2C2A26;padding:12px 14px 26px;gap:4px;
+}
+.nt .bar a{
+  flex:1;text-align:center;text-decoration:none;color:#928C80;padding:6px 0;
+  font-size:10.5px;font-weight:700;border-radius:12px;
+}
+.nt .bar a.on{color:#EDE9E0;background:#211F1C}
+.nt .bar svg{display:block;margin:0 auto 4px}
+
+.nt .srch{margin:10px 24px 0;background:#1D1C19;border-radius:14px;padding:12px 14px;display:flex;gap:9px;align-items:center;font-size:14.5px;color:#6E695F}
+.nt .segs{display:flex;gap:6px;padding:12px 24px 0;overflow:hidden}
+.nt .segs a{text-decoration:none;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;background:#211F1C;color:#928C80;white-space:nowrap}
+.nt .segs a.on{background:#EDE9E0;color:#131311}
+.nt .lsec{padding:18px 24px 7px;font-size:9.5px;font-weight:700;letter-spacing:.22em;color:#5C5850}
+.nt .lrow{display:flex;align-items:center;gap:10px;padding:12px 24px;border-bottom:1px solid #211F1C;position:relative}
+.nt .lrow .edge{position:absolute;left:0;top:0;bottom:0;width:3px}
+.nt .lrow .nm{flex:1;font-size:15.5px;font-weight:600}
+.nt .lrow .tag{font-size:11.5px;font-weight:700}
+.nt .lrow .hr{font-size:9px;font-weight:700;color:#F0664A;border:1px solid #5E3229;border-radius:4px;padding:1px 4px}
+
+/* ── closing ───────────────────────────────────────────────────── */
+.close{margin-top:96px;border-top:1px solid var(--stage-rule);padding-top:26px}
+.close h2{font-family:var(--app);font-size:26px;font-weight:900;letter-spacing:-.02em;color:var(--stage-fg)}
+.close .grid{display:grid;gap:0;margin-top:22px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));border-top:1px solid var(--stage-rule)}
+.close .grid div{padding:16px 20px 18px 0;border-right:1px solid var(--stage-rule)}
+.close .grid div:last-child{border-right:0}
+.close .grid h3{font-family:var(--app);font-size:15px;font-weight:800;color:var(--stage-fg);margin-bottom:7px}
+.close .grid p{font-size:12.5px;color:var(--stage-2);line-height:1.65}
+.close .keep{margin-top:30px;font-size:13px;color:var(--stage-2);max-width:66ch;line-height:1.75}
+.close .keep b{color:var(--stage-fg);font-weight:600}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="kicker">Allergy Tracker · 전면 리디자인 제안 · 2026-08-07</p>
+    <h1>다섯 가지 방향</h1>
+    <p class="deck">
+      지금의 앱은 <b>따뜻한 종이 + 편집 활자</b> 한 갈래로 잘 정리돼 있습니다. 이 문서는 그 갈래를
+      다듬는 대신 <b>“이 앱이 달리 무엇이 될 수 있는가”</b>를 다섯 개의 완결된 언어로 묻습니다.
+      각 방향은 색만 바꾼 것이 아니라 <b>정보 구조와 화면 뼈대까지</b> 다릅니다.
+    </p>
+    <dl class="legend">
+      <div><dt>순서의 뜻</dt><dd>01이 현재 빌드에 가장 가깝고 05가 가장 멉니다. 번호는 선호도가 아니라 <em>이동 거리</em>입니다.</dd></div>
+      <div><dt>프레임</dt><dd>전부 375 × 812pt — iPhone 12 mini, 실제 도그푸딩 기기.</dd></div>
+      <div><dt>내용</dt><dd>실제 데모 픽스처. 두부 3일 중 2일째, 달걀 7/31 반응, 안전 8 · 관찰 1 · 반응 2 · 미시도 109.</dd></div>
+      <div><dt>지켜진 규칙</dt><dd>색은 단독으로 의미를 지지 않음 · 상태는 파생값 · 한 번에 한 재료 · 한국어 전용.</dd></div>
+    </dl>
+  </header>
+
+  <!-- ══════════════ 00 · 현재 ══════════════ -->
+  <section class="dir">
+    <div class="dir-head">
+      <span class="dir-no">00</span>
+      <h2 class="dir-name">현재</h2>
+      <span class="dir-latin">shipping today — reference</span>
+    </div>
+    <div class="dir-body">
+      <div class="thesis">
+        <p class="lede">비교 기준. 아래 다섯 개는 모두 이 화면을 대체하는 제안입니다.</p>
+        <p>상태를 배경 색면으로 말하고, 재료 이름을 72pt로 세우고, 관찰 창을 3칸 원장으로 그립니다.
+        강점은 분명합니다 — <strong>정직하고, 조용하고, 대비가 검증돼 있습니다.</strong></p>
+        <div class="swatches" aria-label="현재 팔레트">
+          <i style="background:#FAF7F0"></i><i style="background:#EBD5A8"></i><i style="background:#26241F"></i>
+          <i style="background:#BE4F26"></i><i style="background:#2E7D4F"></i><i style="background:#A8432B"></i>
+        </div>
+        <dl class="notes">
+          <dt>약한 곳</dt>
+          <dd>본문 아래가 전부 얇은 선 목록이라 <em>설정 화면처럼</em> 읽힙니다. 재료 120행이 서로 구별되지 않고, 앱의 심장인 3일 창이 5px 막대에 머뭅니다. 아이콘 체계가 없어 →·‹·✕ 같은 글자를 씁니다.</dd>
+        </dl>
+      </div>
+      <div class="rail">
+        <figure>
+          <div class="frame"><div class="scr ref">
+            <div class="sbar"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="field">
+              <p class="eyebrow">알레르기 트래커</p>
+              <h2 class="big">두부</h2>
+              <p class="state">관찰 중</p>
+              <p class="sub">3일 중 2일째 · 8월 9일 확인</p>
+              <p class="rec">기록 보기 →</p>
+              <div class="segs"><i></i><i></i><i class="off"></i></div>
+            </div>
+            <div class="below">
+              <div class="ledger">
+                <div><p class="d">1일</p><p class="s" style="color:#2E7D4F">이상 없음</p><p class="t">오후 6:14</p><span class="rule" style="height:3px;background:#2E7D4F"></span></div>
+                <div><p class="d">2일</p><p class="s" style="color:#96631A">오늘</p><p class="t">기록 전</p><span class="rule" style="height:3px;background:#B0761F"></span></div>
+                <div><p class="d">3일</p><p class="s" style="color:#6E675A">—</p><p class="t"></p><span class="rule" style="height:1px;background:#E4DED2"></span></div>
+              </div>
+              <div class="pill">이상 없음</div>
+              <div class="btn2">반응 기록</div>
+              <div class="tally">
+                <div><p class="l">안전</p><p class="n tab" style="color:#2E7D4F">8</p></div>
+                <div><p class="l">관찰 중</p><p class="n tab" style="color:#96631A">1</p></div>
+                <div><p class="l">반응</p><p class="n tab" style="color:#A8432B">2</p></div>
+                <div><p class="l">안 먹어봄</p><p class="n tab" style="color:#6E675A">109</p></div>
+              </div>
+              <nav class="nav">
+                <a href="#0">새 재료 시작하기 <span>→</span></a>
+                <a href="#0">캘린더 <span>→</span></a>
+                <a href="#0">설정 <span>→</span></a>
+              </nav>
+            </div>
+            <span class="hbar" style="background:#26241F;opacity:.28"></span>
+          </div></div>
+          <figcaption>현재 · 홈 · 관찰 중</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 01 · 차트 ══════════════ -->
+  <section class="dir">
+    <div class="dir-head">
+      <span class="dir-no">01</span>
+      <h2 class="dir-name">차트</h2>
+      <span class="dir-latin">chart — the clinical record</span>
+    </div>
+    <div class="dir-body">
+      <div class="thesis">
+        <p class="lede">이 앱의 결과물은 소아과에 내미는 종이 한 장입니다. 그러니 처음부터 차트처럼 생기게 합니다.</p>
+        <p>모눈 바탕, 표 罫線, 등폭 숫자, 네모 도장. 관찰 창은 진행 막대가 아니라 <strong>진짜 3열 표</strong>가 되고,
+        재료 목록은 <strong>재료 / 최근 / 상태</strong> 세 칼럼의 대장(臺帳)이 됩니다. 파란 잉크는 오직 라벨에만 —
+        의미를 지는 색은 여전히 호박·초록·빨강뿐입니다.</p>
+        <p>지금 코드가 이미 가진 정직함(“관찰하지 않은 날을 안전이라 쓰지 않는다”)을
+        <strong>시각 언어로 번역한</strong> 방향이라, 다섯 중 손이 가장 덜 갑니다.</p>
+        <div class="swatches" aria-label="차트 팔레트">
+          <i style="background:#F4F5F3"></i><i style="background:#E7EAE6"></i><i style="background:#1D211E"></i>
+          <i style="background:#33506E"></i><i style="background:#8A6410"></i><i style="background:#1F6B45"></i><i style="background:#9E3521"></i>
+        </div>
+        <dl class="notes">
+          <dt>바뀌는 것</dt>
+          <dd>배경이 따뜻한 크림 → 차가운 모눈 종이. 원장 3칸 → 날짜·기록·시각 3행 표. 목록에 “최근 시도” 날짜 칼럼 신설.</dd>
+          <dt>얻는 것</dt>
+          <dd>PDF 리포트와 앱이 <em>같은 물건</em>으로 보입니다. 등폭 숫자 덕에 120행이 눈으로 정렬됩니다.</dd>
+          <dt class="cost">치르는 것</dt>
+          <dd class="cost">차갑습니다. 육아 앱보다 병원 앱에 가까워 보이는 위험이 있습니다.</dd>
+        </dl>
+      </div>
+
+      <div class="rail">
+        <figure>
+          <div class="frame"><div class="scr ch">
+            <div class="sbar"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <dl class="hdr">
+              <div><dt>아기</dt><dd>하율 · 생후 240일</dd></div>
+              <div><dt>관찰 창</dt><dd>3일</dd></div>
+              <div><dt>기록</dt><dd>11 / 120</dd></div>
+            </dl>
+            <div class="name">
+              <h2>두부</h2>
+              <span class="risk">고위험</span>
+              <span class="stamp amb">관찰 중</span>
+            </div>
+            <p class="meta">개시 8/6 07:39 · 2일째 / 3일 · 마감 8/9</p>
+
+            <table>
+              <caption>관찰 기록</caption>
+              <thead><tr><th></th><th>1일</th><th>2일</th><th>3일</th></tr></thead>
+              <tbody>
+                <tr><td class="k">날짜</td><td>8/6</td><td><b>8/7</b></td><td>8/8</td></tr>
+                <tr><td class="k">기록</td><td class="ok"><b>이상 없음</b></td><td class="now"><b>오늘</b></td><td class="pend">—</td></tr>
+                <tr><td class="k">시각</td><td>18:14</td><td class="now">기록 전</td><td class="pend"></td></tr>
+              </tbody>
+            </table>
+
+            <div class="act">
+              <div class="bar">이상 없음 <span>8/7 기록</span></div>
+              <div class="bar gh">반응 기록 <span>즉시 종료</span></div>
+            </div>
+
+            <div class="foot">
+              <a href="#0"><p class="l">안전</p><p class="n" style="color:#1F6B45">8</p></a>
+              <a href="#0"><p class="l">관찰</p><p class="n" style="color:#8A6410">1</p></a>
+              <a href="#0"><p class="l">반응</p><p class="n" style="color:#9E3521">2</p></a>
+              <a href="#0"><p class="l">미시도</p><p class="n" style="color:#5F6862">109</p></a>
+            </div>
+            <nav class="nav"><a href="#0">재료</a><a href="#0">캘린더</a><a href="#0">설정</a></nav>
+            <span class="hbar" style="background:#1D211E;opacity:.3"></span>
+          </div></div>
+          <figcaption>차트 · 홈 · 관찰 중</figcaption>
+        </figure>
+
+        <figure>
+          <div class="frame"><div class="scr ch">
+            <div class="sbar"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <dl class="hdr">
+              <div><dt>아기</dt><dd>하율 · 생후 240일</dd></div>
+              <div><dt>관찰 창</dt><dd>3일</dd></div>
+              <div><dt>기록</dt><dd>11 / 120</dd></div>
+            </dl>
+            <div class="name">
+              <h2>달걀</h2>
+              <span class="risk">고위험</span>
+              <span class="stamp red">반응</span>
+            </div>
+            <p class="meta">개시 7/30 07:48 · 2일째 종료 · 마감 7/31</p>
+
+            <div class="rx">
+              <div><dt>발생</dt><dd class="tab">2026. 7. 31. 오후 2:10 — 2일째</dd></div>
+              <div><dt>증상</dt><dd style="color:#9E3521;font-weight:700">두드러기, 얼굴 부종</dd></div>
+              <div><dt>심각도</dt><dd style="color:#9E3521;font-weight:700">중간</dd></div>
+              <div><dt>메모</dt><dd>볼과 목에 두드러기, 1시간 후 가라앉음</dd></div>
+            </div>
+
+            <table>
+              <caption>관찰 기록</caption>
+              <thead><tr><th></th><th>1일</th><th>2일</th><th>3일</th></tr></thead>
+              <tbody>
+                <tr><td class="k">날짜</td><td>7/30</td><td>7/31</td><td class="pend">8/1</td></tr>
+                <tr><td class="k">기록</td><td class="ok"><b>이상 없음</b></td><td class="no"><b>반응 발생</b></td><td class="pend">관찰 중단</td></tr>
+                <tr><td class="k">시각</td><td>17:22</td><td class="no">14:10</td><td class="pend"></td></tr>
+              </tbody>
+            </table>
+
+            <div class="act">
+              <div class="bar gh">기록 보기 <span>전체 이력</span></div>
+              <div class="bar">새 재료 시작 <span>3일 관찰</span></div>
+            </div>
+
+            <div class="foot">
+              <a href="#0"><p class="l">안전</p><p class="n" style="color:#1F6B45">8</p></a>
+              <a href="#0"><p class="l">관찰</p><p class="n" style="color:#5F6862">0</p></a>
+              <a href="#0"><p class="l">반응</p><p class="n" style="color:#9E3521">2</p></a>
+              <a href="#0"><p class="l">미시도</p><p class="n" style="color:#5F6862">109</p></a>
+            </div>
+            <nav class="nav"><a href="#0">재료</a><a href="#0">캘린더</a><a href="#0">설정</a></nav>
+            <span class="hbar" style="background:#1D211E;opacity:.3"></span>
+          </div></div>
+          <figcaption>차트 · 홈 · 반응 기록됨</figcaption>
+        </figure>
+
+        <figure>
+          <div class="frame"><div class="scr ch">
+            <div class="sbar"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="name" style="margin-top:14px"><h2 style="font-size:38px">재료</h2></div>
+            <div class="search"><span>⌕</span><span>재료 검색…</span><span style="margin-left:auto;color:#33506E;font-weight:700">＋ 직접 추가</span></div>
+            <div class="lhdr"><span class="nm">재료</span><span style="width:56px">최근</span><span style="width:52px;text-align:center">상태</span></div>
+
+            <div class="lrow"><span class="nm" style="font-weight:800">두부</span><span class="dt">8/6</span><span class="st" style="color:#8A6410">관찰</span></div>
+            <div class="lrow"><span class="nm">달걀</span><span class="dt">7/30</span><span class="st" style="color:#9E3521">반응</span></div>
+            <div class="lrow"><span class="nm">밀</span><span class="dt">7/25</span><span class="st" style="color:#9E3521">반응</span></div>
+            <div class="lrow"><span class="nm">감자</span><span class="dt">7/16</span><span class="st" style="color:#1F6B45">안전</span></div>
+            <div class="lrow"><span class="nm">고구마</span><span class="dt">7/10</span><span class="st" style="color:#1F6B45">안전</span></div>
+            <div class="lrow"><span class="nm">단호박</span><span class="dt">7/13</span><span class="st" style="color:#1F6B45">안전</span></div>
+            <div class="lrow"><span class="nm">당근</span><span class="dt">7/19</span><span class="st" style="color:#1F6B45">안전</span></div>
+            <div class="lrow"><span class="nm">바나나</span><span class="dt">7/27</span><span class="st" style="color:#1F6B45">안전</span></div>
+            <div class="lrow"><span class="nm">브로콜리</span><span class="dt">7/22</span><span class="st" style="color:#1F6B45">안전</span></div>
+            <div class="lrow"><span class="nm">소고기</span><span class="dt">8/1</span><span class="st" style="color:#1F6B45">안전</span></div>
+            <div class="lrow"><span class="nm">쌀</span><span class="dt">7/7</span><span class="st" style="color:#1F6B45">안전</span></div>
+            <div class="lhdr" style="border-top:1px solid #C9CFC9;margin-top:2px"><span class="nm">안 먹어봄 · 109</span></div>
+            <div class="lrow"><span class="nm">감</span><span class="dt">—</span><span class="st" style="color:#C9CFC9;border-color:#DDE1DC">·</span></div>
+            <div class="lrow"><span class="nm">게 <em style="font-style:normal;font-family:var(--mono);font-size:8.5px;color:#9E3521;border:1px solid #9E3521;padding:1px 3px;margin-left:4px">고위험</em></span><span class="dt">—</span><span class="st" style="color:#C9CFC9;border-color:#DDE1DC">·</span></div>
+            <div class="lrow"><span class="nm">고등어 <em style="font-style:normal;font-family:var(--mono);font-size:8.5px;color:#9E3521;border:1px solid #9E3521;padding:1px 3px;margin-left:4px">고위험</em></span><span class="dt">—</span><span class="st" style="color:#C9CFC9;border-color:#DDE1DC">·</span></div>
+            <nav class="nav" style="margin-top:auto"><a href="#0">홈</a><a href="#0">캘린더</a><a href="#0">설정</a></nav>
+            <span class="hbar" style="background:#1D211E;opacity:.3"></span>
+          </div></div>
+          <figcaption>차트 · 재료 120</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 02 · 표본 ══════════════ -->
+  <section class="dir">
+    <div class="dir-head">
+      <span class="dir-no">02</span>
+      <h2 class="dir-name">표본</h2>
+      <span class="dir-latin">specimen — a visual language, not a vocabulary</span>
+    </div>
+
+    <!-- glyph definitions, used by both the phones and the sheet below -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+      <g id="g-egg"><ellipse cx="20" cy="21" rx="8.5" ry="11"/></g>
+      <g id="g-dairy"><path d="M12 17l8-6 8 6v13H12z"/><path d="M12 17h16"/></g>
+      <g id="g-grain"><path d="M20 32V10"/><path d="M20 14l6-3M20 20l6-3M20 26l6-3M20 14l-6-3M20 20l-6-3M20 26l-6-3"/></g>
+      <g id="g-bean"><path d="M12 25c1-8 7-13 16-13 0 8-6 14-16 13z"/><circle cx="17" cy="21.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="21.5" cy="18.5" r="1.4" fill="currentColor" stroke="none"/></g>
+      <g id="g-nut"><path d="M20 9c6.5 5 8 13 0 22-8-9-6.5-17 0-22z"/></g>
+      <g id="g-fish"><path d="M9 20c5-6 12-6 17 0-5 6-12 6-17 0z"/><path d="M26 20l5.5-4.5v9z"/><circle cx="14" cy="19" r="1.1" fill="currentColor" stroke="none"/></g>
+      <g id="g-shell"><path d="M9 26c1-8 6-14 11-14s10 6 11 14z"/><path d="M20 12v14M15 13.6l2.4 12.4M25 13.6l-2.4 12.4"/></g>
+      <g id="g-meat"><rect x="9" y="13" width="22" height="15" rx="4.5"/><path d="M13.5 18.5h13M13.5 23h8.5"/></g>
+      <g id="g-root"><path d="M20 31l-5.5-14h11z"/><path d="M20 17v-6M20 13.5l4.5-3M20 13.5l-4.5-3"/></g>
+      <g id="g-leaf"><path d="M12 27c0-9 7-15 16-15 0 9-7 15-16 15z"/><path d="M12 27L26.5 14"/></g>
+      <g id="g-fruitveg"><ellipse cx="20" cy="22.5" rx="7.5" ry="9"/><path d="M20 13.5V8.5"/></g>
+      <g id="g-floret"><circle cx="15" cy="16" r="4.5"/><circle cx="25" cy="16" r="4.5"/><circle cx="20" cy="12.5" r="4.5"/><path d="M20 20v11"/></g>
+      <g id="g-mushroom"><path d="M9.5 20c0-6 4.5-10 10.5-10s10.5 4 10.5 10z"/><path d="M16 20v7.5a4 4 0 008 0V20"/></g>
+      <g id="g-seaweed"><path d="M13 31c3-6 0-15 2-22M20 31c3-6 0-15 2-22M27 31c-1-6 0-15 0-22"/></g>
+      <g id="g-treefruit"><circle cx="20" cy="22" r="9"/><path d="M20 13V8"/><path d="M20 10.5c3-2.5 5.5-1.5 5.5-1.5"/></g>
+      <g id="g-berry"><circle cx="15.5" cy="24" r="5"/><circle cx="24.5" cy="24" r="5"/><circle cx="20" cy="16" r="5"/></g>
+      <g id="g-citrus"><circle cx="20" cy="21" r="9.5"/><path d="M20 11.5v19M10.5 21h19"/></g>
+      <g id="g-tropical"><ellipse cx="20" cy="23" rx="7" ry="8.5"/><path d="M20 14.5V9M17 10.5l3-2 3 2"/><path d="M14.5 20l11 6.5M25.5 20l-11 6.5"/></g>
+      <g id="g-melon"><circle cx="20" cy="21" r="9.5"/><path d="M14.5 13c1.8 5 1.8 11 0 16M20 11.5v19M25.5 13c-1.8 5-1.8 11 0 16"/></g>
+    </defs></svg>
+
+    <div class="dir-body">
+      <div class="thesis">
+        <p class="lede">120가지 재료를 “목록”이 아니라 “지금까지 모아 온 것”으로 보이게 합니다.</p>
+        <p>재료는 <strong>모서리 홀더로 고정된 카드</strong>로 마운트되고, 개시·마감·기록이
+        <strong>손으로 그은 라벨 칸</strong>에 적힙니다. 카드 왼쪽 위의 번호는 장식이 아니라
+        <strong>몇 번째로 시도한 재료인지</strong>입니다 — 두부는 11번째.</p>
+        <p class="fix"><strong>어휘는 그대로입니다.</strong> 재료 · 캘린더 · 설정 · 기록 보기 ·
+        새 재료 시작하기 · 기록 있음 · 안 먹어봄 — 지금 쓰는 문구를 한 글자도 바꾸지 않습니다.
+        표본은 <em>보이는 방식</em>이지 부르는 이름이 아닙니다.</p>
+        <div class="swatches" aria-label="표본 팔레트">
+          <i style="background:#EDE8DC"></i><i style="background:#F6F2E8"></i><i style="background:#D3CAB6"></i>
+          <i style="background:#2E2A22"></i><i style="background:#A4761D"></i><i style="background:#3F6B45"></i><i style="background:#8C3B2E"></i>
+        </div>
+        <dl class="notes">
+          <dt>아이콘 커버리지 — 결론</dt>
+          <dd><strong>빈칸은 0개입니다.</strong> 재료마다 그림을 그리는 게 아니라
+          <strong>분류마다</strong> 그리기 때문에, 카탈로그 120개가 19개 글리프로 <em>전부</em> 덮입니다.
+          진짜 위험은 그 반대 — <strong>같은 글리프의 반복</strong>이고(최다 12개), 아래 규칙이 그걸 없앱니다.</dd>
+          <dt>정해진 규칙</dt>
+          <dd><strong>1.</strong> 안 먹어봄 109개를 <strong>분류로 묶습니다.</strong> 가나다순은 그대로 —
+          분류끼리도, 분류 안에서도. 정렬 원칙을 바꾸는 게 아니라 <em>묶는 층을 하나 얹는</em> 것입니다.<br>
+          <strong>2.</strong> 격자가 아니라 <strong>지금과 같은 행</strong>. Dynamic Type이 커져도 행은 늘어나지만
+          고정 격자 칸은 글자를 자릅니다.<br>
+          <strong>3.</strong> 글리프는 <strong>분류 머리글에만</strong>. 생선 머리글 아래 11행에 생선 글리프를 또 다는 건
+          정보가 아니라 무늬입니다.<br>
+          <strong>4.</strong> 같은 이유로, 전부 고위험인 분류(생선·조개·연체·알·유제품)는
+          <strong>고위험을 머리글에 한 번만</strong> 답니다. 섞여 있는 분류(곡물 2/12, 콩 4/9)만 행마다 답니다.<br>
+          <strong>5.</strong> 검색·필터 중에는 <strong>묶지 않습니다.</strong> 지금 머리글이 사라지는 것과 같은 규칙입니다.</dd>
+          <dt>글리프가 커지는 곳</dt>
+          <dd>홈 카드와 재료 상세 — <em>한 재료가 주인공인 화면</em>. 화면당 하나뿐이라 반복이 원천적으로 없고,
+          바로 거기서 글리프가 화면에 얼굴을 만들어 줍니다.</dd>
+          <dt class="cost">필요한 것</dt>
+          <dd class="cost">글리프 19종 제작(1일 안팎) + <code>react-native-svg</code> 의존성 1개 —
+          지금 프로젝트엔 아이콘 라이브러리가 없습니다. 분류는 <code>catalog.ts</code> 옆에
+          정적 맵 120줄로 충분합니다 — <strong>마이그레이션도 스키마 변경도 없습니다.</strong></dd>
+        </dl>
+      </div>
+
+      <div class="rail">
+        <figure>
+          <div class="frame"><div class="scr sp">
+            <div class="sbar"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="top"><span>알레르기 트래커</span><span>기록 11 / 120</span></div>
+            <div class="plate">
+              <span class="cnr l"></span><span class="cnr r"></span>
+              <p class="acc">011 <span>· 11번째 재료</span></p>
+              <svg class="pmark" viewBox="0 0 40 40" fill="none" stroke="#8C8067" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#g-bean"/></svg>
+              <h2>두부</h2>
+              <p class="seal"><i style="background:#A4761D"></i>관찰 중 · 3일 중 2일째</p>
+              <span class="risk">고위험</span>
+            </div>
+            <dl class="label">
+              <div><dt>개시</dt><dd>2026. 8. 6. 오전 7:39</dd></div>
+              <div><dt>마감</dt><dd>2026. 8. 9.</dd></div>
+              <div><dt>기록</dt><dd>1 / 3일</dd></div>
+            </dl>
+            <div class="slots">
+              <div><p class="d">1일</p><p class="v" style="color:#3F6B45">이상 없음</p><span class="u" style="background:#3F6B45"></span></div>
+              <div><p class="d">2일</p><p class="v" style="color:#A4761D">오늘</p><span class="u" style="background:#A4761D"></span></div>
+              <div><p class="d">3일</p><p class="v" style="color:#9C947F">—</p><span class="u" style="background:#D3CAB6"></span></div>
+            </div>
+            <div class="cta">
+              <a href="#0">이상 없음</a>
+              <a href="#0" class="gh">반응 기록</a>
+            </div>
+            <div class="rail2">
+              <a href="#0">재료 <span>120</span></a>
+              <a href="#0">캘린더 <span>8월</span></a>
+              <a href="#0">설정 <span></span></a>
+            </div>
+            <span class="hbar" style="background:#2E2A22;opacity:.3"></span>
+          </div></div>
+          <figcaption>표본 · 홈 · 관찰 중</figcaption>
+        </figure>
+
+        <figure>
+          <div class="frame"><div class="scr sp">
+            <div class="sbar"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="top"><span>알레르기 트래커</span><span>기록 11 / 120</span></div>
+            <div class="plate" style="border-color:#C9A79C">
+              <span class="cnr l"></span><span class="cnr r"></span>
+              <p class="acc">009 <span>· 9번째 재료</span></p>
+              <svg class="pmark" viewBox="0 0 40 40" fill="none" stroke="#B08A7E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#g-egg"/></svg>
+              <h2>달걀</h2>
+              <p class="seal" style="color:#8C3B2E"><i style="background:#8C3B2E"></i>반응 · 2일째 중단</p>
+              <span class="risk">고위험</span>
+            </div>
+            <dl class="label">
+              <div><dt>발생</dt><dd>2026. 7. 31. 오후 2:10</dd></div>
+              <div><dt>증상</dt><dd style="color:#8C3B2E;font-weight:700">두드러기, 얼굴 부종</dd></div>
+              <div><dt>심각도</dt><dd style="color:#8C3B2E;font-weight:700">중간</dd></div>
+              <div><dt>메모</dt><dd style="font-size:12px;line-height:1.45">볼과 목에 두드러기,<br>1시간 후 가라앉음</dd></div>
+            </dl>
+            <div class="slots">
+              <div><p class="d">1일</p><p class="v" style="color:#3F6B45">이상 없음</p><span class="u" style="background:#3F6B45"></span></div>
+              <div><p class="d">2일</p><p class="v" style="color:#8C3B2E">반응 발생</p><span class="u" style="background:#8C3B2E"></span></div>
+              <div><p class="d">3일</p><p class="v" style="color:#9C947F">관찰 중단</p><span class="u" style="background:#D3CAB6"></span></div>
+            </div>
+            <div class="cta">
+              <a href="#0" class="gh">기록 보기</a>
+              <a href="#0">새 재료 시작하기</a>
+            </div>
+            <div class="rail2">
+              <a href="#0">재료 <span>120</span></a>
+              <a href="#0">캘린더 <span>8월</span></a>
+              <a href="#0">설정 <span></span></a>
+            </div>
+            <span class="hbar" style="background:#2E2A22;opacity:.3"></span>
+          </div></div>
+          <figcaption>표본 · 홈 · 반응 기록됨</figcaption>
+        </figure>
+
+        <figure>
+          <div class="frame"><div class="scr sp">
+            <div class="sbar"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="top"><span>‹ 재료</span><span>120</span></div>
+            <div class="srch"><span>⌕</span><span>재료 검색…</span></div>
+            <div class="pills">
+              <a href="#0" class="on">전체 120</a><a href="#0">관찰 중 1</a><a href="#0">반응 2</a><a href="#0">안전 8</a>
+            </div>
+            <p class="gsec">기록 있음 · 11</p>
+            <div class="prow"><span class="nm" style="font-weight:800">두부</span><span class="hr">고위험</span><span class="tg" style="color:#A4761D">관찰 중</span></div>
+            <div class="prow"><span class="nm">달걀</span><span class="hr">고위험</span><span class="tg" style="color:#8C3B2E">반응</span></div>
+            <div class="prow"><span class="nm">밀</span><span class="hr">고위험</span><span class="tg" style="color:#8C3B2E">반응</span></div>
+            <div class="prow"><span class="nm">감자</span><span class="tg" style="color:#3F6B45">안전</span></div>
+            <div class="prow"><span class="nm">고구마</span><span class="tg" style="color:#3F6B45">안전</span></div>
+            <div class="prow"><span class="nm">단호박</span><span class="tg" style="color:#3F6B45">안전</span></div>
+            <div class="prow"><span class="nm">당근</span><span class="tg" style="color:#3F6B45">안전</span></div>
+            <div class="prow"><span class="nm">바나나</span><span class="tg" style="color:#3F6B45">안전</span></div>
+            <div class="prow"><span class="nm">브로콜리</span><span class="tg" style="color:#3F6B45">안전</span></div>
+            <div class="prow"><span class="nm">소고기</span><span class="tg" style="color:#3F6B45">안전</span></div>
+            <div class="prow"><span class="nm">쌀</span><span class="tg" style="color:#3F6B45">안전</span></div>
+            <p class="gsec">안 먹어봄 · 109</p>
+            <div class="fhdr">
+              <svg viewBox="0 0 40 40" fill="none" stroke="#6B6152" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#g-citrus"/></svg>
+              <span class="nm">감귤</span><span class="ct">2</span>
+            </div>
+            <div class="prow"><span class="nm">귤</span></div>
+            <div class="prow"><span class="nm">오렌지</span></div>
+            <span class="hbar" style="background:#2E2A22;opacity:.3"></span>
+          </div></div>
+          <figcaption>재료 · 목록 상단</figcaption>
+        </figure>
+
+        <figure>
+          <div class="frame"><div class="scr sp">
+            <div class="sbar"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="top"><span>‹ 재료</span><span>안 먹어봄 · 109</span></div>
+            <div class="fhdr">
+              <svg viewBox="0 0 40 40" fill="none" stroke="#6B6152" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#g-fish"/></svg>
+              <span class="nm">생선</span><span class="hr">고위험</span><span class="ct">11</span>
+            </div>
+            <div class="prow"><span class="nm">가자미</span></div>
+            <div class="prow"><span class="nm">갈치</span></div>
+            <div class="prow"><span class="nm">고등어</span></div>
+            <div class="prow"><span class="nm">광어</span></div>
+            <div class="prow"><span class="nm">대구</span></div>
+            <div class="prow"><span class="nm">도미</span></div>
+            <div class="prow"><span class="nm">멸치</span></div>
+            <div class="prow"><span class="nm">명태</span></div>
+            <div class="prow"><span class="nm">삼치</span></div>
+            <div class="prow"><span class="nm">연어</span></div>
+            <div class="prow"><span class="nm">조기</span></div>
+            <div class="fhdr">
+              <svg viewBox="0 0 40 40" fill="none" stroke="#6B6152" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#g-egg"/></svg>
+              <span class="nm">알</span><span class="hr">고위험</span><span class="ct">3</span>
+            </div>
+            <div class="prow"><span class="nm">달걀 노른자</span></div>
+            <div class="prow"><span class="nm">달걀 흰자</span></div>
+            <div class="prow"><span class="nm">메추리알</span></div>
+            <div class="fhdr">
+              <svg viewBox="0 0 40 40" fill="none" stroke="#6B6152" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#g-fruitveg"/></svg>
+              <span class="nm">열매채소</span><span class="ct">6</span>
+            </div>
+            <div class="prow"><span class="nm">가지</span></div>
+            <div class="prow"><span class="nm">늙은호박</span></div>
+            <span class="hbar" style="background:#2E2A22;opacity:.3"></span>
+          </div></div>
+          <figcaption>재료 · 안 먹어봄 구간 — 이게 핵심</figcaption>
+        </figure>
+
+        <figure>
+          <div class="frame"><div class="scr sp">
+            <div class="sbar"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="top"><span>‹ 재료</span><span>120</span></div>
+            <div class="srch"><span>⌕</span><span style="color:#2E2A22;font-weight:700">고</span><span style="margin-left:auto;color:#9C947F">✕</span></div>
+            <p class="gsec">검색 결과 · 6</p>
+            <div class="prow"><span class="nm">고구마</span><span class="tg" style="color:#3F6B45">안전</span></div>
+            <div class="prow"><span class="nm">소고기</span><span class="tg" style="color:#3F6B45">안전</span></div>
+            <div class="prow"><span class="nm">고등어</span><span class="hr">고위험</span></div>
+            <div class="prow"><span class="nm">닭고기</span></div>
+            <div class="prow"><span class="nm">돼지고기</span></div>
+            <div class="prow"><span class="nm">오리고기</span></div>
+            <p class="note">검색과 필터는 <b>묶지 않습니다</b> — 결과가 곧 답이라<br>분류 표지가 끼어들면 방해만 됩니다.</p>
+            <span class="hbar" style="background:#2E2A22;opacity:.3"></span>
+          </div></div>
+          <figcaption>재료 · 검색 중 — 묶음 해제</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <!-- ── the answer to the blocker ── -->
+    <div class="sheet">
+      <p class="sheet-cap">글리프 19종 = 카탈로그 120개 전부. 숫자는 그 글리프를 쓰는 재료 수.</p>
+      <div class="gsheet">
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-leaf"/></svg><p class="n">잎채소</p><p class="c">12</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-grain"/></svg><p class="n">곡물</p><p class="c">12</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-nut"/></svg><p class="n">견과·씨</p><p class="c">12</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-fish"/></svg><p class="n">생선</p><p class="c">11</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-bean"/></svg><p class="n">콩</p><p class="c">9</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-shell"/></svg><p class="n">조개·연체</p><p class="c">8</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-treefruit"/></svg><p class="n">나무열매</p><p class="c">8</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-fruitveg"/></svg><p class="n">열매채소</p><p class="c">7</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-root"/></svg><p class="n">뿌리채소</p><p class="c">7</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-mushroom"/></svg><p class="n">버섯</p><p class="c">5</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-tropical"/></svg><p class="n">남국 과일</p><p class="c">5</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-dairy"/></svg><p class="n">유제품</p><p class="c">4</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-egg"/></svg><p class="n">알</p><p class="c">4</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-meat"/></svg><p class="n">고기</p><p class="c">4</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-seaweed"/></svg><p class="n">해조</p><p class="c">3</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-berry"/></svg><p class="n">베리</p><p class="c">3</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-melon"/></svg><p class="n">박과 과일</p><p class="c">2</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-floret"/></svg><p class="n">꽃채소</p><p class="c">2</p></div>
+        <div><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38" aria-hidden="true"><use href="#g-citrus"/></svg><p class="n">감귤</p><p class="c">2</p></div>
+      </div>
+      <p class="sheet-note">
+        <b>커버리지 120 / 120, 빈칸 0.</b> 직접 추가 재료가 없어졌으니 남는 구멍도 없습니다 —
+        카탈로그가 곧 목록 전체이고, 모든 재료는 정확히 한 분류에 듭니다.
+        <br><br>
+        <b>남은 문제는 반복이었습니다.</b> 잎채소 12개가 같은 글리프를 답니다. 가나다순으로 늘어놓으면
+        (감 · 게 · 고등어 · 귀리…) 글리프가 무작위로 흩뿌려져 <b>정보가 아니라 무늬</b>가 됩니다.
+        분류로 묶는 순간 그 12개는 <b>한 머리글 아래 소속</b>이 되고, 글리프가 행마다 반복될 이유가
+        없어집니다 — 그래서 머리글에만 답니다. 같은 논리를 고위험 배지에도 적용했습니다: 생선 11개가
+        전부 고위험이면 배지는 머리글에 한 번이면 충분합니다.
+        <br><br>
+        <b>덤이 본전보다 큽니다.</b> 이 앱에서 목록의 진짜 용도는 홈의 “새 재료 시작하기”로 들어오는
+        <b>고르기</b>인데, 지금은 109개가 가나다순이라 “채소는 많이 했으니 단백질”이라는 생각을 할 방법이
+        아예 없습니다. 분류 묶음은 장식이 아니라 그 구멍을 메웁니다.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════ 03 · 신호 ══════════════ -->
+  <section class="dir">
+    <div class="dir-head">
+      <span class="dir-no">03</span>
+      <h2 class="dir-name">신호</h2>
+      <span class="dir-latin">signal — status is a shape</span>
+    </div>
+    <div class="dir-body">
+      <div class="thesis">
+        <p class="lede">스펙이 이미 명령하고 있습니다 — “색이 혼자 의미를 지면 안 된다.” 그 규칙을 <em>미학으로</em> 만듭니다.</p>
+        <p>네 상태에 네 개의 도형을 못 박습니다: <strong>● 관찰 중 · ■ 안전 · ✕ 반응 · ○ 안 먹어봄.</strong>
+        색을 지우고 흑백으로 인쇄해도, 색맹 시뮬레이터를 통과시켜도 앱은 그대로 읽힙니다.
+        도형이 정보를 지므로 색은 마음껏 커질 수 있습니다 — 상단 색면 전체가 상태입니다.</p>
+        <p>3px 검정 罫線, 0 라운드, 즉시 반전되는 누름 상태. 가장 “디자인된” 방향이고,
+        <strong>앱 아이콘·스토어 스크린샷이 저절로 나오는</strong> 유일한 방향입니다.</p>
+        <div class="swatches" aria-label="신호 팔레트">
+          <i style="background:#EFEBE1"></i><i style="background:#141310"></i><i style="background:#DA9A16"></i>
+          <i style="background:#1E6B4A"></i><i style="background:#C8351E"></i>
+        </div>
+        <dl class="notes">
+          <dt>바뀌는 것</dt>
+          <dd>상태 표기 전체. 칩·점 → 도형 + 라벨. 홈 상단이 화면 절반을 먹는 색면. 목록 좌측에 도형 거터 신설.</dd>
+          <dt>얻는 것</dt>
+          <dd>접근성이 <em>구조적으로</em> 보장됩니다(색 의존 0). 120행이 도형만으로 훑어집니다. 포트폴리오 임팩트 최상.</dd>
+          <dt class="cost">치르는 것</dt>
+          <dd class="cost">시끄럽습니다. 반응(빨강 색면)이 뜬 순간 화면 절반이 경고색이 되는데 — 아기가 두드러기 난 직후 부모에게 옳은 온도인지 판단이 필요합니다.</dd>
+        </dl>
+      </div>
+
+      <div class="rail">
+        <figure>
+          <div class="frame"><div class="scr sg">
+            <div class="sbar" style="color:#141310"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="block amb">
+              <p class="kick">알레르기 트래커</p>
+              <svg class="mark" width="46" height="46" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#141310"/></svg>
+              <h2>두부</h2>
+              <p class="st">관찰 중</p>
+              <p class="sub">3일 중 2일째 · 8월 9일 확인</p>
+            </div>
+            <div class="win">
+              <div><p class="d">1일</p><p class="v"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" fill="#1E6B4A"/></svg>이상 없음</p></div>
+              <div><p class="d">2일</p><p class="v"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#DA9A16"/></svg>오늘</p></div>
+              <div><p class="d">3일</p><p class="v" style="color:#8C8578"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="#8C8578" stroke-width="2.5"/></svg>—</p></div>
+            </div>
+            <div class="btns">
+              <a href="#0">이상 없음 <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l6 6L20 5" fill="none" stroke="#EFEBE1" stroke-width="3.4" stroke-linecap="square"/></svg></a>
+              <a href="#0" class="gh">반응 기록 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="#141310" stroke-width="3.4" stroke-linecap="square"/></svg></a>
+            </div>
+            <div class="tally">
+              <a href="#0"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" fill="#1E6B4A"/></svg><p class="n">8</p><p class="l">안전</p></a>
+              <a href="#0"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#DA9A16"/></svg><p class="n">1</p><p class="l">관찰</p></a>
+              <a href="#0"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l16 16M20 4L4 20" stroke="#C8351E" stroke-width="4" stroke-linecap="square"/></svg><p class="n">2</p><p class="l">반응</p></a>
+              <a href="#0"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="#141310" stroke-width="2.6"/></svg><p class="n">109</p><p class="l">미시도</p></a>
+            </div>
+            <nav class="nav"><a href="#0">재료</a><a href="#0">캘린더</a><a href="#0">설정</a></nav>
+            <span class="hbar" style="background:#141310;opacity:.35"></span>
+          </div></div>
+          <figcaption>신호 · 홈 · 관찰 중</figcaption>
+        </figure>
+
+        <figure>
+          <div class="frame"><div class="scr sg">
+            <div class="sbar" style="color:#141310"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="block red">
+              <p class="kick">알레르기 트래커</p>
+              <svg class="mark" width="46" height="46" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l16 16M20 4L4 20" stroke="#F7F3EA" stroke-width="4.2" stroke-linecap="square"/></svg>
+              <h2>달걀</h2>
+              <p class="st">반응 기록됨</p>
+              <p class="sub">2일째 · 중간 · 두드러기, 얼굴 부종</p>
+            </div>
+            <dl class="rxbox">
+              <div><dt>발생</dt><dd class="tab">7월 31일 오후 2:10</dd></div>
+              <div><dt>증상</dt><dd>두드러기, 얼굴 부종</dd></div>
+              <div><dt>심각도</dt><dd>중간</dd></div>
+              <div><dt>메모</dt><dd style="font-weight:500;font-size:12.5px;line-height:1.5">볼과 목에 두드러기, 1시간 후 가라앉음</dd></div>
+            </dl>
+            <div class="btns">
+              <a href="#0" class="gh">기록 보기 <span style="font-size:13px">전체 이력</span></a>
+              <a href="#0">새 재료 시작하기 <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="#EFEBE1" stroke-width="3.2" stroke-linecap="square"/></svg></a>
+            </div>
+            <div class="tally">
+              <a href="#0"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" fill="#1E6B4A"/></svg><p class="n">8</p><p class="l">안전</p></a>
+              <a href="#0" style="opacity:.4"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#DA9A16"/></svg><p class="n">0</p><p class="l">관찰</p></a>
+              <a href="#0"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l16 16M20 4L4 20" stroke="#C8351E" stroke-width="4" stroke-linecap="square"/></svg><p class="n">2</p><p class="l">반응</p></a>
+              <a href="#0"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="#141310" stroke-width="2.6"/></svg><p class="n">109</p><p class="l">미시도</p></a>
+            </div>
+            <nav class="nav"><a href="#0">재료</a><a href="#0">캘린더</a><a href="#0">설정</a></nav>
+            <span class="hbar" style="background:#141310;opacity:.35"></span>
+          </div></div>
+          <figcaption>신호 · 홈 · 반응 기록됨</figcaption>
+        </figure>
+
+        <figure>
+          <div class="frame"><div class="scr sg">
+            <div class="sbar" style="color:#141310"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="lhdr"><h2>재료</h2><span class="c tab">120</span></div>
+            <div class="filters">
+              <a href="#0" class="on">전체</a><a href="#0">● 1</a><a href="#0">✕ 2</a><a href="#0">■ 8</a><a href="#0">○ 109</a>
+            </div>
+            <div class="row"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#DA9A16"/></svg><span class="nm">두부</span><span class="hr">고위험</span><span class="lb" style="color:#8A6410">관찰 중</span></div>
+            <div class="row"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l16 16M20 4L4 20" stroke="#C8351E" stroke-width="4" stroke-linecap="square"/></svg><span class="nm">달걀</span><span class="hr">고위험</span><span class="lb" style="color:#C8351E">반응</span></div>
+            <div class="row"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l16 16M20 4L4 20" stroke="#C8351E" stroke-width="4" stroke-linecap="square"/></svg><span class="nm">밀</span><span class="hr">고위험</span><span class="lb" style="color:#C8351E">반응</span></div>
+            <div class="row"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" fill="#1E6B4A"/></svg><span class="nm">감자</span><span class="lb" style="color:#1E6B4A">안전</span></div>
+            <div class="row"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" fill="#1E6B4A"/></svg><span class="nm">고구마</span><span class="lb" style="color:#1E6B4A">안전</span></div>
+            <div class="row"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" fill="#1E6B4A"/></svg><span class="nm">단호박</span><span class="lb" style="color:#1E6B4A">안전</span></div>
+            <div class="row"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" fill="#1E6B4A"/></svg><span class="nm">당근</span><span class="lb" style="color:#1E6B4A">안전</span></div>
+            <div class="row"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" fill="#1E6B4A"/></svg><span class="nm">바나나</span><span class="lb" style="color:#1E6B4A">안전</span></div>
+            <div class="row"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" fill="#1E6B4A"/></svg><span class="nm">브로콜리</span><span class="lb" style="color:#1E6B4A">안전</span></div>
+            <p class="gsec">안 먹어봄 · 109</p>
+            <div class="row q"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="#141310" stroke-width="2.6"/></svg><span class="nm" style="font-weight:600">감</span></div>
+            <div class="row q"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="#141310" stroke-width="2.6"/></svg><span class="nm" style="font-weight:600">게</span><span class="hr">고위험</span></div>
+            <div class="row q"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="#141310" stroke-width="2.6"/></svg><span class="nm" style="font-weight:600">고등어</span><span class="hr">고위험</span></div>
+            <div class="row q"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="#141310" stroke-width="2.6"/></svg><span class="nm" style="font-weight:600">귀리</span></div>
+            <nav class="nav" style="margin-top:auto"><a href="#0">홈</a><a href="#0">＋ 직접 추가</a><a href="#0">설정</a></nav>
+            <span class="hbar" style="background:#141310;opacity:.35"></span>
+          </div></div>
+          <figcaption>신호 · 재료 56</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 04 · 하루 ══════════════ -->
+  <section class="dir">
+    <div class="dir-head">
+      <span class="dir-no">04</span>
+      <h2 class="dir-name">하루</h2>
+      <span class="dir-latin">daily — one thumb, one tap</span>
+    </div>
+    <div class="dir-body">
+      <div class="thesis">
+        <p class="lede">이 앱의 실제 사용은 하루 10초입니다. 한 손엔 아기가 있습니다.</p>
+        <p>그래서 화면을 <strong>엄지 하나로 끝나게</strong> 만듭니다. “이상 없음”이 화면에서 가장 큰 물체가 되고,
+        나머지는 전부 그 아래로 물러납니다. 흰 카드 · 26px 라운드 · 부드러운 그림자 —
+        한국 사용자에게 이미 익숙한 문법(토스·당근 계열)이라 <strong>학습 비용이 0</strong>입니다.</p>
+        <p>브랜드색은 <strong>인디고</strong>입니다. 호박·초록·빨강이 상태 전용으로 예약돼 있으므로
+        브랜드는 그 셋 밖에서 골라야 합니다 — 이 방향은 그 제약을 정면으로 지킵니다.</p>
+        <div class="swatches" aria-label="하루 팔레트">
+          <i style="background:#EFEEE9"></i><i style="background:#FFFFFF"></i><i style="background:#1A1A1C"></i>
+          <i style="background:#3B4A86"></i><i style="background:#1F6B45"></i><i style="background:#9E3521"></i>
+        </div>
+        <dl class="notes">
+          <dt>바뀌는 것</dt>
+          <dd>내비게이션이 목록 행 → <strong>하단 탭바 4개</strong>. 스택 네비 → 탭 네비. 색면 → 카드 스택.</dd>
+          <dt>얻는 것</dt>
+          <dd>가장 쉽고 가장 안 무섭습니다. 터치 타깃이 전부 44pt 이상, 엄지 반경 안. 실사용자 이탈이 가장 낮을 방향.</dd>
+          <dt class="cost">치르는 것</dt>
+          <dd class="cost">가장 안 특별합니다. 스펙의 “탭 없음, 홈이 허브” 결정을 뒤집습니다. 포트폴리오 관점에선 다섯 중 가장 약합니다.</dd>
+        </dl>
+      </div>
+
+      <div class="rail">
+        <figure>
+          <div class="frame"><div class="scr dy">
+            <div class="sbar"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="top"><span class="t">8월 7일 목요일</span><span class="av">하율</span></div>
+            <div class="card">
+              <p class="lbl">지금 관찰 중</p>
+              <h2>두부<em>3일 중 2일째</em></h2>
+              <div class="dots">
+                <div class="done"><p class="d">1일</p><p class="v">이상 없음</p></div>
+                <div class="now"><p class="d">2일</p><p class="v">오늘</p></div>
+                <div><p class="d">3일</p><p class="v">8월 8일</p></div>
+              </div>
+            </div>
+            <div class="slab">
+              <div><p class="m">이상 없음</p><p class="s">오늘 기록하면 1일 남아요</p></div>
+              <span class="chk"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.6 4.6L19 7" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </div>
+            <div class="ghost warn">반응 기록 <span>관찰이 즉시 끝나요</span></div>
+            <div class="stats">
+              <a href="#0"><p class="n" style="color:#1F6B45">8</p><p class="l">안전</p></a>
+              <a href="#0"><p class="n" style="color:#8A6410">1</p><p class="l">관찰 중</p></a>
+              <a href="#0"><p class="n" style="color:#9E3521">2</p><p class="l">반응</p></a>
+              <a href="#0"><p class="n" style="color:#6A6E76">109</p><p class="l">안 먹어봄</p></a>
+            </div>
+            <div class="ghost" style="margin-top:14px">새 재료 시작하기 <span>›</span></div>
+            <nav class="tabbar">
+              <a href="#0" class="on"><svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>홈</a>
+              <a href="#0"><svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>재료</a>
+              <a href="#0"><svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M4 10h16M9 3v4M15 3v4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>캘린더</a>
+              <a href="#0"><svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 4v2.4M12 17.6V20M20 12h-2.4M6.4 12H4M17.6 6.4l-1.7 1.7M8.1 15.9l-1.7 1.7M17.6 17.6l-1.7-1.7M8.1 8.1L6.4 6.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>설정</a>
+            </nav>
+            <span class="hbar" style="background:#1A1A1C;opacity:.25"></span>
+          </div></div>
+          <figcaption>하루 · 홈 · 관찰 중</figcaption>
+        </figure>
+
+        <figure>
+          <div class="frame"><div class="scr dy">
+            <div class="sbar"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="top"><span class="t">8월 7일 목요일</span><span class="av">하율</span></div>
+            <div class="card" style="border-top:4px solid #9E3521;border-radius:26px">
+              <p class="lbl" style="color:#9E3521">마지막 기록 · 7월 31일</p>
+              <h2>달걀<em>반응</em></h2>
+              <div class="chips" style="margin-top:16px"><i>두드러기</i><i>얼굴 부종</i><i>중간</i></div>
+            </div>
+            <div class="rxcard">
+              <dl>
+                <div class="rw"><dt>발생</dt><dd class="tab">7월 31일 오후 2:10 · 2일째</dd></div>
+                <div class="rw"><dt>메모</dt><dd style="font-weight:500;line-height:1.5">볼과 목에 두드러기,<br>1시간 후 가라앉음</dd></div>
+                <div class="rw"><dt>이후</dt><dd style="color:#6A6E76;font-weight:500">달걀은 반응으로 기록됨</dd></div>
+              </dl>
+            </div>
+            <div class="ghost" style="margin-top:14px">기록 보기 <span>›</span></div>
+            <div class="slab" style="background:#1A1A1C;box-shadow:0 8px 22px rgba(26,26,28,.22)">
+              <div><p class="m">새 재료 시작하기</p><p class="s" style="color:#A8ACB6">3일 관찰이 바로 시작돼요</p></div>
+              <span class="chk"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 6l6 6-6 6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </div>
+            <div class="stats">
+              <a href="#0"><p class="n" style="color:#1F6B45">8</p><p class="l">안전</p></a>
+              <a href="#0"><p class="n" style="color:#B6BAC2">0</p><p class="l">관찰 중</p></a>
+              <a href="#0"><p class="n" style="color:#9E3521">2</p><p class="l">반응</p></a>
+              <a href="#0"><p class="n" style="color:#6A6E76">109</p><p class="l">안 먹어봄</p></a>
+            </div>
+            <nav class="tabbar">
+              <a href="#0" class="on"><svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>홈</a>
+              <a href="#0"><svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>재료</a>
+              <a href="#0"><svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M4 10h16M9 3v4M15 3v4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>캘린더</a>
+              <a href="#0"><svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 4v2.4M12 17.6V20M20 12h-2.4M6.4 12H4M17.6 6.4l-1.7 1.7M8.1 15.9l-1.7 1.7M17.6 17.6l-1.7-1.7M8.1 8.1L6.4 6.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>설정</a>
+            </nav>
+            <span class="hbar" style="background:#1A1A1C;opacity:.25"></span>
+          </div></div>
+          <figcaption>하루 · 홈 · 반응 기록됨</figcaption>
+        </figure>
+
+        <figure>
+          <div class="frame"><div class="scr dy">
+            <div class="sbar"><span>9:41</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="top" style="padding-top:8px"><span style="font-size:26px;font-weight:900;letter-spacing:-.03em">재료</span><span class="t">120가지</span></div>
+            <div class="srch"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>재료 검색…</div>
+            <div class="segs">
+              <a href="#0" class="on">전체 120</a><a href="#0">관찰 중 1</a><a href="#0">반응 2</a><a href="#0">안전 8</a>
+            </div>
+            <p class="lsec">기록 있음 · 11</p>
+            <div class="list">
+              <div class="r"><span class="nm" style="font-weight:800">두부</span><span class="hr">고위험</span><span class="tag" style="background:#FBF0DA;color:#8A6410">관찰 중</span></div>
+              <div class="r"><span class="nm">달걀</span><span class="hr">고위험</span><span class="tag" style="background:#FBECE8;color:#9E3521">반응</span></div>
+              <div class="r"><span class="nm">밀</span><span class="hr">고위험</span><span class="tag" style="background:#FBECE8;color:#9E3521">반응</span></div>
+              <div class="r"><span class="nm">감자</span><span class="tag" style="background:#E3F0E7;color:#1F6B45">안전</span></div>
+              <div class="r"><span class="nm">고구마</span><span class="tag" style="background:#E3F0E7;color:#1F6B45">안전</span></div>
+              <div class="r"><span class="nm">단호박</span><span class="tag" style="background:#E3F0E7;color:#1F6B45">안전</span></div>
+              <div class="r"><span class="nm">당근</span><span class="tag" style="background:#E3F0E7;color:#1F6B45">안전</span></div>
+              <div class="r"><span class="nm">바나나</span><span class="tag" style="background:#E3F0E7;color:#1F6B45">안전</span></div>
+            </div>
+            <p class="lsec">안 먹어봄 · 109</p>
+            <div class="list">
+              <div class="r"><span class="nm">감</span></div>
+              <div class="r"><span class="nm">게</span><span class="hr">고위험</span></div>
+              <div class="r"><span class="nm">고등어</span><span class="hr">고위험</span></div>
+            </div>
+            <nav class="tabbar">
+              <a href="#0"><svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>홈</a>
+              <a href="#0" class="on"><svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>재료</a>
+              <a href="#0"><svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M4 10h16M9 3v4M15 3v4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>캘린더</a>
+              <a href="#0"><svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 4v2.4M12 17.6V20M20 12h-2.4M6.4 12H4M17.6 6.4l-1.7 1.7M8.1 15.9l-1.7 1.7M17.6 17.6l-1.7-1.7M8.1 8.1L6.4 6.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>설정</a>
+            </nav>
+            <span class="hbar" style="background:#1A1A1C;opacity:.25"></span>
+          </div></div>
+          <figcaption>하루 · 재료 56</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 05 · 야간 ══════════════ -->
+  <section class="dir">
+    <div class="dir-head">
+      <span class="dir-no">05</span>
+      <h2 class="dir-name">야간</h2>
+      <span class="dir-latin">night — the vigil</span>
+    </div>
+    <div class="dir-body">
+      <div class="thesis">
+        <p class="lede">체크인은 밤에 일어납니다. 저녁 수유 뒤, 불 끈 방에서, 아기를 안고.</p>
+        <p>픽스처가 그렇게 말합니다 — 기록의 대부분이 <strong>오후 5–9시</strong>에 찍힙니다.
+        그런데 앱은 종이처럼 밝습니다. 이 방향은 <strong>어둠을 기본값으로</strong> 두고,
+        3일 관찰 창을 화면 왼쪽 <strong>수직 등불 기둥</strong>으로 세웁니다. 창이 곧 화면의 척추입니다.</p>
+        <p>“지켜보는 중”이라는 감정이 UI 자체가 되는 유일한 방향입니다. 다만 스펙 §2가 명시적으로
+        <em>“다크 모드 — v1 제외”</em>라고 못 박아 뒀습니다. <strong>그 결정을 되묻는 제안입니다.</strong></p>
+        <div class="swatches" aria-label="야간 팔레트">
+          <i style="background:#131311"></i><i style="background:#1D1C19"></i><i style="background:#EDE9E0"></i>
+          <i style="background:#E9A93C"></i><i style="background:#5FBF87"></i><i style="background:#F0664A"></i>
+        </div>
+        <dl class="notes">
+          <dt>바뀌는 것</dt>
+          <dd>전면 반전. 관찰 창이 가로 3칸 → <strong>세로 기둥</strong>. 오늘 칸은 시간에 따라 실제로 차오릅니다(스크린샷은 52%).</dd>
+          <dt>얻는 것</dt>
+          <dd>실사용 시간대(밤)와 화면 밝기가 처음으로 일치합니다. 알림 탭 → 어두운 화면 → 큰 버튼 하나. 임팩트 최상.</dd>
+          <dt class="cost">치르는 것</dt>
+          <dd class="cost">토큰 전면 재설계 + 대비 재검증. 라이트 모드도 유지하려면 사실상 두 벌입니다. PDF 리포트는 여전히 흰 종이라 앱과 결과물이 갈라집니다.</dd>
+        </dl>
+      </div>
+
+      <div class="rail">
+        <figure>
+          <div class="frame"><div class="scr nt">
+            <div class="sbar"><span>11:04</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="body">
+              <div class="spine" aria-label="3일 중 2일째">
+                <i class="on"></i><i class="live"></i><i></i>
+              </div>
+              <div class="col">
+                <p class="kick">관찰 2일째 / 3일</p>
+                <h2>두부</h2>
+                <p class="st">관찰 중</p>
+                <p class="sub">8월 9일이면 마무리할 수 있어요</p>
+                <div class="days">
+                  <div><span class="d">1일</span><span class="v ok">이상 없음</span><span class="t">오후 6:14</span></div>
+                  <div><span class="d">2일</span><span class="v now">오늘</span><span class="t">기록 전</span></div>
+                  <div><span class="d">3일</span><span class="v pend">—</span><span class="t">8/8</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="cta">
+              <a href="#0">이상 없음 <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.6 4.6L19 7" fill="none" stroke="#131311" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+              <a href="#0" class="gh">반응 기록 <small>관찰이 즉시 끝나요</small></a>
+            </div>
+            <nav class="bar">
+              <a href="#0" class="on"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>홈</a>
+              <a href="#0"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>재료</a>
+              <a href="#0"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M9 3v4M15 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>캘린더</a>
+              <a href="#0"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 4v2.4M12 17.6V20M20 12h-2.4M6.4 12H4M17.6 6.4l-1.7 1.7M8.1 15.9l-1.7 1.7M17.6 17.6l-1.7-1.7M8.1 8.1L6.4 6.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>설정</a>
+            </nav>
+            <span class="hbar" style="background:#EDE9E0;opacity:.3"></span>
+          </div></div>
+          <figcaption>야간 · 홈 · 관찰 중</figcaption>
+        </figure>
+
+        <figure>
+          <div class="frame"><div class="scr nt">
+            <div class="sbar"><span>11:04</span><span class="rgt">●●●● ⏻</span></div>
+            <div class="body">
+              <div class="spine" aria-label="2일째 반응으로 종료">
+                <i class="on" style="background:#5FBF87"></i><i class="red"></i><i></i>
+              </div>
+              <div class="col">
+                <p class="kick">마지막 기록 · 7월 31일</p>
+                <h2>달걀</h2>
+                <p class="st red">반응 기록됨</p>
+                <p class="sub">2일째 · 중간 · 두드러기, 얼굴 부종</p>
+                <dl class="rxn">
+                  <div><dt>발생</dt><dd class="tab">7월 31일 오후 2:10</dd></div>
+                  <div><dt>증상</dt><dd>두드러기, 얼굴 부종</dd></div>
+                  <div><dt>심각도</dt><dd>중간</dd></div>
+                  <div><dt>메모</dt><dd class="q">볼과 목에 두드러기,<br>1시간 후 가라앉음</dd></div>
+                </dl>
+                <div class="days" style="margin-top:20px">
+                  <div><span class="d">1일</span><span class="v ok">이상 없음</span><span class="t">오후 5:22</span></div>
+                  <div><span class="d">2일</span><span class="v no">반응 발생</span><span class="t">오후 2:10</span></div>
+                  <div><span class="d">3일</span><span class="v pend">관찰 중단</span><span class="t"></span></div>
+                </div>
+              </div>
+            </div>
+            <div class="cta">
+              <a href="#0" class="gh">기록 보기 <small>전체 이력</small></a>
+              <a href="#0" style="background:#EDE9E0">새 재료 시작하기 <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 6l6 6-6 6" fill="none" stroke="#131311" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+            </div>
+            <nav class="bar">
+              <a href="#0" class="on"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>홈</a>
+              <a href="#0"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>재료</a>
+              <a href="#0"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M9 3v4M15 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>캘린더</a>
+              <a href="#0"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 4v2.4M12 17.6V20M20 12h-2.4M6.4 12H4M17.6 6.4l-1.7 1.7M8.1 15.9l-1.7 1.7M17.6 17.6l-1.7-1.7M8.1 8.1L6.4 6.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>설정</a>
+            </nav>
+            <span class="hbar" style="background:#EDE9E0;opacity:.3"></span>
+          </div></div>
+          <figcaption>야간 · 홈 · 반응 기록됨</figcaption>
+        </figure>
+
+        <figure>
+          <div class="frame"><div class="scr nt">
+            <div class="sbar"><span>11:04</span><span class="rgt">●●●● ⏻</span></div>
+            <div style="padding:2px 24px 0"><p class="kick">‹ 홈</p><h2 style="font-size:34px;margin-top:12px;letter-spacing:-.03em">재료 <span style="color:#6E695F;font-size:17px;font-weight:700" class="tab">120</span></h2></div>
+            <div class="srch"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>재료 검색…</div>
+            <div class="segs"><a href="#0" class="on">전체</a><a href="#0">관찰 1</a><a href="#0">반응 2</a><a href="#0">안전 8</a></div>
+            <p class="lsec">기록 있음 · 11</p>
+            <div class="lrow"><span class="edge" style="background:#E9A93C"></span><span class="nm" style="font-weight:800">두부</span><span class="hr">고위험</span><span class="tag" style="color:#E9A93C">관찰 중</span></div>
+            <div class="lrow"><span class="edge" style="background:#F0664A"></span><span class="nm">달걀</span><span class="hr">고위험</span><span class="tag" style="color:#F0664A">반응</span></div>
+            <div class="lrow"><span class="edge" style="background:#F0664A"></span><span class="nm">밀</span><span class="hr">고위험</span><span class="tag" style="color:#F0664A">반응</span></div>
+            <div class="lrow"><span class="edge" style="background:#5FBF87"></span><span class="nm">감자</span><span class="tag" style="color:#5FBF87">안전</span></div>
+            <div class="lrow"><span class="edge" style="background:#5FBF87"></span><span class="nm">고구마</span><span class="tag" style="color:#5FBF87">안전</span></div>
+            <div class="lrow"><span class="edge" style="background:#5FBF87"></span><span class="nm">단호박</span><span class="tag" style="color:#5FBF87">안전</span></div>
+            <div class="lrow"><span class="edge" style="background:#5FBF87"></span><span class="nm">당근</span><span class="tag" style="color:#5FBF87">안전</span></div>
+            <div class="lrow"><span class="edge" style="background:#5FBF87"></span><span class="nm">바나나</span><span class="tag" style="color:#5FBF87">안전</span></div>
+            <p class="lsec">안 먹어봄 · 109</p>
+            <div class="lrow"><span class="nm" style="color:#928C80">감</span></div>
+            <div class="lrow"><span class="nm" style="color:#928C80">게</span><span class="hr">고위험</span></div>
+            <div class="lrow"><span class="nm" style="color:#928C80">고등어</span><span class="hr">고위험</span></div>
+            <nav class="bar" style="margin-top:auto">
+              <a href="#0"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>홈</a>
+              <a href="#0" class="on"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>재료</a>
+              <a href="#0"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M9 3v4M15 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>캘린더</a>
+              <a href="#0"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 4v2.4M12 17.6V20M20 12h-2.4M6.4 12H4M17.6 6.4l-1.7 1.7M8.1 15.9l-1.7 1.7M17.6 17.6l-1.7-1.7M8.1 8.1L6.4 6.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>설정</a>
+            </nav>
+            <span class="hbar" style="background:#EDE9E0;opacity:.3"></span>
+          </div></div>
+          <figcaption>야간 · 재료 56</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ closing ══════════════ -->
+  <section class="close">
+    <h2>고르는 법</h2>
+    <div class="grid">
+      <div><h3>포트폴리오가 목적이면</h3><p><b>03 신호</b>. 스토어 스크린샷과 앱 아이콘이 저절로 나오고, 접근성 규칙을 미학으로 바꾼 서사가 있습니다.</p></div>
+      <div><h3>실사용자가 목적이면</h3><p><b>04 하루</b>. 가장 안 무섭고 학습 비용이 0입니다. 대신 스펙의 “탭 없음” 결정을 뒤집습니다.</p></div>
+      <div><h3>지금 코드를 살리려면</h3><p><b>01 차트</b>. 뼈대·상태 기계·토큰 구조가 그대로 갑니다. 실제로 바뀌는 건 색·罫線·표뿐입니다.</p></div>
+      <div><h3>가장 하고 싶은 것</h3><p><b>02 표본</b> 또는 <b>05 야간</b>. 둘 다 앱에 없던 감정을 넣습니다 — 수집, 또는 지켜보기.</p></div>
+    </div>
+    <p class="keep">
+      다섯 방향 전부에서 <b>바뀌지 않는 것</b>: 상태는 파생값이고 저장되지 않습니다 · 한 번에 한 재료 ·
+      관찰하지 않은 날을 안전이라 쓰지 않습니다 · 색이 혼자 의미를 지지 않습니다 · 한국어 전용 ·
+      전부 기기 안에서만. 리디자인은 <b>표현층</b>의 문제이고, 도메인은 이미 옳습니다.
+    </p>
+  </section>
+</div>
