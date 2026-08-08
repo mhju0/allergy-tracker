@@ -348,5 +348,26 @@
       "pending": "—",
       "stopped": "관찰 중단"
     }
+  },
+  "foodFamily": {
+    "egg": "알",
+    "dairy": "유제품",
+    "grain": "곡물",
+    "bean": "콩",
+    "nut": "견과·씨",
+    "fish": "생선",
+    "shell": "조개·연체",
+    "meat": "고기",
+    "root": "뿌리채소",
+    "leaf": "잎채소",
+    "fruitveg": "열매채소",
+    "floret": "꽃채소",
+    "mushroom": "버섯",
+    "seaweed": "해조",
+    "treefruit": "나무열매",
+    "berry": "베리",
+    "citrus": "감귤",
+    "tropical": "남국과일",
+    "melon": "박과과일"
   }
 }
