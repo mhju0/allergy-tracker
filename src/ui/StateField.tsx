@@ -62,6 +62,11 @@ export function useFieldFade(kind: Kind): Animated.AnimatedInterpolation<string>
 
 const CORNER = 15;
 const CORNER_W = 1.5;
+// Pulled out into the screen inset. At 0 the top-left bracket landed on top of
+// the eyebrow text; the mount holds the specimen from outside its edge, so
+// sitting in the margin is both correct and legible. screenInset is 22, so 14
+// keeps the bracket clear of the screen edge.
+const CORNER_OUT = 14;
 
 function MountCorner({ corner }: { corner: 'tl' | 'tr' | 'bl' | 'br' }) {
   const top = corner[0] === 't';
@@ -76,7 +81,7 @@ function MountCorner({ corner }: { corner: 'tl' | 'tr' | 'bl' | 'br' }) {
         width: CORNER,
         height: CORNER,
         [top ? 'top' : 'bottom']: 0,
-        [left ? 'left' : 'right']: 0,
+        [left ? 'left' : 'right']: -CORNER_OUT,
         borderColor: colors.inkOnField,
         borderTopWidth: top ? CORNER_W : 0,
         borderBottomWidth: top ? 0 : CORNER_W,
