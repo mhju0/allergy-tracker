@@ -9,6 +9,9 @@ import { foodLabel } from '../src/i18n';
 import { pendingAutoclose, type FoodStatus } from '../src/domain/status';
 import { StatusChip } from '../src/ui/StatusChip';
 import { press } from '../src/ui/pressable';
+import { FoodGlyph } from '../src/ui/FoodGlyph';
+import { type FamilyId } from '../src/db/families';
+import { groupByFamily } from '../src/domain/foodGroups';
 import { colors, layout, radii } from '../src/ui/tokens';
 
 // Dependency-free magnifier glyph (no icon lib in the project) — a ring plus a
@@ -35,7 +38,8 @@ const FILTERS = ['testing', 'reacted', 'safe', 'untried'] as const;
 
 type Row =
   | { kind: 'header'; key: string; label: string; count: number }
-  | { kind: 'food'; key: string; item: FoodWithStatus };
+  | { kind: 'family'; key: string; family: FamilyId; count: number; allHighRisk: boolean }
+  | { kind: 'food'; key: string; item: FoodWithStatus; hideHighRisk?: boolean };
 const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.inkSecondary, paddingBottom: 12 };
 
 export default function Foods() {
@@ -84,7 +88,34 @@ export default function Foods() {
     }
     if (untried.length) {
       out.push({ kind: 'header', key: 'h-untried', label: t('foods.groupUntried'), count: untried.length });
-      for (const item of untried) out.push({ kind: 'food', key: item.food.id, item });
+
+      // 안 먹어봄 is ~109 rows on a fresh install. Grouped into family bands it
+      // reads as structure instead of a wall, and the band is what carries the
+      // glyph. 가나다순 still decides the order — both between bands and inside
+      // them — so this adds a layer without changing the sort principle.
+      const { bands, unfamiliar } = groupByFamily(
+        untried,
+        (f) => f.food.id,
+        (f) => Boolean(f.food.allergenGroup),
+        (fam) => t(`foodFamily.${fam}`),
+      );
+
+      for (const band of bands) {
+        // When every food under a band is high-risk the badge belongs on the
+        // band, said once, and the rows stay clean. A mixed family (곡물 has
+        // one 밀 among twelve) keeps the badge per row, where it discriminates.
+        out.push({
+          kind: 'family', key: `f-${band.family}`, family: band.family,
+          count: band.members.length, allHighRisk: band.allHighRisk,
+        });
+        for (const item of band.members) {
+          out.push({ kind: 'food', key: item.food.id, item, hideHighRisk: band.allHighRisk });
+        }
+      }
+
+      // A food from an older build that is no longer in CATALOG has no family.
+      // It still has to appear, so it trails the bands rather than vanishing.
+      for (const item of unfamiliar) out.push({ kind: 'food', key: item.food.id, item });
     }
     return out;
   }, [foods, query, filter, i18n.language, t]);
@@ -201,9 +232,45 @@ export default function Foods() {
                 · {row.count}
               </Text>
             </View>
+          ) : row.kind === 'family' ? (
+            <View
+              accessibilityRole="header"
+              accessibilityLabel={[
+                t(`foodFamily.${row.family}`),
+                String(row.count),
+                row.allHighRisk ? t('foods.highRisk') : null,
+              ].filter(Boolean).join(', ')}
+              style={{
+                flexDirection: 'row', alignItems: 'center', gap: 9,
+                paddingVertical: 8, paddingHorizontal: layout.rowInset,
+                backgroundColor: colors.surface,
+                borderTopWidth: 1, borderBottomWidth: 1,
+                borderTopColor: colors.ink, borderBottomColor: colors.hairline,
+              }}
+            >
+              <FoodGlyph family={row.family} size={20} />
+              <Text style={{ flex: 1, fontSize: 11, fontWeight: '800', letterSpacing: 1.6, color: colors.ink }}>
+                {t(`foodFamily.${row.family}`)}
+              </Text>
+              {row.allHighRisk && (
+                <Text
+                  style={{
+                    fontSize: 9, fontWeight: '800', color: colors.red, borderWidth: 1,
+                    borderColor: colors.red, borderRadius: 3, paddingHorizontal: 4, paddingVertical: 1,
+                  }}
+                >
+                  {t('foods.highRisk')}
+                </Text>
+              )}
+              {/* outside the letterspaced run — 1.6 would render "11" as "1 1" */}
+              <Text style={{ fontSize: 11, fontWeight: '700', color: colors.inkSecondary }}>
+                {row.count}
+              </Text>
+            </View>
           ) : (
             <FoodRow
               item={row.item}
+              hideHighRisk={row.hideHighRisk}
               onPress={
                 pick === '1'
                   ? () => startFlow(row.item.food, () => router.back())
@@ -223,7 +290,9 @@ export default function Foods() {
   );
 }
 
-function FoodRow({ item, onPress }: { item: FoodWithStatus; onPress: () => void }) {
+function FoodRow({
+  item, onPress, hideHighRisk = false,
+}: { item: FoodWithStatus; onPress: () => void; hideHighRisk?: boolean }) {
   const { t } = useTranslation();
   const bold = item.status === 'testing';
   const untried = item.status === 'untried';
@@ -247,7 +316,10 @@ function FoodRow({ item, onPress }: { item: FoodWithStatus; onPress: () => void 
       <Text style={{ flex: 1, fontSize: 15, fontWeight: bold ? '800' : '600', color: colors.ink }}>
         {foodLabel(item.food)}
       </Text>
-      {item.food.allergenGroup && (
+      {/* hideHighRisk: the family band above already said it for every row in
+          the run. The accessibilityLabel below still carries it, because a
+          screen reader reads this row on its own. */}
+      {item.food.allergenGroup && !hideHighRisk && (
         <Text
           style={{
             fontSize: 10, fontWeight: '800', color: colors.red, borderWidth: 1,

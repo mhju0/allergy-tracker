@@ -60,6 +60,33 @@ export function useFieldFade(kind: Kind): Animated.AnimatedInterpolation<string>
   });
 }
 
+const CORNER = 15;
+const CORNER_W = 1.5;
+
+function MountCorner({ corner }: { corner: 'tl' | 'tr' | 'bl' | 'br' }) {
+  const top = corner[0] === 't';
+  const left = corner[1] === 'l';
+  return (
+    <View
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{
+        position: 'absolute',
+        width: CORNER,
+        height: CORNER,
+        [top ? 'top' : 'bottom']: 0,
+        [left ? 'left' : 'right']: 0,
+        borderColor: colors.inkOnField,
+        borderTopWidth: top ? CORNER_W : 0,
+        borderBottomWidth: top ? 0 : CORNER_W,
+        borderLeftWidth: left ? CORNER_W : 0,
+        borderRightWidth: left ? 0 : CORNER_W,
+      }}
+    />
+  );
+}
+
 export function StateField({
   kind, eyebrow, name, stateWord, subline, recordLabel, onPressRecord, filled, total,
 }: {
@@ -102,7 +129,16 @@ export function StateField({
   );
 
   return (
-    <View>
+    <View style={{ position: 'relative' }}>
+      {/* 표본 mounting corners — the four brackets that hold a specimen to its
+          sheet. Decorative only: pointerEvents none so they never intercept
+          the record tap, and no accessibility node, since they say nothing a
+          screen reader needs. */}
+      <MountCorner corner="tl" />
+      <MountCorner corner="tr" />
+      <MountCorner corner="bl" />
+      <MountCorner corner="br" />
+
       {onPressRecord ? (
         <Pressable
           accessibilityRole="button"
