@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Warm Care — Allergy Tracker UI Mocks</title>
+  <style>
+    :root {
+      --canvas: #f3e9e0;
+      --paper: #fff8f2;
+      --surface: #ffffff;
+      --ink: #362c27;
+      --ink-2: #6e5d55;
+      --ink-3: #9b8980;
+      --primary: #b64f37;
+      --primary-dark: #983b27;
+      --primary-soft: #f9e5dc;
+      --honey: #fff0cf;
+      --honey-ink: #7a5413;
+      --sage: #e4f2e8;
+      --sage-ink: #356b4e;
+      --berry: #f9e5e7;
+      --berry-ink: #963944;
+      --lavender: #eee9f7;
+      --lavender-ink: #5c4f7c;
+      --line: #ebddd3;
+      --shadow: 0 18px 50px rgba(93, 61, 45, .13);
+      --font: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 2%, rgba(255,255,255,.85), transparent 28rem),
+        linear-gradient(135deg, #f7eee6, var(--canvas));
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, textarea { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    a { color: inherit; text-decoration: none; }
+    :focus-visible { outline: 3px solid #1f6f8f; outline-offset: 3px; }
+
+    .page { width: min(1500px, 100%); margin: 0 auto; padding: 64px 28px 96px; }
+    .masthead { display: grid; grid-template-columns: 1.3fr .7fr; gap: 56px; align-items: end; }
+    .kicker { color: var(--primary); font-size: 12px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+    h1 { max-width: 760px; margin: 14px 0 20px; font-size: clamp(44px, 7vw, 88px); line-height: .98; letter-spacing: -.055em; }
+    .lede { max-width: 620px; margin: 0; color: var(--ink-2); font-size: 18px; line-height: 1.7; }
+    .principles { display: grid; gap: 10px; }
+    .principle { display: flex; gap: 12px; align-items: center; padding: 14px 16px; border: 1px solid rgba(182,79,55,.14); border-radius: 18px; background: rgba(255,255,255,.5); color: var(--ink-2); font-size: 14px; }
+    .principle b { color: var(--ink); }
+    .principle .dot { flex: 0 0 10px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 6px var(--primary-soft); }
+
+    .logic { margin-top: 54px; padding: 24px; border-radius: 26px; background: var(--ink); color: white; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; overflow: hidden; }
+    .logic article { padding: 18px 22px; border-right: 1px solid rgba(255,255,255,.13); }
+    .logic article:last-child { border-right: 0; }
+    .logic small { color: #d8c5ba; font-weight: 700; }
+    .logic strong { display: block; margin-top: 6px; font-size: 18px; }
+
+    .gallery-heading { margin: 86px 0 28px; display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+    .gallery-heading h2 { margin: 0; font-size: 34px; letter-spacing: -.035em; }
+    .gallery-heading p { max-width: 560px; margin: 0; color: var(--ink-2); line-height: 1.6; }
+    .gallery { display: grid; grid-template-columns: repeat(3, 390px); justify-content: space-between; gap: 58px 34px; }
+    .mock { margin: 0; scroll-margin-top: 24px; }
+    figcaption { display: flex; align-items: baseline; justify-content: space-between; margin: 14px 4px 0; color: var(--ink-2); font-size: 13px; }
+    figcaption strong { color: var(--ink); font-size: 15px; }
+
+    .phone { position: relative; width: 390px; height: 844px; overflow: hidden; border: 8px solid #2f2926; border-radius: 46px; background: var(--paper); box-shadow: var(--shadow); }
+    .screen { position: relative; height: 100%; display: flex; flex-direction: column; overflow: hidden; background: var(--paper); }
+    .statusbar { height: 45px; flex: 0 0 45px; padding: 15px 24px 0; display: flex; align-items: center; justify-content: space-between; color: var(--ink); font-size: 12px; font-weight: 800; }
+    .statusbar .system { display: flex; gap: 5px; align-items: center; }
+    .island { position: absolute; top: 11px; left: 50%; width: 96px; height: 25px; transform: translateX(-50%); border-radius: 999px; background: #1f1b19; }
+    .content { flex: 1; min-height: 0; overflow: hidden; padding: 10px 20px 106px; }
+    .content.scroll { overflow-y: auto; scrollbar-width: none; }
+    .content.scroll::-webkit-scrollbar { display: none; }
+    .topbar { min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .topbar h2 { margin: 0; font-size: 27px; letter-spacing: -.035em; }
+    .topbar .hello { color: var(--ink-2); font-size: 13px; font-weight: 650; }
+    .profile, .back, .close {
+      min-width: 48px; min-height: 48px; border: 0; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      background: var(--surface); color: var(--ink); box-shadow: 0 6px 18px rgba(93,61,45,.08); cursor: pointer;
+    }
+    .profile { width: auto; padding: 0 13px; font-size: 13px; font-weight: 750; }
+    .back { justify-content: flex-start; width: auto; padding: 0 12px; box-shadow: none; background: transparent; }
+    .close { box-shadow: none; background: transparent; }
+    svg { display: block; }
+
+    .card { border: 1px solid rgba(128, 89, 68, .08); border-radius: 26px; background: var(--surface); box-shadow: 0 12px 32px rgba(93,61,45,.08); }
+    .hero { position: relative; overflow: hidden; padding: 22px; background: linear-gradient(145deg, #fff3d6, var(--honey)); }
+    .hero::after { content: ""; position: absolute; width: 150px; height: 150px; right: -55px; top: -58px; border-radius: 46% 54% 48% 52%; background: rgba(255,255,255,.45); transform: rotate(18deg); }
+    .chip { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+    .chip.honey { color: var(--honey-ink); background: rgba(255,255,255,.62); }
+    .chip.sage { color: var(--sage-ink); background: var(--sage); }
+    .chip.berry { color: var(--berry-ink); background: var(--berry); }
+    .chip.neutral { color: var(--ink-2); background: #f5eee9; }
+    .hero h3 { position: relative; z-index: 1; margin: 20px 0 3px; font-size: 39px; line-height: 1; letter-spacing: -.045em; }
+    .hero p { position: relative; z-index: 1; margin: 0; color: var(--honey-ink); font-size: 14px; font-weight: 700; }
+    .progress { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 24px; }
+    .day { padding: 12px 10px; border-radius: 16px; background: rgba(255,255,255,.52); }
+    .day b { display: block; font-size: 12px; }
+    .day span { display: block; margin-top: 4px; color: var(--ink-2); font-size: 11px; line-height: 1.3; }
+    .day.done { background: var(--surface); }
+    .day.now { box-shadow: inset 0 0 0 2px var(--primary); }
+
+    .section-title { display: flex; align-items: center; justify-content: space-between; margin: 22px 2px 10px; }
+    .section-title h3 { margin: 0; font-size: 17px; letter-spacing: -.02em; }
+    .section-title span { color: var(--ink-2); font-size: 12px; }
+    .helper { color: var(--ink-2); font-size: 13px; line-height: 1.55; }
+    .button {
+      width: 100%; min-height: 52px; border: 0; border-radius: 17px; display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      padding: 0 18px; color: white; background: var(--primary); font-size: 15px; font-weight: 800; cursor: pointer; transition: transform 160ms ease, background 160ms ease, opacity 160ms ease;
+    }
+    .button:hover { background: var(--primary-dark); }
+    .button:active { transform: scale(.98); }
+    .button.secondary { color: var(--ink); background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--line); }
+    .button.danger { color: var(--berry-ink); background: var(--berry); }
+    .button:disabled { cursor: not-allowed; opacity: .43; }
+    .actions { display: grid; gap: 9px; margin-top: 18px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .stat { padding: 15px 12px; border-radius: 20px; background: var(--surface); text-align: center; }
+    .stat b { display: block; font-size: 22px; }
+    .stat span { color: var(--ink-2); font-size: 11px; font-weight: 700; }
+    .stat.safe b { color: var(--sage-ink); }
+    .stat.testing b { color: var(--honey-ink); }
+    .stat.reacted b { color: var(--berry-ink); }
+
+    .bottomnav { position: absolute; z-index: 10; left: 14px; right: 14px; bottom: 13px; height: 76px; padding: 8px; display: grid; grid-template-columns: repeat(3,1fr); border: 1px solid rgba(128,89,68,.12); border-radius: 26px; background: rgba(255,255,255,.95); box-shadow: 0 14px 40px rgba(93,61,45,.18); backdrop-filter: blur(14px); }
+    .bottomnav a { min-height: 58px; border-radius: 19px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--ink-3); font-size: 10px; font-weight: 800; }
+    .bottomnav a.active { color: var(--primary); background: var(--primary-soft); }
+    .bottomnav svg { width: 21px; height: 21px; }
+
+    .search { height: 52px; display: flex; align-items: center; gap: 10px; padding: 0 15px; border: 1px solid var(--line); border-radius: 17px; background: var(--surface); }
+    .search input { width: 100%; border: 0; outline: 0; color: var(--ink); background: transparent; font-size: 15px; }
+    .filters { display: flex; gap: 7px; margin: 13px 0 18px; overflow: hidden; }
+    .filter { min-height: 40px; border: 1px solid var(--line); border-radius: 999px; padding: 0 13px; color: var(--ink-2); background: transparent; font-size: 12px; font-weight: 800; white-space: nowrap; cursor: pointer; }
+    .filter.on { border-color: var(--ink); color: white; background: var(--ink); }
+    .food-list { display: grid; gap: 9px; }
+    .food-row { min-height: 68px; padding: 12px 13px; border-radius: 19px; background: var(--surface); display: flex; align-items: center; gap: 12px; box-shadow: 0 7px 22px rgba(93,61,45,.055); }
+    .food-icon { flex: 0 0 43px; width: 43px; height: 43px; border-radius: 15px; display: grid; place-items: center; background: #f5eee9; }
+    .food-icon.honey { color: var(--honey-ink); background: var(--honey); }
+    .food-icon.sage { color: var(--sage-ink); background: var(--sage); }
+    .food-icon.berry { color: var(--berry-ink); background: var(--berry); }
+    .food-copy { min-width: 0; flex: 1; }
+    .food-copy b { display: block; font-size: 15px; }
+    .food-copy span { display: block; margin-top: 3px; color: var(--ink-2); font-size: 11px; }
+    .chevron { color: var(--ink-3); }
+    .pick-card { display: flex; align-items: center; gap: 13px; margin-bottom: 14px; padding: 15px; border-radius: 22px; color: var(--primary-dark); background: var(--primary-soft); }
+    .pick-card b { display: block; font-size: 14px; }
+    .pick-card span { display: block; margin-top: 2px; font-size: 11px; line-height: 1.4; }
+
+    .detail-hero { text-align: center; padding: 16px 0 10px; }
+    .food-orb { width: 92px; height: 92px; margin: 0 auto 13px; border-radius: 30px; display: grid; place-items: center; color: var(--honey-ink); background: var(--honey); transform: rotate(-3deg); }
+    .food-orb svg { transform: rotate(3deg); }
+    .detail-hero h3 { margin: 0; font-size: 36px; letter-spacing: -.04em; }
+    .detail-hero p { margin: 6px 0 0; color: var(--ink-2); font-size: 13px; }
+    .risk-note { margin-top: 14px; padding: 15px; border-radius: 18px; color: var(--berry-ink); background: var(--berry); font-size: 12px; line-height: 1.55; }
+    .timeline { padding: 4px 16px; }
+    .timeline-row { position: relative; display: grid; grid-template-columns: 24px 1fr; gap: 10px; min-height: 62px; padding: 12px 0; }
+    .timeline-row + .timeline-row { border-top: 1px solid var(--line); }
+    .timeline-mark { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; margin-top: 1px; color: var(--sage-ink); background: var(--sage); }
+    .timeline-row b { display: block; font-size: 13px; }
+    .timeline-row span { display: block; margin-top: 3px; color: var(--ink-2); font-size: 11px; line-height: 1.4; }
+
+    .monthbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+    .monthbar h3 { margin: 0; font-size: 24px; }
+    .month-actions { display: flex; gap: 6px; }
+    .square-btn { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); cursor: pointer; }
+    .calendar { padding: 14px; }
+    .weekdays, .week { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; }
+    .weekdays { margin-bottom: 5px; color: var(--ink-3); font-size: 10px; font-weight: 800; }
+    .date { position: relative; min-width: 0; aspect-ratio: 1; border: 0; border-radius: 12px; display: grid; place-items: center; color: var(--ink); background: transparent; font-size: 11px; cursor: pointer; }
+    .date.out { color: #c6b6ac; }
+    .date.safe { background: var(--sage); }
+    .date.watch { background: var(--honey); }
+    .date.react { background: var(--berry); }
+    .date.selected { box-shadow: inset 0 0 0 2px var(--primary); font-weight: 900; }
+    .date.has::after { content: ""; position: absolute; bottom: 5px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 4px 0; color: var(--ink-2); font-size: 10px; font-weight: 700; }
+    .legend span { display: inline-flex; align-items: center; gap: 4px; }
+    .legend i { width: 10px; height: 10px; border-radius: 4px; }
+    .event { padding: 14px; display: flex; gap: 11px; align-items: flex-start; }
+    .event + .event { border-top: 1px solid var(--line); }
+    .event-dot { flex: 0 0 10px; width: 10px; height: 10px; margin-top: 4px; border-radius: 50%; background: var(--sage-ink); }
+    .event b { display: block; font-size: 13px; }
+    .event span { display: block; margin-top: 3px; color: var(--ink-2); font-size: 11px; }
+    .event time { margin-left: auto; color: var(--ink-3); font-size: 10px; }
+
+    .sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .sheet-head h2 { margin: 0; font-size: 23px; }
+    .subject { padding: 14px 16px; border-radius: 18px; background: var(--honey); }
+    .subject b { display: block; font-size: 16px; }
+    .subject span { display: block; margin-top: 2px; color: var(--honey-ink); font-size: 11px; }
+    .field-label { display: block; margin: 19px 2px 9px; font-size: 13px; font-weight: 850; }
+    .field-label small { color: var(--ink-2); font-weight: 600; }
+    .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+    .choice { min-height: 42px; border: 1px solid var(--line); border-radius: 14px; padding: 0 13px; color: var(--ink); background: var(--surface); font-size: 12px; font-weight: 750; cursor: pointer; }
+    .choice.on { border-color: var(--berry-ink); color: var(--berry-ink); background: var(--berry); box-shadow: inset 0 0 0 1px var(--berry-ink); }
+    .segments { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; padding: 5px; border-radius: 17px; background: #f1e7e1; }
+    .segment { min-height: 40px; border: 0; border-radius: 13px; color: var(--ink-2); background: transparent; font-size: 12px; font-weight: 800; cursor: pointer; }
+    .segment.on { color: var(--ink); background: var(--surface); box-shadow: 0 5px 14px rgba(93,61,45,.08); }
+    .emergency { display: none; margin-top: 13px; padding: 14px; border-radius: 16px; color: var(--berry-ink); background: var(--berry); font-size: 12px; font-weight: 750; line-height: 1.5; }
+    .emergency.show { display: block; }
+    .input { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 15px; padding: 12px 13px; color: var(--ink); background: var(--surface); }
+    textarea.input { min-height: 68px; resize: none; }
+    .sticky-action { position: absolute; z-index: 8; left: 20px; right: 20px; bottom: 20px; padding-top: 12px; background: linear-gradient(transparent, var(--paper) 24%); }
+
+    .settings-group { margin-bottom: 14px; overflow: hidden; }
+    .settings-title { margin: 20px 3px 8px; color: var(--ink-2); font-size: 11px; font-weight: 850; letter-spacing: .08em; }
+    .setting-row { min-height: 62px; padding: 12px 15px; display: flex; align-items: center; gap: 12px; background: var(--surface); }
+    .setting-row + .setting-row { border-top: 1px solid var(--line); }
+    .setting-icon { flex: 0 0 38px; width: 38px; height: 38px; border-radius: 13px; display: grid; place-items: center; color: var(--primary); background: var(--primary-soft); }
+    .setting-copy { min-width: 0; flex: 1; }
+    .setting-copy b { display: block; font-size: 13px; }
+    .setting-copy span { display: block; margin-top: 3px; color: var(--ink-2); font-size: 10px; line-height: 1.35; }
+    .setting-value { color: var(--ink-2); font-size: 11px; font-weight: 750; }
+    .privacy-note { padding: 17px; border-radius: 20px; color: var(--sage-ink); background: var(--sage); font-size: 12px; line-height: 1.55; }
+    .disclaimer { margin: 13px 6px 0; color: var(--ink-2); font-size: 10px; line-height: 1.5; }
+
+    .toast { position: fixed; z-index: 99; left: 50%; bottom: 24px; max-width: calc(100vw - 32px); padding: 13px 18px; border-radius: 999px; color: white; background: var(--ink); box-shadow: 0 12px 34px rgba(0,0,0,.2); font-size: 13px; font-weight: 750; opacity: 0; transform: translate(-50%, 16px); pointer-events: none; transition: .22s ease; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 1270px) {
+      .gallery { grid-template-columns: repeat(2, 390px); justify-content: space-evenly; }
+    }
+    @media (max-width: 860px) {
+      .page { padding: 40px 18px 70px; }
+      .masthead { grid-template-columns: 1fr; gap: 28px; }
+      .logic { grid-template-columns: 1fr; }
+      .logic article { border-right: 0; border-bottom: 1px solid rgba(255,255,255,.13); }
+      .logic article:last-child { border-bottom: 0; }
+      .gallery-heading { align-items: start; flex-direction: column; }
+      .gallery { display: flex; width: calc(100vw - 18px); margin-right: -18px; padding: 0 18px 24px 0; overflow-x: auto; scroll-snap-type: x mandatory; justify-content: start; }
+      .mock { flex: 0 0 390px; scroll-snap-align: center; }
+    }
+    @media (max-width: 430px) {
+      .page { padding-left: 12px; padding-right: 0; }
+      .masthead, .logic, .gallery-heading { margin-right: 12px; }
+      .phone { width: 375px; height: 812px; transform-origin: top left; }
+      .mock { flex-basis: 375px; }
+      h1 { font-size: 49px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="masthead">
+      <div>
+        <div class="kicker">Allergy Tracker · UI Revamp</div>
+        <h1>Warm enough to reassure.<br>Clear enough for 3 a.m.</h1>
+        <p class="lede">아기 알레르기 기록을 “상태를 해석하는 앱”에서 “지금 할 일을 알려주는 앱”으로 바꿉니다. 여섯 화면이 하나의 따뜻하고 쉬운 흐름으로 이어집니다.</p>
+      </div>
+      <div class="principles" aria-label="Design principles">
+        <div class="principle"><span class="dot"></span><span><b>한 화면, 한 가지 다음 행동</b><br>주요 버튼은 늘 하나만 강조</span></div>
+        <div class="principle"><span class="dot"></span><span><b>아이콘 + 글자 + 색</b><br>색만 보고 판단하지 않도록 설계</span></div>
+        <div class="principle"><span class="dot"></span><span><b>48px 터치 영역</b><br>피곤한 손에도 편안한 간격</span></div>
+      </div>
+    </header>
+
+    <section class="logic" aria-label="Navigation logic">
+      <article><small>01 · 오늘</small><strong>지금 관찰 중인 재료와 오늘 할 일</strong></article>
+      <article><small>02 · 재료</small><strong>검색하고, 고르고, 전체 상태 보기</strong></article>
+      <article><small>03 · 기록</small><strong>언제 무엇을 기록했는지 다시 보기</strong></article>
+    </section>
+
+    <div class="gallery-heading">
+      <h2>Six connected mocks</h2>
+      <p>아래 컨트롤은 실제로 눌러볼 수 있습니다. 탭은 같은 이름의 화면으로 이동하고, 선택형 입력과 기록 버튼은 즉시 상태를 보여줍니다.</p>
+    </div>
+
+    <section class="gallery" aria-label="Allergy Tracker redesigned screens">
+      <figure class="mock" id="today">
+        <div class="phone">
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span class="island"></span><span class="system">▮▮ ◔ 87%</span></div>
+            <div class="content scroll">
+              <header class="topbar">
+                <div><div class="hello">좋은 아침이에요</div><h2>오늘의 관찰</h2></div>
+                <a class="profile" href="#settings" aria-label="설정으로 이동">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>
+                  설정
+                </a>
+              </header>
+
+              <section class="card hero">
+                <span class="chip honey">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                  관찰 중 · 2일째
+                </span>
+                <h3>두부</h3>
+                <p>내일 오전 9시에 관찰이 끝나요</p>
+                <div class="progress" aria-label="3일 관찰 진행 상황">
+                  <div class="day done"><b>1일</b><span>이상 없음<br>오후 7:44</span></div>
+                  <div class="day now"><b>2일 · 오늘</b><span>기록을<br>기다려요</span></div>
+                  <div class="day"><b>3일</b><span>내일<br>확인</span></div>
+                </div>
+              </section>
+
+              <div class="actions">
+                <button class="button" data-checkin>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 4 4L19 6"/></svg>
+                  오늘 이상 없음 기록하기
+                </button>
+                <a class="button danger" href="#reaction">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01"/><path d="M10.3 3.8 2.6 17.2A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.8L13.7 3.8a2 2 0 0 0-3.4 0Z"/></svg>
+                  증상이 있었어요
+                </a>
+              </div>
+              <p class="helper" style="text-align:center;margin:10px 12px 0">하루 한 번만 확인하면 돼요. 이 기록은 관찰을 끝내지 않아요.</p>
+
+              <div class="section-title"><h3>우리 아기의 재료</h3><span>전체 56개</span></div>
+              <div class="stats">
+                <a class="stat safe" href="#foods"><b>8</b><span>안전 확인</span></a>
+                <a class="stat testing" href="#foods"><b>1</b><span>관찰 중</span></a>
+                <a class="stat reacted" href="#foods"><b>2</b><span>반응 기록</span></a>
+              </div>
+            </div>
+            <nav class="bottomnav" aria-label="주요 메뉴">
+              <a class="active" href="#today" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/></svg>오늘</a>
+              <a href="#foods"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>재료</a>
+              <a href="#history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4m8-4v4M3 10h18"/></svg>기록</a>
+            </nav>
+          </div>
+        </div>
+        <figcaption><strong>01 · 오늘</strong><span>한 가지 다음 행동</span></figcaption>
+      </figure>
+
+      <figure class="mock" id="foods">
+        <div class="phone">
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span class="island"></span><span class="system">▮▮ ◔ 87%</span></div>
+            <div class="content scroll">
+              <header class="topbar"><div><div class="hello">120가지 이유식 재료</div><h2>재료</h2></div></header>
+              <label class="search">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink-2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                <input aria-label="재료 검색" placeholder="재료 이름으로 검색">
+              </label>
+              <div class="filters" role="group" aria-label="상태 필터">
+                <button class="filter on">전체 56</button><button class="filter">관찰 중 1</button><button class="filter">반응 2</button><button class="filter">안전 8</button>
+              </div>
+              <a class="pick-card" href="#detail">
+                <span class="food-icon" style="background:rgba(255,255,255,.6)">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                </span>
+                <span><b>새 재료 고르기</b><span>재료를 확인한 뒤 3일 관찰을 시작해요</span></span>
+                <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+              </a>
+              <div class="section-title"><h3>최근 기록</h3><span>상태순</span></div>
+              <div class="food-list">
+                <a class="food-row" href="#detail"><span class="food-icon honey"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4c3 1 5 4 5 8s-2 7-5 8c-3-1-5-4-5-8s2-7 5-8Z"/><path d="M16 4c3 1 5 4 5 8s-2 7-5 8c-3-1-5-4-5-8s2-7 5-8Z"/></svg></span><span class="food-copy"><b>두부</b><span>관찰 중 · 3일 중 2일째</span></span><span class="chip honey">관찰 중</span></a>
+                <a class="food-row" href="#detail"><span class="food-icon berry"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="13" rx="7" ry="8"/><path d="M8 6c1-2 3-3 4-3s3 1 4 3"/></svg></span><span class="food-copy"><b>달걀</b><span>7월 31일 · 두드러기 기록</span></span><span class="chip berry">반응</span></a>
+                <a class="food-row" href="#detail"><span class="food-icon sage"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21c5-3 8-7 8-12-4 0-7 1-8 4-1-3-4-4-8-4 0 5 3 9 8 12Z"/><path d="M12 13v8"/></svg></span><span class="food-copy"><b>바나나</b><span>7월 17일 · 3일 모두 기록</span></span><span class="chip sage">안전</span></a>
+                <a class="food-row" href="#detail"><span class="food-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21c4-2 7-6 7-11-3 0-6 1-7 4-1-3-4-4-7-4 0 5 3 9 7 11Z"/></svg></span><span class="food-copy"><b>아보카도</b><span>아직 먹어보지 않았어요</span></span><span class="chevron">›</span></a>
+              </div>
+            </div>
+            <nav class="bottomnav" aria-label="주요 메뉴">
+              <a href="#today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/></svg>오늘</a>
+              <a class="active" href="#foods" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>재료</a>
+              <a href="#history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4m8-4v4M3 10h18"/></svg>기록</a>
+            </nav>
+          </div>
+        </div>
+        <figcaption><strong>02 · 재료</strong><span>검색 → 확인 → 시작</span></figcaption>
+      </figure>
+
+      <figure class="mock" id="detail">
+        <div class="phone">
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span class="island"></span><span class="system">▮▮ ◔ 87%</span></div>
+            <div class="content scroll" style="padding-bottom:28px">
+              <header class="topbar"><a class="back" href="#foods"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>재료</a><span class="chip neutral">고위험 재료</span></header>
+              <section class="detail-hero">
+                <div class="food-orb"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><ellipse cx="12" cy="13" rx="7" ry="8"/><path d="M8 6c1-2 3-3 4-3s3 1 4 3"/><circle cx="12" cy="13" r="3"/></svg></div>
+                <h3>달걀</h3>
+                <p>마지막 기록 · 7월 31일</p>
+                <div style="margin-top:11px"><span class="chip berry">반응 기록 있음</span></div>
+              </section>
+              <div class="risk-note"><b>왜 더 주의해서 보나요?</b><br>달걀은 알레르기 반응이 비교적 자주 나타나는 재료예요. 한 번에 한 가지씩, 3일 동안 살펴보세요.</div>
+              <div class="actions">
+                <button class="button" data-action="달걀 3일 관찰을 시작할 준비가 됐어요">3일 관찰 다시 시작하기</button>
+                <a class="button danger" href="#reaction">새 반응 기록하기</a>
+              </div>
+              <div class="section-title"><h3>지난 기록</h3><span>2건</span></div>
+              <section class="card timeline">
+                <div class="timeline-row"><span class="timeline-mark" style="color:var(--berry-ink);background:var(--berry)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v5m0 3h.01"/></svg></span><span><b>반응 기록 · 중간</b><span>7월 31일 오후 5:22<br>두드러기, 발진</span></span></div>
+                <div class="timeline-row"><span class="timeline-mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></span><span><b>1일째 이상 없음</b><span>7월 30일 오후 7:10</span></span></div>
+              </section>
+              <button class="button secondary" style="margin-top:14px" data-action="관찰 중단은 확인창에서 한 번 더 확인해요">기록 관리</button>
+            </div>
+          </div>
+        </div>
+        <figcaption><strong>03 · 재료 상세</strong><span>상태와 행동을 한 문장으로</span></figcaption>
+      </figure>
+
+      <figure class="mock" id="history">
+        <div class="phone">
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span class="island"></span><span class="system">▮▮ ◔ 87%</span></div>
+            <div class="content scroll">
+              <header class="topbar"><div><div class="hello">우리 아기의 변화</div><h2>기록</h2></div></header>
+              <div class="monthbar"><h3>2026년 8월</h3><div class="month-actions"><button class="square-btn" aria-label="이전 달">‹</button><button class="square-btn" aria-label="다음 달">›</button></div></div>
+              <section class="card calendar" aria-label="2026년 8월 달력">
+                <div class="weekdays"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+                <div class="week"><button class="date out">26</button><button class="date out">27</button><button class="date out">28</button><button class="date out">29</button><button class="date out">30</button><button class="date out react has">31</button><button class="date safe has">1</button></div>
+                <div class="week"><button class="date safe">2</button><button class="date safe has">3</button><button class="date">4</button><button class="date">5</button><button class="date">6</button><button class="date watch has selected">7</button><button class="date watch">8</button></div>
+                <div class="week"><button class="date watch">9</button><button class="date">10</button><button class="date">11</button><button class="date">12</button><button class="date">13</button><button class="date">14</button><button class="date">15</button></div>
+                <div class="week"><button class="date">16</button><button class="date">17</button><button class="date">18</button><button class="date">19</button><button class="date">20</button><button class="date">21</button><button class="date">22</button></div>
+                <div class="week"><button class="date">23</button><button class="date">24</button><button class="date">25</button><button class="date">26</button><button class="date">27</button><button class="date">28</button><button class="date">29</button></div>
+                <div class="legend"><span><i style="background:var(--honey)"></i>관찰 기간</span><span><i style="background:var(--sage)"></i>안전 확인</span><span><i style="background:var(--berry)"></i>반응</span><span><i style="background:var(--ink-2);border-radius:50%"></i>기록 있음</span></div>
+              </section>
+              <div class="section-title"><h3>8월 7일 · 오늘</h3><span>2건</span></div>
+              <section class="card">
+                <a class="event" href="#detail"><span class="event-dot" style="background:var(--honey-ink)"></span><span><b>두부 · 관찰 2일째</b><span>오늘 이상 없음</span></span><time>오전 9:12</time></a>
+                <a class="event" href="#detail"><span class="event-dot"></span><span><b>바나나 · 안전 확인</b><span>3일 모두 기록됨</span></span><time>오후 2:30</time></a>
+              </section>
+            </div>
+            <nav class="bottomnav" aria-label="주요 메뉴">
+              <a href="#today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/></svg>오늘</a>
+              <a href="#foods"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>재료</a>
+              <a class="active" href="#history" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4m8-4v4M3 10h18"/></svg>기록</a>
+            </nav>
+          </div>
+        </div>
+        <figcaption><strong>04 · 기록</strong><span>달력 + 하루의 사건</span></figcaption>
+      </figure>
+
+      <figure class="mock" id="reaction">
+        <div class="phone">
+          <div class="screen reaction-screen">
+            <div class="statusbar"><span>9:41</span><span class="island"></span><span class="system">▮▮ ◔ 87%</span></div>
+            <div class="content scroll" style="padding-bottom:96px">
+              <header class="sheet-head"><h2>반응 기록</h2><a class="close" href="#today" aria-label="반응 기록 닫기"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"/></svg></a></header>
+              <div class="subject"><b>두부를 먹은 뒤 증상이 있었나요?</b><span>선택한 내용은 저장 전까지 변경할 수 있어요.</span></div>
+              <label class="field-label">어떤 증상이었나요? <small>1개 이상</small></label>
+              <div class="choices" role="group" aria-label="증상 선택">
+                <button class="choice">두드러기</button><button class="choice">발진</button><button class="choice">구토</button><button class="choice">설사</button><button class="choice" data-emergency>얼굴 부종</button><button class="choice">기침·쌕쌕거림</button><button class="choice" data-emergency>호흡 곤란</button><button class="choice">기타</button>
+              </div>
+              <label class="field-label">증상은 어느 정도였나요?</label>
+              <div class="segments" role="group" aria-label="심각도 선택"><button class="segment on">가벼움</button><button class="segment">중간</button><button class="segment" data-emergency>심각</button></div>
+              <div class="emergency" role="alert"><b>지금 바로 도움을 받으세요.</b><br>호흡 곤란이나 심한 부종이 있다면 119에 연락하세요.</div>
+              <label class="field-label" for="reaction-time">언제 나타났나요?</label>
+              <input class="input" id="reaction-time" value="2026. 8. 7. 오후 9:12" readonly>
+              <label class="field-label" for="reaction-note">기억해 둘 내용 <small>선택</small></label>
+              <textarea class="input" id="reaction-note" placeholder="먹은 양, 병원 방문 등"></textarea>
+            </div>
+            <div class="sticky-action"><button class="button reaction-save" disabled>증상을 선택하면 저장할 수 있어요</button></div>
+          </div>
+        </div>
+        <figcaption><strong>05 · 반응 기록</strong><span>선택 순서와 결과가 명확하게</span></figcaption>
+      </figure>
+
+      <figure class="mock" id="settings">
+        <div class="phone">
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span class="island"></span><span class="system">▮▮ ◔ 87%</span></div>
+            <div class="content scroll" style="padding-bottom:30px">
+              <header class="sheet-head"><h2>설정</h2><a class="close" href="#today" aria-label="설정 닫기"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"/></svg></a></header>
+              <div class="settings-title">아기 정보</div>
+              <section class="card settings-group">
+                <button class="setting-row" style="width:100%;border:0;text-align:left" data-action="아기 이름 편집"><span class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></span><span class="setting-copy"><b>아기 이름</b><span>진료용 리포트에만 표시돼요</span></span><span class="setting-value">이름 없음 ›</span></button>
+                <button class="setting-row" style="width:100%;border:0;text-align:left" data-action="생년월일 편집"><span class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4m8-4v4M3 10h18"/></svg></span><span class="setting-copy"><b>생년월일</b><span>선택 사항</span></span><span class="setting-value">미입력 ›</span></button>
+              </section>
+              <div class="settings-title">알림과 안내</div>
+              <section class="card settings-group">
+                <button class="setting-row" style="width:100%;border:0;text-align:left" data-action="기기 알림 설정을 열어요"><span class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span><span class="setting-copy"><b>관찰 알림</b><span>매일 확인할 시간을 알려드려요</span></span><span class="chip sage">켜짐</span></button>
+                <button class="setting-row" style="width:100%;border:0;text-align:left" data-action="사용 안내를 다시 보여드려요"><span class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.9.4-.9 1.1-.9 1.7M12 17h.01"/></svg></span><span class="setting-copy"><b>사용 안내 다시 보기</b><span>3일 관찰 방법을 다시 확인해요</span></span><span class="setting-value">›</span></button>
+              </section>
+              <div class="settings-title">내 기록</div>
+              <section class="card settings-group">
+                <button class="setting-row" style="width:100%;border:0;text-align:left" data-action="진료용 PDF를 만들어요"><span class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M9 15h6M9 18h4"/></svg></span><span class="setting-copy"><b>진료용 리포트 만들기</b><span>시도한 재료와 반응을 PDF로 정리해요</span></span><span class="setting-value">PDF ›</span></button>
+                <button class="setting-row" style="width:100%;border:0;text-align:left" data-action="JSON 백업 파일을 만들어요"><span class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg></span><span class="setting-copy"><b>전체 데이터 백업</b><span>기록 원본을 JSON 파일로 저장해요</span></span><span class="setting-value">JSON ›</span></button>
+              </section>
+              <div class="privacy-note"><b>기록은 이 기기에만 저장돼요.</b><br>내보내기를 직접 선택하기 전에는 아기의 데이터가 기기 밖으로 나가지 않아요.</div>
+              <p class="disclaimer">이 앱은 기록 보조 도구이며 의학적 조언이 아닙니다. 알레르기가 걱정되면 소아청소년과 전문의와 상담하세요.</p>
+            </div>
+          </div>
+        </div>
+        <figcaption><strong>06 · 설정</strong><span>기능보다 결과를 설명</span></figcaption>
+      </figure>
+    </section>
+  </main>
+  <div class="toast" role="status" aria-live="polite"></div>
+  <script>
+    const toast = document.querySelector('.toast');
+    let toastTimer;
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+    document.querySelectorAll('[data-action]').forEach((control) => {
+      control.addEventListener('click', () => showToast(control.dataset.action));
+    });
+
+    document.querySelectorAll('[data-checkin]').forEach((control) => {
+      control.addEventListener('click', () => {
+        control.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 4 4L19 6"/></svg> 오늘 기록했어요 · 오전 9:41';
+        control.style.background = 'var(--sage-ink)';
+        showToast('두부 2일째 · 이상 없음이 기록됐어요');
+      });
+    });
+
+    document.querySelectorAll('.filters').forEach((group) => {
+      group.querySelectorAll('.filter').forEach((filter) => filter.addEventListener('click', () => {
+        group.querySelectorAll('.filter').forEach((item) => item.classList.remove('on'));
+        filter.classList.add('on');
+        showToast(filter.textContent.trim() + ' 재료만 보여드려요');
+      }));
+    });
+
+    document.querySelectorAll('.calendar .date').forEach((date) => date.addEventListener('click', () => {
+      document.querySelectorAll('.calendar .date').forEach((item) => item.classList.remove('selected'));
+      date.classList.add('selected');
+      showToast('선택한 날짜의 기록을 아래에서 보여드려요');
+    }));
+
+    const reactionScreen = document.querySelector('.reaction-screen');
+    const choices = reactionScreen.querySelectorAll('.choice');
+    const segments = reactionScreen.querySelectorAll('.segment');
+    const emergency = reactionScreen.querySelector('.emergency');
+    const save = reactionScreen.querySelector('.reaction-save');
+
+    function syncReaction() {
+      const chosen = [...choices].some((item) => item.classList.contains('on'));
+      const urgentChoice = [...choices].some((item) => item.classList.contains('on') && item.hasAttribute('data-emergency'));
+      const urgentSeverity = [...segments].some((item) => item.classList.contains('on') && item.hasAttribute('data-emergency'));
+      emergency.classList.toggle('show', urgentChoice || urgentSeverity);
+      save.disabled = !chosen;
+      save.textContent = chosen ? '이 내용으로 반응 저장하기' : '증상을 선택하면 저장할 수 있어요';
+    }
+
+    choices.forEach((choice) => choice.addEventListener('click', () => {
+      choice.classList.toggle('on');
+      syncReaction();
+    }));
+    segments.forEach((segment) => segment.addEventListener('click', () => {
+      segments.forEach((item) => item.classList.remove('on'));
+      segment.classList.add('on');
+      syncReaction();
+    }));
+    save.addEventListener('click', () => {
+      if (!save.disabled) showToast('두부 반응을 저장하고 재료 기록에 연결했어요');
+    });
+  </script>
+</body>
+</html>
