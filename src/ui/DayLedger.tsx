@@ -4,7 +4,7 @@ import { logCheckin } from '../data/mutations';
 import { MS_PER_DAY, isSameLocalDay } from '../domain/status';
 import type { RecordedTrial } from '../domain/records';
 import { press } from './pressable';
-import { colors, radii } from './tokens';
+import { colors, radii, spacing } from './tokens';
 
 // The observation window, rendered as one named cell per day instead of an
 // anonymous progress bar. The rule under each cell carries its state, so the
@@ -108,7 +108,7 @@ export function DayLedger({ days, backfillFoodId }: { days: LedgerDay[]; backfil
     <View
       accessible={!backfillFoodId}
       accessibilityLabel={days.map((d) => `${d.label} ${t(`ledger.state.${d.state}`)}`).join(', ')}
-      style={{ flexDirection: 'row', gap: 8 }}
+      style={{ flexDirection: 'row', gap: spacing.xs }}
     >
       {days.map((d) => {
         const fillable = backfillFoodId !== undefined && d.state === 'unobserved';
@@ -125,7 +125,7 @@ export function DayLedger({ days, backfillFoodId }: { days: LedgerDay[]; backfil
               borderWidth: d.state === 'today' ? 2 : 1,
               borderColor: d.state === 'today' ? colors.accent : colors.hairline,
               borderRadius: radii.md,
-              padding: 10,
+              padding: spacing.sm,
               backgroundColor: d.state === 'cleared'
                 ? colors.greenTint
                 : d.state === 'reacted'
@@ -134,16 +134,16 @@ export function DayLedger({ days, backfillFoodId }: { days: LedgerDay[]; backfil
             })}
           >
             <View>
-              <Text style={{ fontSize: 11, fontWeight: '700', letterSpacing: 0.6, color: colors.inkSecondary }}>
+              <Text style={{ fontSize: 11, lineHeight: 15, fontWeight: '700', letterSpacing: 0.6, color: colors.inkSecondary }}>
                 {d.label}
               </Text>
-              <Text style={{ fontSize: 12.5, fontWeight: '800', color: FG[d.state], marginTop: 5 }}>
+              <Text style={{ fontSize: 12.5, lineHeight: 18, fontWeight: '800', color: FG[d.state], marginTop: spacing.xxs }}>
                 {t(`ledger.state.${d.state}`)}
               </Text>
               <Text
                 style={{
-                  fontSize: 10.5, color: fillable ? colors.green : colors.inkSecondary,
-                  fontWeight: fillable ? '700' : '400', marginTop: 2, minHeight: 13,
+                  fontSize: 10.5, lineHeight: 15, color: fillable ? colors.green : colors.inkSecondary,
+                  fontWeight: fillable ? '700' : '400', minHeight: 15,
                 }}
               >
                 {fillable ? t('ledger.backfillHint') : d.stamp}
@@ -151,7 +151,7 @@ export function DayLedger({ days, backfillFoodId }: { days: LedgerDay[]; backfil
             </View>
             <View
               style={{
-                position: 'absolute', left: 10, right: 10, bottom: 7,
+                position: 'absolute', left: spacing.sm, right: spacing.sm, bottom: spacing.xs,
                 height: RULE[d.state].height, borderRadius: radii.pill, backgroundColor: RULE[d.state].color,
               }}
             />

@@ -6,7 +6,7 @@ import type { RecordedTrial } from '../domain/records';
 import { isObservableDay, isSameLocalDay } from '../domain/status';
 import { Icon } from './Icon';
 import { press } from './pressable';
-import { colors, layout, radii } from './tokens';
+import { colors, layout, radii, spacing, typeStyles } from './tokens';
 
 // One-tap "이상 없음" observation for an active trial. Never touches trial
 // outcome — just logs a checkin row. Collapses to a done-state line once one
@@ -33,13 +33,13 @@ export function CheckinPill(
   if (doneToday) {
     const time = doneToday.occurredAt.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
     return (
-      <View style={{ minHeight: layout.controlHeight, paddingHorizontal: 14, borderRadius: radii.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, backgroundColor: colors.greenTint }}>
+      <View style={{ minHeight: layout.controlHeight, paddingHorizontal: layout.cardPadding, borderRadius: radii.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, backgroundColor: colors.greenTint }}>
         <Icon name="check" size={20} color={colors.green} strokeWidth={2.4} />
         <View>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: colors.green, textAlign: 'center' }}>
+          <Text style={{ fontSize: 13, lineHeight: 18, fontWeight: '800', color: colors.green, textAlign: 'center' }}>
             {t('food.checkinDone', { time })}
           </Text>
-          <Text style={{ fontSize: 11, color: colors.inkSecondary, textAlign: 'center', marginTop: 2 }}>
+          <Text style={{ fontSize: 11, lineHeight: 15, color: colors.inkSecondary, textAlign: 'center' }}>
             {t('food.checkinHint')}
           </Text>
         </View>
@@ -70,16 +70,16 @@ export function CheckinPill(
         backgroundColor: filled ? colors.accent : colors.greenTint,
         borderWidth: 0,
         borderRadius: radii.md,
-        paddingHorizontal: 18,
-        paddingVertical: 12,
+        paddingHorizontal: layout.cardPadding,
+        paddingVertical: spacing.sm,
         flexDirection: 'row',
         justifyContent: 'center',
-        gap: 9,
+        gap: spacing.xs,
         alignItems: 'center',
       })}
     >
       <Icon name="check" size={20} color={filled ? colors.onAccent : colors.green} strokeWidth={2.4} />
-      <Text style={{ color: filled ? colors.onAccent : colors.green, fontSize: 15, fontWeight: '800' }}>
+      <Text style={{ color: filled ? colors.onAccent : colors.green, ...typeStyles.button }}>
         {filled ? t('home.todayClear') : t('food.checkinClear')}
       </Text>
     </Pressable>

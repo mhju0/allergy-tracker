@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Icon } from './Icon';
 import { press } from './pressable';
-import { colors, layout, radii } from './tokens';
+import { colors, layout, radii, spacing, typeStyles } from './tokens';
 
 export function ScreenHeader({ title, eyebrow, right }: {
   title: string;
@@ -10,10 +10,10 @@ export function ScreenHeader({ title, eyebrow, right }: {
   right?: ReactNode;
 }) {
   return (
-    <View style={{ minHeight: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
+    <View style={{ minHeight: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm, marginBottom: spacing.md }}>
       <View style={{ flexShrink: 1 }}>
-        {eyebrow ? <Text style={{ fontSize: 13, fontWeight: '600', color: colors.inkSecondary, marginBottom: 2 }}>{eyebrow}</Text> : null}
-        <Text accessibilityRole="header" style={{ fontSize: 28, lineHeight: 34, fontWeight: '900', letterSpacing: -0.7, color: colors.ink }}>
+        {eyebrow ? <Text style={{ ...typeStyles.screenEyebrow, color: colors.inkSecondary, marginBottom: 2 }}>{eyebrow}</Text> : null}
+        <Text accessibilityRole="header" style={{ ...typeStyles.screenTitle, color: colors.ink }}>
           {title}
         </Text>
       </View>
@@ -40,14 +40,14 @@ export function HeaderButton({ label, onPress, icon = 'settings' }: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 7,
+        gap: spacing.xs,
         backgroundColor: icon === 'settings' ? colors.surface : 'transparent',
         borderWidth: icon === 'settings' ? 1 : 0,
         borderColor: colors.hairline,
       })}
     >
       <Icon name={icon} size={icon === 'settings' ? 18 : 22} color={colors.ink} />
-      {icon === 'settings' ? <Text style={{ fontSize: 13, fontWeight: '800', color: colors.ink }}>{label}</Text> : null}
+      {icon === 'settings' ? <Text style={{ fontSize: 13, lineHeight: 18, fontWeight: '800', color: colors.ink }}>{label}</Text> : null}
     </Pressable>
   );
 }
@@ -58,10 +58,10 @@ export function BackButton({ label, onPress }: { label: string; onPress: () => v
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
-      style={press({ minHeight: layout.touchTarget, flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start' })}
+      style={press({ minHeight: layout.touchTarget, flexDirection: 'row', alignItems: 'center', gap: spacing.xxs, alignSelf: 'flex-start' })}
     >
       <Icon name="back" size={21} color={colors.ink} />
-      <Text style={{ fontSize: 14, fontWeight: '700', color: colors.ink }}>{label}</Text>
+      <Text style={{ fontSize: 14, lineHeight: 20, fontWeight: '700', color: colors.ink }}>{label}</Text>
     </Pressable>
   );
 }

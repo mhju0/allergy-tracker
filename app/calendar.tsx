@@ -10,9 +10,10 @@ import { foodLabel } from '../src/i18n';
 import { BottomNav } from '../src/ui/BottomNav';
 import { Icon } from '../src/ui/Icon';
 import { ScreenHeader } from '../src/ui/ScreenHeader';
+import { SectionHeaderRow } from '../src/ui/SectionHeaderRow';
 import { WarmCard } from '../src/ui/WarmCard';
 import { press } from '../src/ui/pressable';
-import { colors, layout, radii } from '../src/ui/tokens';
+import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
 
 const weekdayKeys = ['w0', 'w1', 'w2', 'w3', 'w4', 'w5', 'w6'] as const;
 const TINT_BG = { amber: colors.amberTint, green: colors.greenTint, red: colors.redTint, none: 'transparent' } as const;
@@ -76,11 +77,11 @@ export default function Calendar() {
     <View style={{ flex: 1, backgroundColor: colors.paper }}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: layout.screenInset, paddingTop: insets.top + 8, paddingBottom: 20 }}>
         <ScreenHeader eyebrow={t('calendar.subtitle')} title={t('calendar.historyTitle')} />
-        <View style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <View style={{ minHeight: layout.touchTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm }}>
           <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.today')} onPress={goToday} style={press({ minHeight: layout.touchTarget, justifyContent: 'center' })}>
-            <Text style={{ fontSize: 24, fontWeight: '900', letterSpacing: -0.5, color: colors.ink }}>{t('calendar.monthTitle', { year: display.year, month: display.month0 + 1 })}</Text>
+            <Text style={{ fontSize: 24, lineHeight: 32, fontWeight: '900', letterSpacing: -0.5, color: colors.ink }}>{t('calendar.monthTitle', { year: display.year, month: display.month0 + 1 })}</Text>
           </Pressable>
-          <View style={{ flexDirection: 'row', gap: 7 }}>
+          <View style={{ flexDirection: 'row', gap: spacing.xs }}>
             <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.prevMonth')} onPress={() => goMonth(-1)} style={press({ width: 48, height: 48, borderRadius: radii.sm, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface })}>
               <Icon name="back" size={20} />
             </Pressable>
@@ -90,9 +91,9 @@ export default function Calendar() {
           </View>
         </View>
 
-        <WarmCard style={{ padding: 6 }}>
-          <View style={{ flexDirection: 'row', paddingVertical: 5 }}>
-            {weekdayKeys.map((key, index) => <Text key={key} style={{ flex: 1, textAlign: 'center', fontSize: 10.5, fontWeight: '800', color: index === 0 ? colors.red : colors.inkSecondary }}>{t(`calendar.weekday.${key}`)}</Text>)}
+        <WarmCard style={{ padding: spacing.xxs }}>
+          <View style={{ flexDirection: 'row', paddingVertical: spacing.xs }}>
+            {weekdayKeys.map((key, index) => <Text key={key} style={{ flex: 1, textAlign: 'center', fontSize: 10.5, lineHeight: 15, fontWeight: '800', color: index === 0 ? colors.red : colors.inkSecondary }}>{t(`calendar.weekday.${key}`)}</Text>)}
           </View>
           {weeks.map((week, weekIndex) => (
             <View key={weekIndex} style={{ flexDirection: 'row' }}>
@@ -127,7 +128,7 @@ export default function Calendar() {
                       borderColor: selected ? colors.accent : colors.inkSecondary,
                     })}
                   >
-                    <Text style={{ fontSize: 12, fontWeight: selected ? '900' : '700', color: cell.inMonth ? colors.ink : colors.dayOutMonth }}>{cell.date.getDate()}</Text>
+                    <Text style={{ fontSize: 12, lineHeight: 18, fontWeight: selected ? '900' : '700', color: cell.inMonth ? colors.ink : colors.dayOutMonth }}>{cell.date.getDate()}</Text>
                     {mark.dot && <View style={{ position: 'absolute', bottom: 5, width: 4, height: 4, borderRadius: radii.pill, backgroundColor: mark.dot === 'red' ? colors.red : colors.green }} />}
                   </Pressable>
                 );
@@ -136,42 +137,42 @@ export default function Calendar() {
           ))}
         </WarmCard>
 
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 12, paddingHorizontal: 2 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: spacing.sm, rowGap: spacing.xs, marginTop: spacing.sm }}>
           {[
             { label: t('calendar.legendWindow'), color: colors.amberTint, icon: 'clock' as const },
             { label: t('calendar.legendSafe'), color: colors.greenTint, icon: 'check' as const },
             { label: t('calendar.legendReaction'), color: colors.redTint, icon: 'warning' as const },
             { label: t('calendar.legendRecord'), color: '#F5EEE9', icon: 'file' as const },
           ].map((item) => (
-            <View key={item.label} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <View key={item.label} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xxs }}>
               <View style={{ width: 20, height: 20, borderRadius: 7, alignItems: 'center', justifyContent: 'center', backgroundColor: item.color }}><Icon name={item.icon} size={11} color={colors.ink} /></View>
-              <Text style={{ fontSize: 10.5, fontWeight: '700', color: colors.inkSecondary }}>{item.label}</Text>
+              <Text style={{ fontSize: 10.5, lineHeight: 15, fontWeight: '700', color: colors.inkSecondary }}>{item.label}</Text>
             </View>
           ))}
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 24, marginBottom: 10, paddingHorizontal: 2 }}>
-          <Text style={{ fontSize: 17, fontWeight: '900', color: colors.ink }}>{selectedDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}</Text>
-          <Text style={{ fontSize: 12, color: colors.inkSecondary }}>{t('calendar.eventCount', { count: events.length })}</Text>
-        </View>
+        <SectionHeaderRow
+          title={selectedDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}
+          meta={t('calendar.eventCount', { count: events.length })}
+        />
         {events.length === 0 ? (
-          <WarmCard style={{ alignItems: 'center', paddingVertical: 23 }}>
+          <WarmCard style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
             <Icon name="calendar" size={24} color={colors.muted} />
-            <Text style={{ fontSize: 13, color: colors.inkSecondary, marginTop: 8 }}>{t('calendar.noEvents')}</Text>
+            <Text style={{ fontSize: 13, lineHeight: 18, color: colors.inkSecondary, marginTop: spacing.xs }}>{t('calendar.noEvents')}</Text>
           </WarmCard>
         ) : (
-          <WarmCard style={{ paddingVertical: 2, paddingHorizontal: 14 }}>
+          <WarmCard style={{ paddingVertical: spacing.xxs, paddingHorizontal: layout.cardPadding }}>
             {events.map((event, index) => (
               <Pressable
                 key={event.key}
                 accessibilityRole="button"
                 accessibilityLabel={event.text}
                 onPress={() => router.push({ pathname: '/food/[id]', params: { id: event.foodId, from: 'calendar' } })}
-                style={press({ minHeight: 62, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 11, borderTopWidth: index === 0 ? 0 : 1, borderColor: colors.hairline })}
+                style={press({ minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm, borderTopWidth: index === 0 ? 0 : 1, borderColor: colors.hairline })}
               >
                 <View style={{ width: 10, height: 10, borderRadius: radii.pill, backgroundColor: event.color }} />
-                <Text style={{ flex: 1, fontSize: 13.5, fontWeight: '700', color: event.color, lineHeight: 19 }}>{event.text}</Text>
-                <Text style={{ fontSize: 11, color: colors.inkSecondary }}>{event.at.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}</Text>
+                <Text style={{ flex: 1, fontSize: 13.5, fontWeight: '700', color: event.color, lineHeight: 20 }}>{event.text}</Text>
+                <Text style={{ ...typeStyles.rowDetail, color: colors.inkSecondary, textAlign: 'right' }}>{event.at.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}</Text>
                 <Icon name="chevronRight" size={16} color={colors.muted} />
               </Pressable>
             ))}

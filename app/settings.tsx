@@ -15,7 +15,7 @@ import { HeaderButton, ScreenHeader } from '../src/ui/ScreenHeader';
 import { WarmCard } from '../src/ui/WarmCard';
 import { Icon, type IconName } from '../src/ui/Icon';
 import { press } from '../src/ui/pressable';
-import { colors, layout, radii } from '../src/ui/tokens';
+import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
 
 export default function Settings() {
   const { t } = useTranslation();
@@ -66,11 +66,11 @@ export default function Settings() {
 
       <SectionLabel label={t('settings.babyShort')} />
       <WarmCard style={{ padding: 0, overflow: 'hidden' }}>
-        <View style={{ minHeight: 68, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 }}>
+        <View style={{ minHeight: layout.rowHeight, paddingHorizontal: layout.cardPadding, flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
           <SettingIcon name="user" />
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 13.5, fontWeight: '800', color: colors.ink }}>{t('setup.babyName')}</Text>
-            <Text style={{ fontSize: 10.5, color: colors.inkSecondary, marginTop: 2 }}>{t('settings.reportOnly')}</Text>
+            <Text style={{ ...typeStyles.rowTitle, color: colors.ink }}>{t('setup.babyName')}</Text>
+            <Text style={{ ...typeStyles.rowDetail, color: colors.inkSecondary }}>{t('settings.reportOnly')}</Text>
           </View>
           <TextInput
             accessibilityLabel={t('setup.babyName')}
@@ -78,15 +78,15 @@ export default function Settings() {
             placeholder={t('settings.optional')}
             placeholderTextColor={colors.inkSecondary}
             onEndEditing={(event) => updateBabySettings({ name: event.nativeEvent.text.trim() || null })}
-            style={{ minWidth: 92, minHeight: layout.touchTarget, fontSize: 14, fontWeight: '700', color: colors.ink, textAlign: 'right' }}
+            style={{ width: 96, minHeight: layout.touchTarget, fontSize: 14, lineHeight: 20, fontWeight: '700', color: colors.ink, textAlign: 'right', paddingVertical: 0 }}
           />
         </View>
-        <View style={{ height: 1, marginLeft: 63, backgroundColor: colors.hairline }} />
-        <View style={{ minHeight: 68, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 }}>
+        <Divider />
+        <View style={{ minHeight: layout.rowHeight, paddingHorizontal: layout.cardPadding, flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
           <SettingIcon name="calendar" />
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 13.5, fontWeight: '800', color: colors.ink }}>{t('setup.birthdate')}</Text>
-            <Text style={{ fontSize: 10.5, color: colors.inkSecondary, marginTop: 2 }}>{baby.birthdate ? t('settings.reportOnly') : t('settings.optional')}</Text>
+            <Text style={{ ...typeStyles.rowTitle, color: colors.ink }}>{t('setup.birthdate')}</Text>
+            <Text style={{ ...typeStyles.rowDetail, color: colors.inkSecondary }}>{baby.birthdate ? t('settings.reportOnlyShort') : t('settings.optional')}</Text>
           </View>
           <DateTimePicker locale="ko-KR" value={baby.birthdate ?? new Date()} mode="date" maximumDate={new Date()} onValueChange={(_, date) => updateBabySettings({ birthdate: date })} />
         </View>
@@ -121,27 +121,27 @@ export default function Settings() {
         <SettingRow icon="download" title={t('settings.exportJsonClear')} detail={t('settings.exportJsonDetail')} value="JSON" onPress={exportJson} />
       </WarmCard>
 
-      <WarmCard tone="safe" style={{ marginTop: 18, padding: 16 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+      <WarmCard tone="safe" style={{ marginTop: spacing.lg }}>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm }}>
           <Icon name="shield" size={21} color={colors.green} />
           <Text style={{ flex: 1, fontSize: 12.5, fontWeight: '700', color: colors.green, lineHeight: 19 }}>{t('settings.privacyClear')}</Text>
         </View>
       </WarmCard>
-      <Text style={{ fontSize: 10.5, color: colors.inkSecondary, lineHeight: 16, marginHorizontal: 5, marginTop: 13 }}>{t('settings.disclaimerClear')}</Text>
+      <Text style={{ fontSize: 10.5, color: colors.inkSecondary, lineHeight: 16, marginTop: spacing.sm }}>{t('settings.disclaimerClear')}</Text>
     </ScrollView>
   );
 }
 
 function SectionLabel({ label }: { label: string }) {
-  return <Text style={{ fontSize: 11, fontWeight: '900', letterSpacing: 0.8, color: colors.inkSecondary, marginTop: 17, marginBottom: 8, marginLeft: 3 }}>{label}</Text>;
+  return <Text style={{ fontSize: 11, lineHeight: 16, fontWeight: '900', letterSpacing: 0.8, color: colors.inkSecondary, marginTop: spacing.md, marginBottom: spacing.xs }}>{label}</Text>;
 }
 
 function SettingIcon({ name }: { name: IconName }) {
-  return <View style={{ width: 38, height: 38, borderRadius: radii.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentTint }}><Icon name={name} size={20} color={colors.accent} /></View>;
+  return <View style={{ width: 40, height: 40, borderRadius: radii.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentTint }}><Icon name={name} size={20} color={colors.accent} /></View>;
 }
 
 function Divider() {
-  return <View style={{ height: 1, marginLeft: 63, backgroundColor: colors.hairline }} />;
+  return <View style={{ height: 1, marginLeft: 68, marginRight: layout.cardPadding, backgroundColor: colors.hairline }} />;
 }
 
 function SettingRow({ icon, title, detail, value, valueColor, onPress }: {
@@ -157,15 +157,17 @@ function SettingRow({ icon, title, detail, value, valueColor, onPress }: {
       accessibilityRole="button"
       accessibilityLabel={[title, value].filter(Boolean).join(', ')}
       onPress={onPress}
-      style={press({ minHeight: 70, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11, backgroundColor: colors.surface })}
+      style={press({ minHeight: layout.rowHeight, paddingHorizontal: layout.cardPadding, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surface })}
     >
       <SettingIcon name={icon} />
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 13.5, fontWeight: '800', color: colors.ink }}>{title}</Text>
-        <Text style={{ fontSize: 10.5, color: colors.inkSecondary, lineHeight: 15, marginTop: 2 }}>{detail}</Text>
+        <Text style={{ ...typeStyles.rowTitle, color: colors.ink }}>{title}</Text>
+        <Text style={{ ...typeStyles.rowDetail, color: colors.inkSecondary }}>{detail}</Text>
       </View>
-      {value ? <Text style={{ fontSize: 11, fontWeight: '800', color: valueColor ?? colors.inkSecondary }}>{value}</Text> : null}
-      <Icon name="chevronRight" size={17} color={colors.muted} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+        {value ? <Text style={{ fontSize: 11, lineHeight: 16, fontWeight: '800', color: valueColor ?? colors.inkSecondary, textAlign: 'right' }}>{value}</Text> : null}
+        <Icon name="chevronRight" size={17} color={colors.muted} />
+      </View>
     </Pressable>
   );
 }

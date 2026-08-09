@@ -14,10 +14,11 @@ import { CheckinPill } from '../src/ui/CheckinPill';
 import { MarkSafeButton } from '../src/ui/MarkSafeButton';
 import { BottomNav } from '../src/ui/BottomNav';
 import { HeaderButton, ScreenHeader } from '../src/ui/ScreenHeader';
+import { SectionHeaderRow } from '../src/ui/SectionHeaderRow';
 import { WarmCard } from '../src/ui/WarmCard';
 import { Icon } from '../src/ui/Icon';
 import { press } from '../src/ui/pressable';
-import { colors, layout, radii } from '../src/ui/tokens';
+import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
 
 export default function Home() {
   const baby = useBaby();
@@ -44,13 +45,13 @@ function WelcomeCard({ windowDays }: { windowDays: number }) {
       <Text accessibilityRole="header" style={{ fontSize: 42, lineHeight: 48, fontWeight: '900', letterSpacing: -1, color: colors.ink, marginTop: 8 }}>
         {t('welcome.title')}
       </Text>
-      <Text style={{ fontSize: 16, color: colors.inkSecondary, lineHeight: 24, marginTop: 10 }}>
+      <Text style={{ fontSize: 16, color: colors.inkSecondary, lineHeight: 24, marginTop: spacing.sm }}>
         {t('welcome.intro')}
       </Text>
 
-      <WarmCard style={{ gap: 18, marginTop: 28, marginBottom: 22 }}>
+      <WarmCard style={{ gap: spacing.md, marginTop: spacing.lg, marginBottom: spacing.lg }}>
         {([1, 2, 3] as const).map((n) => (
-          <View key={n} style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}>
+          <View key={n} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
             <View style={{ width: 34, height: 34, borderRadius: radii.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentTint }}>
               <Text style={{ fontSize: 14, fontWeight: '900', color: colors.accent }}>{n}</Text>
             </View>
@@ -62,7 +63,7 @@ function WelcomeCard({ windowDays }: { windowDays: number }) {
       </WarmCard>
 
       <Button label={t('welcome.start')} icon={<Icon name="check" size={20} color={colors.onAccent} />} onPress={() => updateBabySettings({ welcomedAt: new Date() })} />
-      <Text style={{ fontSize: 11.5, color: colors.inkSecondary, lineHeight: 17, marginTop: 18 }}>
+      <Text style={{ fontSize: 11.5, color: colors.inkSecondary, lineHeight: 17, marginTop: spacing.md }}>
         {t('settings.privacy')}{'\n'}{t('settings.disclaimer')}
       </Text>
     </ScrollView>
@@ -108,23 +109,23 @@ function Dashboard({ babyName }: { babyName: string | null }) {
           right={<HeaderButton label={t('settings.title')} onPress={() => router.push('/settings')} />}
         />
 
-        <WarmCard tone={tone} style={{ padding: 20 }}>
-          <View style={{ alignSelf: 'flex-start', minHeight: 30, paddingHorizontal: 10, borderRadius: radii.pill, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.68)' }}>
+        <WarmCard tone={tone}>
+          <View style={{ alignSelf: 'flex-start', minHeight: 32, paddingHorizontal: spacing.sm, borderRadius: radii.pill, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, backgroundColor: 'rgba(255,255,255,0.68)' }}>
             <Icon name={stateIcon} size={14} color={stateColor} strokeWidth={2.3} />
-            <Text style={{ fontSize: 12, fontWeight: '800', color: stateColor }}>
+            <Text style={{ fontSize: 12, lineHeight: 18, fontWeight: '800', color: stateColor }}>
               {state.kind === 'empty' ? t('home.ready') : t(`home.state.${state.kind}`)}
             </Text>
           </View>
-          <Text accessibilityRole="header" style={{ fontSize: state.kind === 'empty' ? 34 : 40, lineHeight: 46, fontWeight: '900', letterSpacing: -1, color: colors.ink, marginTop: 17 }}>
+          <Text accessibilityRole="header" style={{ fontSize: state.kind === 'empty' ? 34 : 40, lineHeight: 46, fontWeight: '900', letterSpacing: -1, color: colors.ink, marginTop: spacing.md }}>
             {state.kind === 'empty' ? t('home.emptyTitle') : foodLabel(state.food)}
           </Text>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: state.kind === 'reacted' ? colors.red : colors.inkSecondary, lineHeight: 21, marginTop: 5 }}>
+          <Text style={{ ...typeStyles.body, fontWeight: '600', color: state.kind === 'reacted' ? colors.red : colors.inkSecondary, marginTop: spacing.xxs }}>
             {subline}
           </Text>
-          {ledger && <View style={{ marginTop: 20 }}><DayLedger days={ledger} backfillFoodId={active?.food.id} /></View>}
+          {ledger && <View style={{ marginTop: spacing.md }}><DayLedger days={ledger} backfillFoodId={active?.food.id} /></View>}
         </WarmCard>
 
-        <View style={{ gap: 9, marginTop: 16 }}>
+        <View style={{ gap: spacing.xs, marginTop: spacing.md }}>
           {state.kind === 'observing' && <CheckinPill foodId={state.food.id} trial={state.trial} now={now} filled />}
           {state.kind === 'confirm' && <MarkSafeButton trial={state.trial} />}
           {active && (
@@ -152,24 +153,21 @@ function Dashboard({ babyName }: { babyName: string | null }) {
         </View>
 
         {state.kind === 'observing' && (
-          <Text style={{ fontSize: 12, color: colors.inkSecondary, lineHeight: 18, textAlign: 'center', marginHorizontal: 18, marginTop: 10 }}>
+          <Text style={{ fontSize: 12, color: colors.inkSecondary, lineHeight: 18, textAlign: 'center', marginHorizontal: spacing.md, marginTop: spacing.xs }}>
             {t('home.checkinExplanation')}
           </Text>
         )}
 
         {autoclosed && (
-          <WarmCard tone={autoclosed.outcome === 'safe' ? 'safe' : 'surface'} style={{ marginTop: 16, padding: 14 }}>
-            <Text style={{ fontSize: 12.5, fontWeight: '700', color: autoclosed.outcome === 'safe' ? colors.green : colors.inkSecondary }}>
+          <WarmCard tone={autoclosed.outcome === 'safe' ? 'safe' : 'surface'} style={{ marginTop: spacing.md }}>
+            <Text style={{ fontSize: 12.5, lineHeight: 19, fontWeight: '700', color: autoclosed.outcome === 'safe' ? colors.green : colors.inkSecondary }}>
               {t(autoclosed.outcome === 'safe' ? 'home.autoclosed' : 'home.autoclosedUnobserved', { food: foodLabel(autoclosed.food.food) })}
             </Text>
           </WarmCard>
         )}
 
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 24, marginBottom: 10, paddingHorizontal: 2 }}>
-          <Text style={{ fontSize: 17, fontWeight: '900', color: colors.ink }}>{t('home.ourFoods')}</Text>
-          <Text style={{ fontSize: 12, color: colors.inkSecondary }}>{t('home.totalFoods', { count: foods.length })}</Text>
-        </View>
-        <View style={{ flexDirection: 'row', gap: 9 }}>
+        <SectionHeaderRow title={t('home.ourFoods')} meta={t('home.totalFoods', { count: foods.length })} />
+        <View style={{ flexDirection: 'row', gap: spacing.xs }}>
           {(['safe', 'testing', 'reacted'] as const).map((status) => (
             <Pressable
               key={status}
@@ -188,7 +186,7 @@ function Dashboard({ babyName }: { babyName: string | null }) {
               })}
             >
               <Text style={{ fontSize: 22, fontWeight: '900', color: colors.status[status].fg, fontVariant: ['tabular-nums'] }}>{counts[status]}</Text>
-              <Text style={{ fontSize: 11, fontWeight: '700', color: colors.inkSecondary, marginTop: 3 }}>{t(`status.${status}`)}</Text>
+              <Text style={{ fontSize: 11, lineHeight: 16, fontWeight: '700', color: colors.inkSecondary }}>{t(`status.${status}`)}</Text>
             </Pressable>
           ))}
         </View>

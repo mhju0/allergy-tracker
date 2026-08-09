@@ -63,6 +63,26 @@ export const colors = {
 // Reused across pills/chips/dots — not a full scale, just the one radius that recurs everywhere.
 export const radii = { sm: 14, md: 18, lg: 26, pill: 999 };
 
+export const spacing = {
+  xxs: 4,
+  xs: 8,
+  sm: 12,
+  md: 16,
+  lg: 24,
+  xl: 32,
+} as const;
+
+export const typeStyles = {
+  screenEyebrow: { fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  screenTitle: { fontSize: 28, lineHeight: 34, fontWeight: '900', letterSpacing: -0.7 },
+  sectionTitle: { fontSize: 17, lineHeight: 22, fontWeight: '900' },
+  sectionMeta: { fontSize: 12, lineHeight: 18, fontWeight: '600' },
+  rowTitle: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
+  rowDetail: { fontSize: 11, lineHeight: 16, fontWeight: '400' },
+  body: { fontSize: 14, lineHeight: 21, fontWeight: '400' },
+  button: { fontSize: 15, lineHeight: 20, fontWeight: '800' },
+} as const;
+
 // Shared spacing keeps row content and interactive controls aligned.
 export const layout = {
   rowInset: 12,
@@ -70,6 +90,8 @@ export const layout = {
   controlHeight: 52,
   touchTarget: 48,
   navHeight: 76,
+  cardPadding: 16,
+  rowHeight: 72,
 };
 
 export const shadows = {

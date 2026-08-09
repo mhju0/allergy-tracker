@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
-import { colors, radii, shadows } from './tokens';
+import { colors, layout, radii, shadows } from './tokens';
 
 type Tone = 'surface' | 'observing' | 'safe' | 'reaction' | 'accent';
 
@@ -21,7 +21,7 @@ export function WarmCard({ children, tone = 'surface', style }: {
     <View
       style={[
         {
-          padding: 18,
+          padding: layout.cardPadding,
           borderRadius: radii.lg,
           borderWidth: tone === 'surface' ? 1 : 0,
           borderColor: colors.hairline,

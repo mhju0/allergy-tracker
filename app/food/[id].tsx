@@ -15,10 +15,11 @@ import { CheckinPill } from '../../src/ui/CheckinPill';
 import { buildLedger, DayLedger } from '../../src/ui/DayLedger';
 import { MarkSafeButton } from '../../src/ui/MarkSafeButton';
 import { BackButton } from '../../src/ui/ScreenHeader';
+import { SectionHeaderRow } from '../../src/ui/SectionHeaderRow';
 import { StatusChip } from '../../src/ui/StatusChip';
 import { WarmCard } from '../../src/ui/WarmCard';
 import { Icon } from '../../src/ui/Icon';
-import { colors, layout, radii } from '../../src/ui/tokens';
+import { colors, layout, radii, spacing, typeStyles } from '../../src/ui/tokens';
 
 const KIND_COLOR: Record<RecordKind, string> = {
   start: colors.amberText,
@@ -85,31 +86,31 @@ export default function FoodDetail() {
     >
       <BackButton label={from === 'foods' ? t('foods.title') : from === 'calendar' ? t('calendar.historyTitle') : t('home.short')} onPress={() => router.back()} />
 
-      <View style={{ alignItems: 'center', paddingTop: 8, paddingBottom: 18 }}>
+      <View style={{ alignItems: 'center', paddingTop: spacing.xs, paddingBottom: spacing.lg }}>
         <View style={{ width: 92, height: 92, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: status === 'reacted' ? colors.redTint : status === 'safe' ? colors.greenTint : colors.amberTint }}>
           <Icon name={status === 'reacted' ? 'warning' : status === 'safe' ? 'check' : status === 'testing' ? 'clock' : 'foods'} size={43} color={colors.status[status].fg} strokeWidth={1.7} />
         </View>
-        <Text accessibilityRole="header" style={{ fontSize: 38, lineHeight: 45, fontWeight: '900', letterSpacing: -1, color: colors.ink, marginTop: 13 }}>{foodLabel(food)}</Text>
-        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.inkSecondary, marginTop: 5 }}>{subline}</Text>
-        <View style={{ marginTop: 10 }}><StatusChip status={status} /></View>
+        <Text accessibilityRole="header" style={{ fontSize: 38, lineHeight: 45, fontWeight: '900', letterSpacing: -1, color: colors.ink, marginTop: spacing.sm }}>{foodLabel(food)}</Text>
+        <Text style={{ fontSize: 13, lineHeight: 18, fontWeight: '600', color: colors.inkSecondary, marginTop: spacing.xxs }}>{subline}</Text>
+        <View style={{ marginTop: spacing.xs }}><StatusChip status={status} /></View>
       </View>
 
       {food.allergenGroup && (
-        <WarmCard tone="reaction" style={{ padding: 15, marginBottom: 14 }}>
-          <Text style={{ fontSize: 13, fontWeight: '900', color: colors.red }}>{t('food.highRiskWhyTitle')}</Text>
-          <Text style={{ fontSize: 12.5, color: colors.red, lineHeight: 19, marginTop: 4 }}>{t('food.highRiskWhyBody', { food: foodLabel(food) })}</Text>
+        <WarmCard tone="reaction" style={{ marginBottom: spacing.md }}>
+          <Text style={{ fontSize: 13, lineHeight: 18, fontWeight: '900', color: colors.red }}>{t('food.highRiskWhyTitle')}</Text>
+          <Text style={{ fontSize: 12.5, color: colors.red, lineHeight: 19, marginTop: spacing.xxs }}>{t('food.highRiskWhyBody', { food: foodLabel(food) })}</Text>
         </WarmCard>
       )}
 
       {latest && (
-        <WarmCard style={{ padding: 14, marginBottom: 14 }}>
-          <Text style={{ fontSize: 14, fontWeight: '900', color: colors.ink, marginBottom: 11 }}>{t('food.observationProgress')}</Text>
+        <WarmCard style={{ marginBottom: spacing.md }}>
+          <Text style={{ ...typeStyles.rowTitle, fontWeight: '900', color: colors.ink, marginBottom: spacing.sm }}>{t('food.observationProgress')}</Text>
           <DayLedger days={buildLedger(latest, now, t)} backfillFoodId={activeHere ? food.id : undefined} />
         </WarmCard>
       )}
 
       {activeHere ? (
-        <View style={{ gap: 9 }}>
+        <View style={{ gap: spacing.xs }}>
           {isWindowElapsed(activeHere, now) && <MarkSafeButton trial={activeHere} />}
           {!isWindowElapsed(activeHere, now) && <CheckinPill foodId={food.id} trial={activeHere} now={now} filled />}
           <Button label={t('home.symptomsHappened')} variant="danger" icon={<Icon name="warning" size={19} color={colors.red} />} onPress={() => router.push({ pathname: '/log-reaction', params: { foodId: food.id } })} />
@@ -127,7 +128,7 @@ export default function FoodDetail() {
           />
         </View>
       ) : (
-        <View style={{ gap: 9 }}>
+        <View style={{ gap: spacing.xs }}>
           <Button
             label={status === 'untried' ? t('food.startTrial', { days: baby.defaultWindowDays }) : t('food.retest', { days: baby.defaultWindowDays })}
             icon={<Icon name="clock" size={19} color={colors.onAccent} />}
@@ -137,28 +138,25 @@ export default function FoodDetail() {
         </View>
       )}
 
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 26, marginBottom: 10, paddingHorizontal: 2 }}>
-        <Text style={{ fontSize: 17, fontWeight: '900', color: colors.ink }}>{t('food.history')}</Text>
-        <Text style={{ fontSize: 12, color: colors.inkSecondary }}>{t('food.historyCount', { count: historyRows.length })}</Text>
-      </View>
+      <SectionHeaderRow title={t('food.history')} meta={t('food.historyCount', { count: historyRows.length })} />
       {historyRows.length === 0 ? (
-        <WarmCard style={{ alignItems: 'center', paddingVertical: 24 }}>
+        <WarmCard style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
           <Icon name="clock" size={24} color={colors.muted} />
-          <Text style={{ fontSize: 13, color: colors.inkSecondary, marginTop: 8 }}>{t('food.noHistory')}</Text>
+          <Text style={{ fontSize: 13, lineHeight: 18, color: colors.inkSecondary, marginTop: spacing.xs }}>{t('food.noHistory')}</Text>
         </WarmCard>
       ) : (
-        <WarmCard style={{ paddingVertical: 2, paddingHorizontal: 14 }}>
+        <WarmCard style={{ paddingVertical: spacing.xxs, paddingHorizontal: layout.cardPadding }}>
           {historyRows.map((event, index) => (
-            <View key={event.key} style={{ minHeight: 68, flexDirection: 'row', alignItems: 'flex-start', gap: 11, paddingVertical: 13, borderTopWidth: index === 0 ? 0 : 1, borderColor: colors.hairline }}>
+            <View key={event.key} style={{ minHeight: layout.rowHeight, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.sm, borderTopWidth: index === 0 ? 0 : 1, borderColor: colors.hairline }}>
               <View style={{ width: 28, height: 28, borderRadius: radii.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: event.color === colors.red ? colors.redTint : event.color === colors.green ? colors.greenTint : colors.amberTint }}>
                 <View style={{ width: 8, height: 8, borderRadius: radii.pill, backgroundColor: event.color }} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 13.5, fontWeight: '800', color: event.color }}>{event.label}</Text>
-                <Text style={{ fontSize: 11.5, color: colors.inkSecondary, marginTop: 3 }}>
+                <Text style={{ fontSize: 13.5, lineHeight: 20, fontWeight: '800', color: event.color }}>{event.label}</Text>
+                <Text style={{ fontSize: 11.5, lineHeight: 17, color: colors.inkSecondary }}>
                   {event.at.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} · {event.at.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}
                 </Text>
-                {event.detail && <Text style={{ fontSize: 12, color: colors.red, lineHeight: 18, marginTop: 3 }}>{event.detail}</Text>}
+                {event.detail && <Text style={{ fontSize: 12, color: colors.red, lineHeight: 18, marginTop: spacing.xxs }}>{event.detail}</Text>}
               </View>
             </View>
           ))}

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, type IconName } from './Icon';
 import { press } from './pressable';
-import { colors, layout, radii, shadows } from './tokens';
+import { colors, layout, radii, shadows, spacing } from './tokens';
 
 type Tab = 'today' | 'foods' | 'history';
 
@@ -20,13 +20,13 @@ export function BottomNav({ active }: { active: Tab }) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={{ backgroundColor: colors.paper, paddingHorizontal: 14, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 12) }}>
+    <View style={{ backgroundColor: colors.paper, paddingHorizontal: layout.screenInset, paddingTop: spacing.xs, paddingBottom: Math.max(insets.bottom, spacing.sm) }}>
       <View
         accessibilityRole="tablist"
         style={{
           minHeight: layout.navHeight,
           flexDirection: 'row',
-          padding: 7,
+          padding: spacing.xs,
           borderWidth: 1,
           borderColor: colors.hairline,
           borderRadius: radii.lg,
@@ -51,12 +51,12 @@ export function BottomNav({ active }: { active: Tab }) {
                 borderRadius: radii.md,
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 3,
+                gap: spacing.xxs,
                 backgroundColor: selected ? colors.accentTint : 'transparent',
               })}
             >
               <Icon name={item.icon} size={21} color={selected ? colors.accent : colors.muted} strokeWidth={2.1} />
-              <Text style={{ fontSize: 10.5, fontWeight: '800', color: selected ? colors.accent : colors.inkSecondary }}>
+              <Text style={{ fontSize: 11, lineHeight: 15, fontWeight: '800', color: selected ? colors.accent : colors.inkSecondary }}>
                 {label}
               </Text>
             </Pressable>

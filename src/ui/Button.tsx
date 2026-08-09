@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Pressable, Text } from 'react-native';
 import { press } from './pressable';
-import { colors, layout, radii } from './tokens';
+import { colors, layout, radii, spacing, typeStyles } from './tokens';
 
 type Props = {
   label: string;
@@ -30,17 +30,17 @@ export function Button({ label, onPress, variant = 'primary', disabled, icon }: 
         borderWidth: isPrimary ? 0 : 1,
         borderColor,
         opacity: disabled ? 0.4 : 1,
-        paddingHorizontal: 18,
-        paddingVertical: 12,
+        paddingHorizontal: layout.cardPadding,
+        paddingVertical: spacing.sm,
         borderRadius: radii.md,
         flexDirection: 'row',
-        gap: 9,
+        gap: spacing.xs,
         justifyContent: 'center',
         alignItems: 'center',
       })}
     >
       {icon}
-      <Text style={{ color: fg, fontSize: 15, fontWeight: '800', textAlign: 'center' }}>{label}</Text>
+      <Text style={{ color: fg, ...typeStyles.button, textAlign: 'center' }}>{label}</Text>
     </Pressable>
   );
 }

@@ -147,6 +147,7 @@
     "title": "설정",
     "babyShort": "아기 정보",
     "reportOnly": "진료용 리포트에만 표시돼요",
+    "reportOnlyShort": "리포트 전용",
     "babySection": "아기 (선택 사항 — 진료용 리포트에만 표시)",
     "optional": "미입력",
     "appSection": "앱",
