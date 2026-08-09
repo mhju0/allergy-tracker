@@ -10,17 +10,12 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { readAllTables, useBaby, useFoodsWithStatus } from '../src/data/queries';
 import { updateBabySettings } from '../src/data/mutations';
 import { isPermissionGranted } from '../src/services/notify';
-import { Button } from '../src/ui/Button';
-import { press } from '../src/ui/pressable';
-import { colors, layout } from '../src/ui/tokens';
 import { buildBackup, buildReport } from '../src/services/export';
-
-const labelStyle = { fontSize: 11, fontWeight: '800' as const, letterSpacing: 1.5, color: colors.inkSecondary, marginTop: 18, marginBottom: 4, paddingLeft: layout.rowInset };
-const rowStyle = {
-  flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'center' as const,
-  paddingVertical: 14, paddingHorizontal: layout.rowInset, borderBottomWidth: 1, borderColor: colors.hairline,
-};
-const rowLabelText = { fontSize: 15, fontWeight: '600' as const, color: colors.ink };
+import { HeaderButton, ScreenHeader } from '../src/ui/ScreenHeader';
+import { WarmCard } from '../src/ui/WarmCard';
+import { Icon, type IconName } from '../src/ui/Icon';
+import { press } from '../src/ui/pressable';
+import { colors, layout, radii } from '../src/ui/tokens';
 
 export default function Settings() {
   const { t } = useTranslation();
@@ -29,10 +24,8 @@ export default function Settings() {
   const insets = useSafeAreaInsets();
   const foods = useFoodsWithStatus();
   const exporting = useRef(false);
-  const [notifOn, setNotifOn] = useState<boolean | null>(null); // null = still checking
-  useEffect(() => {
-    isPermissionGranted().then(setNotifOn).catch(() => {});
-  }, []);
+  const [notifOn, setNotifOn] = useState<boolean | null>(null);
+  useEffect(() => { isPermissionGranted().then(setNotifOn).catch(() => {}); }, []);
   if (!baby) return null;
 
   const exportPdf = async () => {
@@ -65,80 +58,114 @@ export default function Settings() {
   };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 22, paddingTop: 12, paddingBottom: 22 + insets.bottom, backgroundColor: colors.paper }}>
-      <View style={{ justifyContent: 'center', paddingBottom: 12 }}>
-        <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 2.2, color: colors.inkSecondary, textAlign: 'center' }}>
-          {t('settings.title')}
-        </Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('food.close')}
-          onPress={() => router.back()}
-          hitSlop={12}
-          style={press({ position: 'absolute', right: 0, top: -6, minWidth: 32, minHeight: 32, alignItems: 'flex-end', justifyContent: 'center' })}
-        >
-          <Text style={{ fontSize: 17, color: colors.inkSecondary }}>✕</Text>
-        </Pressable>
-      </View>
+    <ScrollView
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={{ paddingHorizontal: layout.screenInset, paddingTop: insets.top + 8, paddingBottom: Math.max(insets.bottom, 12) + 24, backgroundColor: colors.paper }}
+    >
+      <ScreenHeader title={t('settings.title')} right={<HeaderButton label={t('food.close')} icon="close" onPress={() => router.back()} />} />
 
-      <Text style={[labelStyle, { marginTop: 6 }]}>{t('settings.babySection')}</Text>
-      <View style={rowStyle}>
-        <Text style={rowLabelText}>{t('setup.babyName')}</Text>
-        <TextInput
-          defaultValue={baby.name ?? ''}
-          placeholder={t('settings.optional')}
-          placeholderTextColor={colors.inkSecondary}
-          onEndEditing={(e) => updateBabySettings({ name: e.nativeEvent.text.trim() || null })}
-          // A stored value must not look like the 미입력 placeholder — that was
-          // the one screen where you could not tell saved from unsaved.
-          style={{ fontSize: 15, color: colors.ink, textAlign: 'right', flex: 1, marginLeft: 12 }}
+      <SectionLabel label={t('settings.babyShort')} />
+      <WarmCard style={{ padding: 0, overflow: 'hidden' }}>
+        <View style={{ minHeight: 68, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 }}>
+          <SettingIcon name="user" />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 13.5, fontWeight: '800', color: colors.ink }}>{t('setup.babyName')}</Text>
+            <Text style={{ fontSize: 10.5, color: colors.inkSecondary, marginTop: 2 }}>{t('settings.reportOnly')}</Text>
+          </View>
+          <TextInput
+            accessibilityLabel={t('setup.babyName')}
+            defaultValue={baby.name ?? ''}
+            placeholder={t('settings.optional')}
+            placeholderTextColor={colors.inkSecondary}
+            onEndEditing={(event) => updateBabySettings({ name: event.nativeEvent.text.trim() || null })}
+            style={{ minWidth: 92, minHeight: layout.touchTarget, fontSize: 14, fontWeight: '700', color: colors.ink, textAlign: 'right' }}
+          />
+        </View>
+        <View style={{ height: 1, marginLeft: 63, backgroundColor: colors.hairline }} />
+        <View style={{ minHeight: 68, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 }}>
+          <SettingIcon name="calendar" />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 13.5, fontWeight: '800', color: colors.ink }}>{t('setup.birthdate')}</Text>
+            <Text style={{ fontSize: 10.5, color: colors.inkSecondary, marginTop: 2 }}>{baby.birthdate ? t('settings.reportOnly') : t('settings.optional')}</Text>
+          </View>
+          <DateTimePicker locale="ko-KR" value={baby.birthdate ?? new Date()} mode="date" maximumDate={new Date()} onValueChange={(_, date) => updateBabySettings({ birthdate: date })} />
+        </View>
+      </WarmCard>
+
+      <SectionLabel label={t('settings.notificationsAndGuide')} />
+      <WarmCard style={{ padding: 0, overflow: 'hidden' }}>
+        <SettingRow
+          icon="bell"
+          title={t('settings.observationNotifications')}
+          detail={t('settings.notificationDetail')}
+          value={notifOn === null ? '' : notifOn ? t('settings.notifOn') : t('settings.notifOffShort')}
+          valueColor={notifOn === false ? colors.red : colors.green}
+          onPress={() => Linking.openSettings()}
         />
-      </View>
-      <View style={rowStyle}>
-        <Text style={rowLabelText}>{t('setup.birthdate')}</Text>
-        <DateTimePicker
-          locale="ko-KR"
-          // ponytail: unset birthdate displays as today until first picked —
-          // add an explicit "not set" affordance if that ever confuses anyone.
-          value={baby.birthdate ?? new Date()}
-          mode="date"
-          maximumDate={new Date()}
-          onChange={(_, d) => d && updateBabySettings({ birthdate: d })}
+        <Divider />
+        <SettingRow
+          icon="help"
+          title={t('settings.showGuide')}
+          detail={t('settings.guideDetail')}
+          onPress={async () => {
+            await updateBabySettings({ welcomedAt: null });
+            router.back();
+          }}
         />
-      </View>
+      </WarmCard>
 
-      <Text style={labelStyle}>{t('settings.appSection')}</Text>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => Linking.openSettings()}
-        style={press(rowStyle)}
-      >
-        <Text style={rowLabelText}>{t('settings.notifications')}</Text>
-        <Text style={{ fontSize: 14, color: notifOn === false ? colors.red : colors.inkSecondary }}>
-          {notifOn === null ? '' : notifOn ? t('settings.notifOn') : t('settings.notifOff')}
-        </Text>
-      </Pressable>
-      <Pressable
-        accessibilityRole="button"
-        onPress={async () => {
-          await updateBabySettings({ welcomedAt: null });
-          router.back(); // home now shows the welcome card again
-        }}
-        style={press(rowStyle)}
-      >
-        <Text style={rowLabelText}>{t('settings.showGuide')}</Text>
-        <Text style={{ fontSize: 15, color: colors.inkSecondary }}>→</Text>
-      </Pressable>
+      <SectionLabel label={t('settings.myRecords')} />
+      <WarmCard style={{ padding: 0, overflow: 'hidden' }}>
+        <SettingRow icon="file" title={t('settings.exportPdfClear')} detail={t('settings.exportPdfDetail')} value="PDF" onPress={exportPdf} />
+        <Divider />
+        <SettingRow icon="download" title={t('settings.exportJsonClear')} detail={t('settings.exportJsonDetail')} value="JSON" onPress={exportJson} />
+      </WarmCard>
 
-      <Text style={labelStyle}>{t('settings.exportSection')}</Text>
-      <View style={{ gap: 10, marginTop: 10 }}>
-        <Button label={t('settings.exportPdf')} onPress={exportPdf} />
-        <Button label={t('settings.exportJson')} variant="secondary" onPress={exportJson} />
-      </View>
-
-      <Text style={{ fontSize: 11.5, color: colors.inkSecondary, lineHeight: 17, marginTop: 18, paddingLeft: layout.rowInset }}>
-        {t('settings.privacy')}{'\n'}{t('settings.disclaimer')}
-      </Text>
+      <WarmCard tone="safe" style={{ marginTop: 18, padding: 16 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+          <Icon name="shield" size={21} color={colors.green} />
+          <Text style={{ flex: 1, fontSize: 12.5, fontWeight: '700', color: colors.green, lineHeight: 19 }}>{t('settings.privacyClear')}</Text>
+        </View>
+      </WarmCard>
+      <Text style={{ fontSize: 10.5, color: colors.inkSecondary, lineHeight: 16, marginHorizontal: 5, marginTop: 13 }}>{t('settings.disclaimerClear')}</Text>
     </ScrollView>
+  );
+}
+
+function SectionLabel({ label }: { label: string }) {
+  return <Text style={{ fontSize: 11, fontWeight: '900', letterSpacing: 0.8, color: colors.inkSecondary, marginTop: 17, marginBottom: 8, marginLeft: 3 }}>{label}</Text>;
+}
+
+function SettingIcon({ name }: { name: IconName }) {
+  return <View style={{ width: 38, height: 38, borderRadius: radii.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentTint }}><Icon name={name} size={20} color={colors.accent} /></View>;
+}
+
+function Divider() {
+  return <View style={{ height: 1, marginLeft: 63, backgroundColor: colors.hairline }} />;
+}
+
+function SettingRow({ icon, title, detail, value, valueColor, onPress }: {
+  icon: IconName;
+  title: string;
+  detail: string;
+  value?: string;
+  valueColor?: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={[title, value].filter(Boolean).join(', ')}
+      onPress={onPress}
+      style={press({ minHeight: 70, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11, backgroundColor: colors.surface })}
+    >
+      <SettingIcon name={icon} />
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontSize: 13.5, fontWeight: '800', color: colors.ink }}>{title}</Text>
+        <Text style={{ fontSize: 10.5, color: colors.inkSecondary, lineHeight: 15, marginTop: 2 }}>{detail}</Text>
+      </View>
+      {value ? <Text style={{ fontSize: 11, fontWeight: '800', color: valueColor ?? colors.inkSecondary }}>{value}</Text> : null}
+      <Icon name="chevronRight" size={17} color={colors.muted} />
+    </Pressable>
   );
 }

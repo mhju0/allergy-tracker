@@ -7,36 +7,15 @@ import { useFoodsWithStatus } from '../src/data/queries';
 import { dayMark, monthMatrix, sameLocalDay } from '../src/domain/calendar';
 import { buildRecords, reactionSummary, type RecordKind } from '../src/domain/records';
 import { foodLabel } from '../src/i18n';
+import { BottomNav } from '../src/ui/BottomNav';
+import { Icon } from '../src/ui/Icon';
+import { ScreenHeader } from '../src/ui/ScreenHeader';
+import { WarmCard } from '../src/ui/WarmCard';
 import { press } from '../src/ui/pressable';
-import { colors, layout, statusIcon } from '../src/ui/tokens';
+import { colors, layout, radii } from '../src/ui/tokens';
 
-const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.inkSecondary, paddingBottom: 12 };
-// alignItems flex-end right-hugs the ‹ › glyphs so the next control lands on the
-// grid's right edge (the tap targets stay 44pt; only the glyph shifts within).
-const navBtnStyle = { minWidth: 44, minHeight: 44, alignItems: 'flex-end' as const, justifyContent: 'center' as const };
 const weekdayKeys = ['w0', 'w1', 'w2', 'w3', 'w4', 'w5', 'w6'] as const;
-
-const TINT_BG = {
-  amber: colors.amberTint,
-  green: colors.greenTint,
-  red: colors.redTint,
-  none: 'transparent',
-} as const;
-
-// Icons are ink, not the status colour: the swatch behind them already carries
-// the hue, and a status colour on its own tint measures as low as 4.19:1 — an
-// icon that exists so colour isn't the sole carrier has to be legible itself.
-const LEGEND = [
-  { key: 'legendWindow', bg: colors.amberTint, icon: statusIcon.testing },
-  { key: 'legendSafe', bg: colors.greenTint, icon: statusIcon.safe },
-  { key: 'legendReaction', bg: colors.redTint, icon: statusIcon.reacted },
-  { key: 'legendRecord', bg: 'transparent', icon: '•' },
-] as const;
-
-type EventRow = { key: string; at: Date; color: string; text: string };
-
-// How each record kind reads on the day list. Reaction rows carry their own
-// summary instead of a fixed label.
+const TINT_BG = { amber: colors.amberTint, green: colors.greenTint, red: colors.redTint, none: 'transparent' } as const;
 const KIND_COLOR: Record<RecordKind, string> = {
   start: colors.amberText,
   safe: colors.green,
@@ -57,193 +36,149 @@ export default function Calendar() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const foods = useFoodsWithStatus();
-
   const [display, setDisplay] = useState(() => {
-    const d = new Date();
-    return { year: d.getFullYear(), month0: d.getMonth() };
+    const date = new Date();
+    return { year: date.getFullYear(), month0: date.getMonth() };
   });
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const today = new Date();
 
-  // Month nav moves the selection to the 1st of the shown month so the day
-  // list below never silently shows a day from a month that's off-screen.
   const goMonth = (delta: -1 | 1) => {
-    const { year, month0 } = display;
-    const next = new Date(year, month0 + delta, 1);
+    const next = new Date(display.year, display.month0 + delta, 1);
     setDisplay({ year: next.getFullYear(), month0: next.getMonth() });
     setSelectedDate(next);
   };
   const goToday = () => {
-    const d = new Date();
-    setDisplay({ year: d.getFullYear(), month0: d.getMonth() });
-    setSelectedDate(d);
+    const date = new Date();
+    setDisplay({ year: date.getFullYear(), month0: date.getMonth() });
+    setSelectedDate(date);
   };
 
   const cells = useMemo(() => monthMatrix(display.year, display.month0), [display.year, display.month0]);
   const weeks = useMemo(() => {
-    const w = [];
-    for (let i = 0; i < cells.length; i += 7) w.push(cells.slice(i, i + 7));
-    return w;
+    const result = [];
+    for (let index = 0; index < cells.length; index += 7) result.push(cells.slice(index, index + 7));
+    return result;
   }, [cells]);
-
-  const allTrials = useMemo(() => foods.flatMap((f) => f.trials), [foods]);
-  // Cancelled trials are invisible on the calendar (owner decision 2026-07-23):
-  // no rows, no dots. buildRecords drops them; the tint needs the same cut.
+  const allTrials = useMemo(() => foods.flatMap((food) => food.trials), [foods]);
   const records = useMemo(() => buildRecords(foods), [foods]);
-  const reactionDays = useMemo(
-    () => records.filter((r) => r.kind === 'reacted').map((r) => r.at),
-    [records],
-  );
-  const checkinDays = useMemo(
-    () => records.filter((r) => r.kind === 'checkin').map((r) => r.at),
-    [records],
-  );
-
-  const events = useMemo(
-    () => records
-      .filter((r) => sameLocalDay(r.at, selectedDate))
-      .map((r): EventRow => ({
-        key: r.key, at: r.at, color: KIND_COLOR[r.kind],
-        text: `${foodLabel(r.food)} — ${r.reaction ? reactionSummary(r.reaction, t) : t(KIND_LABEL[r.kind])}`,
-      })),
-    [records, selectedDate, t],
-  );
+  const reactionDays = useMemo(() => records.filter((record) => record.kind === 'reacted').map((record) => record.at), [records]);
+  const checkinDays = useMemo(() => records.filter((record) => record.kind === 'checkin').map((record) => record.at), [records]);
+  const events = useMemo(() => records.filter((record) => sameLocalDay(record.at, selectedDate)).map((record) => ({
+    key: record.key,
+    at: record.at,
+    color: KIND_COLOR[record.kind],
+    foodId: record.food.id,
+    text: `${foodLabel(record.food)} · ${record.reaction ? reactionSummary(record.reaction, t) : t(KIND_LABEL[record.kind])}`,
+  })), [records, selectedDate, t]);
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 22, paddingTop: insets.top + 4, backgroundColor: colors.paper }}>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.back()}
-        hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
-        style={press({ minHeight: 44, justifyContent: 'center' })}
-      >
-        <Text style={eyebrowStyle}>
-          <Text style={{ color: colors.inkSecondary }}>‹ </Text>
-          {t('calendar.title')}
-        </Text>
-      </Pressable>
-
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.today')} onPress={goToday} style={press()}>
-          <Text style={{ fontSize: 30, fontWeight: '900', color: colors.ink, letterSpacing: -0.3, paddingLeft: layout.rowInset }}>
-            {t('calendar.monthTitle', { year: display.year, month: display.month0 + 1 })}
-          </Text>
-        </Pressable>
-        <View style={{ flexDirection: 'row' }}>
-          <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.prevMonth')} onPress={() => goMonth(-1)} style={press(navBtnStyle)}>
-            <Text style={{ fontSize: 18, color: colors.inkSecondary }}>‹</Text>
+    <View style={{ flex: 1, backgroundColor: colors.paper }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: layout.screenInset, paddingTop: insets.top + 8, paddingBottom: 20 }}>
+        <ScreenHeader eyebrow={t('calendar.subtitle')} title={t('calendar.historyTitle')} />
+        <View style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.today')} onPress={goToday} style={press({ minHeight: layout.touchTarget, justifyContent: 'center' })}>
+            <Text style={{ fontSize: 24, fontWeight: '900', letterSpacing: -0.5, color: colors.ink }}>{t('calendar.monthTitle', { year: display.year, month: display.month0 + 1 })}</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.nextMonth')} onPress={() => goMonth(1)} style={press(navBtnStyle)}>
-            <Text style={{ fontSize: 18, color: colors.inkSecondary }}>›</Text>
-          </Pressable>
+          <View style={{ flexDirection: 'row', gap: 7 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.prevMonth')} onPress={() => goMonth(-1)} style={press({ width: 48, height: 48, borderRadius: radii.sm, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface })}>
+              <Icon name="back" size={20} />
+            </Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.nextMonth')} onPress={() => goMonth(1)} style={press({ width: 48, height: 48, borderRadius: radii.sm, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface })}>
+              <Icon name="chevronRight" size={20} />
+            </Pressable>
+          </View>
         </View>
-      </View>
 
-      <View style={{ flexDirection: 'row', paddingBottom: 6, borderBottomWidth: 1, borderColor: colors.hairline }}>
-        {weekdayKeys.map((wk, i) => (
-          <Text
-            key={wk}
-            style={{ flex: 1, textAlign: 'center', fontSize: 10.5, fontWeight: '800', color: i === 0 ? colors.red : colors.inkSecondary }}
-          >
-            {t(`calendar.weekday.${wk}`)}
-          </Text>
-        ))}
-      </View>
-
-      <View style={{ paddingTop: 6 }}>
-        {weeks.map((week, wi) => (
-          <View key={wi} style={{ flexDirection: 'row' }}>
-            {week.map((cell) => {
-              const mark = dayMark(cell.date, allTrials, reactionDays, checkinDays, today);
-              const isSelected = sameLocalDay(cell.date, selectedDate);
-              const isToday = sameLocalDay(cell.date, today);
-              const bg = TINT_BG[mark.tint ?? 'none'];
-              // The tint already states the day's status and the dot states its
-              // events, so the date itself stays ink — tinting it too put amber
-              // on amberTint at 3.09:1, the worst contrast in the app.
-              const fg = cell.inMonth ? colors.ink : colors.dayOutMonth;
-              // VoiceOver used to hear the date and nothing else — neither the
-              // tint nor the dot was announced, on the one screen whose entire
-              // information layer is colour.
-              const marks = [
-                mark.tint === 'amber' ? t('calendar.a11yObserving') : null,
-                mark.tint === 'green' ? t('calendar.a11ySafe') : null,
-                mark.tint === 'red' ? t('calendar.a11yReaction') : null,
-                mark.dot ? t('calendar.a11yRecord') : null,
-                isToday ? t('calendar.todayLabel') : null,
-              ].filter(Boolean);
-              return (
-                <Pressable
-                  key={cell.date.toISOString()}
-                  accessibilityRole="button"
-                  accessibilityLabel={[
-                    cell.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }),
-                    ...marks,
-                  ].join(', ')}
-                  accessibilityState={{ selected: isSelected }}
-                  onPress={() => setSelectedDate(cell.date)}
-                  style={press({
-                    flex: 1, aspectRatio: 1, margin: 1.5, borderRadius: 9,
-                    backgroundColor: bg, alignItems: 'center', justifyContent: 'center',
-                    // Today is ringed; the selected day is filled-outline. Nothing
-                    // marked today before, and one month-nav tap moves the
-                    // selection to the 1st, so today lost all identity.
-                    borderWidth: isSelected ? 2 : isToday ? 1 : 0,
-                    borderColor: isSelected ? colors.ink : colors.inkSecondary,
-                    borderStyle: isSelected || !isToday ? 'solid' : 'dashed',
-                  })}
-                >
-                  <Text style={{ fontSize: 12.5, fontWeight: '700', color: fg }}>{cell.date.getDate()}</Text>
-                  {mark.dot && (
-                    <View
-                      style={{
-                        // Dot sits in the lower gap, centered between the digit's
-                        // bottom and the cell floor. Positioned as a share of cell
-                        // height (cells are aspectRatio 1) so it holds at any size.
-                        position: 'absolute', bottom: '18%', width: 4, height: 4, borderRadius: 999,
-                        backgroundColor: mark.dot === 'red' ? colors.red : colors.green,
-                      }}
-                    />
-                  )}
-                </Pressable>
-              );
-            })}
+        <WarmCard style={{ padding: 6 }}>
+          <View style={{ flexDirection: 'row', paddingVertical: 5 }}>
+            {weekdayKeys.map((key, index) => <Text key={key} style={{ flex: 1, textAlign: 'center', fontSize: 10.5, fontWeight: '800', color: index === 0 ? colors.red : colors.inkSecondary }}>{t(`calendar.weekday.${key}`)}</Text>)}
           </View>
-        ))}
-      </View>
-
-      {/* CLAUDE.md: icon + label always accompany status colours. This was the
-          one screen that shipped bare swatches. */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginTop: 10, paddingLeft: layout.rowInset }}>
-        {LEGEND.map(({ key, bg, icon }) => (
-          <View key={key} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <View style={{ width: 14, height: 14, borderRadius: 4, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontSize: 9, fontWeight: '800', color: colors.ink }}>{icon}</Text>
+          {weeks.map((week, weekIndex) => (
+            <View key={weekIndex} style={{ flexDirection: 'row' }}>
+              {week.map((cell) => {
+                const mark = dayMark(cell.date, allTrials, reactionDays, checkinDays, today);
+                const selected = sameLocalDay(cell.date, selectedDate);
+                const isToday = sameLocalDay(cell.date, today);
+                const marks = [
+                  mark.tint === 'amber' ? t('calendar.a11yObserving') : null,
+                  mark.tint === 'green' ? t('calendar.a11ySafe') : null,
+                  mark.tint === 'red' ? t('calendar.a11yReaction') : null,
+                  mark.dot ? t('calendar.a11yRecord') : null,
+                  isToday ? t('calendar.todayLabel') : null,
+                ].filter(Boolean);
+                return (
+                  <Pressable
+                    key={cell.date.toISOString()}
+                    accessibilityRole="button"
+                    accessibilityLabel={[cell.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }), ...marks].join(', ')}
+                    accessibilityState={{ selected }}
+                    onPress={() => setSelectedDate(cell.date)}
+                    style={press({
+                      flex: 1,
+                      minHeight: 44,
+                      aspectRatio: 1,
+                      margin: 1,
+                      borderRadius: 12,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: TINT_BG[mark.tint ?? 'none'],
+                      borderWidth: selected ? 2 : isToday ? 1 : 0,
+                      borderColor: selected ? colors.accent : colors.inkSecondary,
+                    })}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: selected ? '900' : '700', color: cell.inMonth ? colors.ink : colors.dayOutMonth }}>{cell.date.getDate()}</Text>
+                    {mark.dot && <View style={{ position: 'absolute', bottom: 5, width: 4, height: 4, borderRadius: radii.pill, backgroundColor: mark.dot === 'red' ? colors.red : colors.green }} />}
+                  </Pressable>
+                );
+              })}
             </View>
-            <Text style={{ fontSize: 11, color: colors.inkSecondary }}>{t(`calendar.${key}`)}</Text>
-          </View>
-        ))}
-      </View>
+          ))}
+        </WarmCard>
 
-      <Text style={{ fontSize: 11, fontWeight: '800', letterSpacing: 1.5, color: colors.inkSecondary, marginTop: 18, marginBottom: 4, paddingLeft: layout.rowInset }}>
-        {selectedDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}
-      </Text>
-      {events.length === 0 ? (
-        <Text style={{ fontSize: 14, color: colors.inkSecondary, paddingVertical: 12, paddingLeft: layout.rowInset }}>{t('calendar.noEvents')}</Text>
-      ) : (
-        events.map((ev) => (
-          <View
-            key={ev.key}
-            style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, paddingVertical: 9, paddingHorizontal: layout.rowInset, borderBottomWidth: 1, borderColor: colors.hairline }}
-          >
-            <View style={{ width: 7, height: 7, borderRadius: 999, backgroundColor: ev.color }} />
-            <Text style={{ fontSize: 13.5, fontWeight: '600', color: ev.color, flexShrink: 1 }}>{ev.text}</Text>
-            <Text style={{ fontSize: 12, color: colors.inkSecondary, marginLeft: 'auto' }}>
-              {ev.at.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}
-            </Text>
-          </View>
-        ))
-      )}
-    </ScrollView>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 12, paddingHorizontal: 2 }}>
+          {[
+            { label: t('calendar.legendWindow'), color: colors.amberTint, icon: 'clock' as const },
+            { label: t('calendar.legendSafe'), color: colors.greenTint, icon: 'check' as const },
+            { label: t('calendar.legendReaction'), color: colors.redTint, icon: 'warning' as const },
+            { label: t('calendar.legendRecord'), color: '#F5EEE9', icon: 'file' as const },
+          ].map((item) => (
+            <View key={item.label} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              <View style={{ width: 20, height: 20, borderRadius: 7, alignItems: 'center', justifyContent: 'center', backgroundColor: item.color }}><Icon name={item.icon} size={11} color={colors.ink} /></View>
+              <Text style={{ fontSize: 10.5, fontWeight: '700', color: colors.inkSecondary }}>{item.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 24, marginBottom: 10, paddingHorizontal: 2 }}>
+          <Text style={{ fontSize: 17, fontWeight: '900', color: colors.ink }}>{selectedDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}</Text>
+          <Text style={{ fontSize: 12, color: colors.inkSecondary }}>{t('calendar.eventCount', { count: events.length })}</Text>
+        </View>
+        {events.length === 0 ? (
+          <WarmCard style={{ alignItems: 'center', paddingVertical: 23 }}>
+            <Icon name="calendar" size={24} color={colors.muted} />
+            <Text style={{ fontSize: 13, color: colors.inkSecondary, marginTop: 8 }}>{t('calendar.noEvents')}</Text>
+          </WarmCard>
+        ) : (
+          <WarmCard style={{ paddingVertical: 2, paddingHorizontal: 14 }}>
+            {events.map((event, index) => (
+              <Pressable
+                key={event.key}
+                accessibilityRole="button"
+                accessibilityLabel={event.text}
+                onPress={() => router.push({ pathname: '/food/[id]', params: { id: event.foodId, from: 'calendar' } })}
+                style={press({ minHeight: 62, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 11, borderTopWidth: index === 0 ? 0 : 1, borderColor: colors.hairline })}
+              >
+                <View style={{ width: 10, height: 10, borderRadius: radii.pill, backgroundColor: event.color }} />
+                <Text style={{ flex: 1, fontSize: 13.5, fontWeight: '700', color: event.color, lineHeight: 19 }}>{event.text}</Text>
+                <Text style={{ fontSize: 11, color: colors.inkSecondary }}>{event.at.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}</Text>
+                <Icon name="chevronRight" size={16} color={colors.muted} />
+              </Pressable>
+            ))}
+          </WarmCard>
+        )}
+      </ScrollView>
+      <BottomNav active="history" />
+    </View>
   );
 }

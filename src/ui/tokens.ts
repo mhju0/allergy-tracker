@@ -1,5 +1,3 @@
-import type { FoodStatus } from '../domain/status';
-
 // Warm Care palette (owner-approved 2026-08-09). Text-bearing pairs are
 // measured in tokens.test.ts; lighter values are surfaces and non-text marks.
 const paper = '#FFF8F2';
@@ -21,8 +19,7 @@ const amberTint = '#FFF0CF';
 const greenTint = '#E4F2E8';
 const redTint = '#F9E5E7';
 
-// Deeper fields retain the legacy StateField contract while the screens move
-// to rounded cards. Each remains visually distinct from the paper ground.
+// Calendar and status surfaces remain visually distinct from the paper ground.
 const fieldAmber = '#F7DFA9';
 const fieldGreen = '#D2E5D5';
 const fieldRed = '#EFCFD3';
@@ -63,21 +60,10 @@ export const colors = {
   },
 } as const;
 
-export const statusIcon: Record<FoodStatus, string> = {
-  untried: '○',
-  testing: '◐',
-  safe: '✓',
-  reacted: '✕',
-};
-
 // Reused across pills/chips/dots — not a full scale, just the one radius that recurs everywhere.
 export const radii = { sm: 14, md: 18, lg: 26, pill: 999 };
 
-// Single source for the horizontal inset of row content inside full-width
-// divider lines. Dividers/buttons stay flush to the screen padding; labels and
-// values sit this far inside. Used across home, calendar, and the foods list.
-// screenInset is the horizontal screen padding. It was a bare 22 in each
-// screen until the state field needed to bleed past it by exactly that much.
+// Shared spacing keeps row content and interactive controls aligned.
 export const layout = {
   rowInset: 12,
   screenInset: 20,

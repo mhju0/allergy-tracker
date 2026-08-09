@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, AppState, Pressable, ScrollView, Text, View } from 'react-native';
-import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import { Alert, AppState, ScrollView, Text, View } from 'react-native';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBaby, useFoodsWithStatus } from '../../src/data/queries';
@@ -14,10 +14,11 @@ import { Button } from '../../src/ui/Button';
 import { CheckinPill } from '../../src/ui/CheckinPill';
 import { buildLedger, DayLedger } from '../../src/ui/DayLedger';
 import { MarkSafeButton } from '../../src/ui/MarkSafeButton';
-import { press } from '../../src/ui/pressable';
-import { colors, layout, statusIcon } from '../../src/ui/tokens';
-
-const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.inkSecondary, paddingBottom: 12 };
+import { BackButton } from '../../src/ui/ScreenHeader';
+import { StatusChip } from '../../src/ui/StatusChip';
+import { WarmCard } from '../../src/ui/WarmCard';
+import { Icon } from '../../src/ui/Icon';
+import { colors, layout, radii } from '../../src/ui/tokens';
 
 const KIND_COLOR: Record<RecordKind, string> = {
   start: colors.amberText,
@@ -42,10 +43,8 @@ export default function FoodDetail() {
   const baby = useBaby();
   const foods = useFoodsWithStatus();
   const [, setTick] = useState(0);
-  const bump = useCallback(() => setTick((x) => x + 1), []);
+  const bump = useCallback(() => setTick((value) => value + 1), []);
   useFocusEffect(bump);
-  // Same staleness as Home: `isWindowElapsed` reads a render-time clock, and
-  // returning from the background does not re-run the focus effect.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') bump();
@@ -53,95 +52,70 @@ export default function FoodDetail() {
     return () => sub.remove();
   }, [bump]);
 
-  const entry = foods.find((f) => f.food.id === id);
+  const entry = foods.find((food) => food.food.id === id);
   const startFlow = useStartTrialFlow(foods, baby?.defaultWindowDays ?? 3);
   if (!entry || !baby) return null;
 
-  const { food, trials, status, latest } = entry;
+  const { food, latest, status } = entry;
   const now = new Date();
-  const windowDays = baby.defaultWindowDays;
   const activeHere = latest && latest.outcome === null ? latest : undefined;
-  const fg = colors.status[status].fg;
+  const latestReaction = latest?.reactions[0];
+  const testingDay = latest && status === 'testing' ? trialDay(latest, now) : 0;
+  const subline = status === 'reacted' && latestReaction
+    ? `${t('status.reacted')} · ${reactionSummary(latestReaction, t)}`
+    : status === 'testing' && latest
+      ? `${t('status.testing')} · ${t('home.dayOf', { day: testingDay, total: latest.windowDays })}`
+      : t(`status.${status}`);
 
-  // A started test lives on the home hero — land the user there, not here.
+  const historyRows = buildRecords([entry], { includeCancelled: true }).reverse().map((record) => ({
+    key: record.key,
+    at: record.at,
+    color: KIND_COLOR[record.kind],
+    label: t(KIND_LABEL[record.kind]),
+    detail: record.reaction
+      ? `${reactionSummary(record.reaction, t)}${record.reaction.note ? ` — ${record.reaction.note}` : ''}`
+      : undefined,
+  }));
+
   const onStart = () => startFlow(food, () => router.dismissAll());
 
-  const testingElapsed = latest && status === 'testing' ? isWindowElapsed(latest, now) : false;
-  const testingDay = latest && status === 'testing' ? trialDay(latest, now) : 0;
-
-  const latestReaction = latest?.reactions[0];
-  const subline =
-    status === 'reacted' && latestReaction
-      ? `${statusIcon.reacted} ${t('status.reacted')} · ${reactionSummary(latestReaction, t)}`
-      : status === 'testing' && latest
-        ? `${statusIcon.testing} ${t('status.testing')} · ${t('home.dayOf', { day: testingDay, total: latest.windowDays })}`
-        : `${statusIcon[status]} ${t(`status.${status}`)}`;
-
-  // Flat, newest-first history — every record is its own big bullet, mirroring
-  // the calendar's day-detail model. Same stream as the calendar, reversed and
-  // opted into this food's cancelled trials.
-  const historyRows = buildRecords([entry], { includeCancelled: true })
-    .reverse()
-    .map((r) => ({
-      key: r.key,
-      at: r.at,
-      color: KIND_COLOR[r.kind],
-      outline: r.kind === 'cancelled',
-      label: t(KIND_LABEL[r.kind]),
-      detail: r.reaction
-        ? `${reactionSummary(r.reaction, t)}${r.reaction.note ? ` — ${r.reaction.note}` : ''}`
-        : undefined,
-    }));
-
   return (
-    <ScrollView contentContainerStyle={{ padding: 22, paddingTop: insets.top + 4, gap: 20, backgroundColor: colors.paper }}>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.back()}
-        hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
-        style={press({ minHeight: 44, justifyContent: 'center' })}
-      >
-        <Text style={eyebrowStyle}>
-          <Text style={{ color: colors.inkSecondary }}>‹ </Text>
-          {/* back went to Home whenever the hero was tapped, while the label
-              always said 재료 — name wherever we actually came from. */}
-          {from === 'foods' ? t('foods.title') : t('home.short')}
-        </Text>
-      </Pressable>
+    <ScrollView
+      contentContainerStyle={{ paddingHorizontal: layout.screenInset, paddingTop: insets.top + 8, paddingBottom: Math.max(insets.bottom, 12) + 24, backgroundColor: colors.paper }}
+    >
+      <BackButton label={from === 'foods' ? t('foods.title') : from === 'calendar' ? t('calendar.historyTitle') : t('home.short')} onPress={() => router.back()} />
 
-      <View>
-        <Text style={{ fontSize: 52, fontWeight: '900', color: colors.ink, letterSpacing: -1, lineHeight: 54 }}>
-          {foodLabel(food)}
-        </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 9 }}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: fg, flexShrink: 1 }}>{subline}</Text>
-          {food.allergenGroup && (
-            <Text
-              style={{
-                fontSize: 10, fontWeight: '800', color: colors.red, borderWidth: 1,
-                borderColor: colors.red, borderRadius: 4, paddingHorizontal: 4, paddingVertical: 1,
-              }}
-            >
-              {t('foods.highRisk')}
-            </Text>
-          )}
+      <View style={{ alignItems: 'center', paddingTop: 8, paddingBottom: 18 }}>
+        <View style={{ width: 92, height: 92, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: status === 'reacted' ? colors.redTint : status === 'safe' ? colors.greenTint : colors.amberTint }}>
+          <Icon name={status === 'reacted' ? 'warning' : status === 'safe' ? 'check' : status === 'testing' ? 'clock' : 'foods'} size={43} color={colors.status[status].fg} strokeWidth={1.7} />
         </View>
+        <Text accessibilityRole="header" style={{ fontSize: 38, lineHeight: 45, fontWeight: '900', letterSpacing: -1, color: colors.ink, marginTop: 13 }}>{foodLabel(food)}</Text>
+        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.inkSecondary, marginTop: 5 }}>{subline}</Text>
+        <View style={{ marginTop: 10 }}><StatusChip status={status} /></View>
       </View>
 
-      {latest && <DayLedger days={buildLedger(latest, now, t)} backfillFoodId={activeHere ? food.id : undefined} />}
+      {food.allergenGroup && (
+        <WarmCard tone="reaction" style={{ padding: 15, marginBottom: 14 }}>
+          <Text style={{ fontSize: 13, fontWeight: '900', color: colors.red }}>{t('food.highRiskWhyTitle')}</Text>
+          <Text style={{ fontSize: 12.5, color: colors.red, lineHeight: 19, marginTop: 4 }}>{t('food.highRiskWhyBody', { food: foodLabel(food) })}</Text>
+        </WarmCard>
+      )}
+
+      {latest && (
+        <WarmCard style={{ padding: 14, marginBottom: 14 }}>
+          <Text style={{ fontSize: 14, fontWeight: '900', color: colors.ink, marginBottom: 11 }}>{t('food.observationProgress')}</Text>
+          <DayLedger days={buildLedger(latest, now, t)} backfillFoodId={activeHere ? food.id : undefined} />
+        </WarmCard>
+      )}
 
       {activeHere ? (
-        <View style={{ gap: 10 }}>
+        <View style={{ gap: 9 }}>
           {isWindowElapsed(activeHere, now) && <MarkSafeButton trial={activeHere} />}
+          {!isWindowElapsed(activeHere, now) && <CheckinPill foodId={food.id} trial={activeHere} now={now} filled />}
+          <Button label={t('home.symptomsHappened')} variant="danger" icon={<Icon name="warning" size={19} color={colors.red} />} onPress={() => router.push({ pathname: '/log-reaction', params: { foodId: food.id } })} />
           <Button
-            label={t('home.logReaction')}
+            label={t('food.cancelTrial')}
             variant="secondary"
-            onPress={() => router.push({ pathname: '/log-reaction', params: { foodId: food.id } })}
-          />
-          {/* Hides itself when today is not a day this window covers — past
-              the close there is nothing to check in for. */}
-          <CheckinPill foodId={food.id} trial={activeHere} now={now} />
-          <Button label={t('food.cancelTrial')} variant="danger"
             onPress={() => Alert.alert(
               t('food.cancelConfirmTitle', { food: foodLabel(food) }),
               t('food.cancelConfirmBody'),
@@ -149,56 +123,47 @@ export default function FoodDetail() {
                 { text: t('food.cancelConfirmYes'), style: 'destructive', onPress: () => cancelTrial(activeHere.id, new Date()) },
                 { text: t('food.keepGoing'), style: 'cancel' },
               ],
-            )} />
+            )}
+          />
         </View>
       ) : (
-        <View style={{ gap: 10 }}>
+        <View style={{ gap: 9 }}>
           <Button
-            label={status === 'untried'
-              ? t('food.startTrial', { days: windowDays })
-              : t('food.retest', { days: windowDays })}
+            label={status === 'untried' ? t('food.startTrial', { days: baby.defaultWindowDays }) : t('food.retest', { days: baby.defaultWindowDays })}
+            icon={<Icon name="clock" size={19} color={colors.onAccent} />}
             onPress={onStart}
           />
-          {status !== 'untried' && (
-            <Button
-              label={t('home.logReaction')}
-              variant="secondary"
-              onPress={() => router.push({ pathname: '/log-reaction', params: { foodId: food.id } })}
-            />
-          )}
+          {status !== 'untried' && <Button label={t('food.newReaction')} variant="danger" icon={<Icon name="warning" size={19} color={colors.red} />} onPress={() => router.push({ pathname: '/log-reaction', params: { foodId: food.id } })} />}
         </View>
       )}
 
-      <View>
-        <Text style={{ fontSize: 11, fontWeight: '800', letterSpacing: 1.5, color: colors.inkSecondary, marginBottom: 4, paddingLeft: layout.rowInset }}>
-          {t('food.history')}
-        </Text>
-        {historyRows.length === 0 ? (
-          <Text style={{ fontSize: 14, color: colors.inkSecondary, paddingLeft: layout.rowInset }}>{t('food.noHistory')}</Text>
-        ) : (
-          historyRows.map((ev) => (
-            <View
-              key={ev.key}
-              style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 11, paddingHorizontal: layout.rowInset, borderBottomWidth: 1, borderColor: colors.hairline }}
-            >
-              <View
-                style={
-                  ev.outline
-                    ? { width: 9, height: 9, borderRadius: 999, borderWidth: 1.5, borderColor: colors.muted, marginTop: 4 }
-                    : { width: 9, height: 9, borderRadius: 999, backgroundColor: ev.color, marginTop: 4 }
-                }
-              />
-              <View style={{ flexShrink: 1 }}>
-                <Text style={{ fontSize: 11.5, color: colors.inkSecondary }}>
-                  {ev.at.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} · {ev.at.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 26, marginBottom: 10, paddingHorizontal: 2 }}>
+        <Text style={{ fontSize: 17, fontWeight: '900', color: colors.ink }}>{t('food.history')}</Text>
+        <Text style={{ fontSize: 12, color: colors.inkSecondary }}>{t('food.historyCount', { count: historyRows.length })}</Text>
+      </View>
+      {historyRows.length === 0 ? (
+        <WarmCard style={{ alignItems: 'center', paddingVertical: 24 }}>
+          <Icon name="clock" size={24} color={colors.muted} />
+          <Text style={{ fontSize: 13, color: colors.inkSecondary, marginTop: 8 }}>{t('food.noHistory')}</Text>
+        </WarmCard>
+      ) : (
+        <WarmCard style={{ paddingVertical: 2, paddingHorizontal: 14 }}>
+          {historyRows.map((event, index) => (
+            <View key={event.key} style={{ minHeight: 68, flexDirection: 'row', alignItems: 'flex-start', gap: 11, paddingVertical: 13, borderTopWidth: index === 0 ? 0 : 1, borderColor: colors.hairline }}>
+              <View style={{ width: 28, height: 28, borderRadius: radii.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: event.color === colors.red ? colors.redTint : event.color === colors.green ? colors.greenTint : colors.amberTint }}>
+                <View style={{ width: 8, height: 8, borderRadius: radii.pill, backgroundColor: event.color }} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 13.5, fontWeight: '800', color: event.color }}>{event.label}</Text>
+                <Text style={{ fontSize: 11.5, color: colors.inkSecondary, marginTop: 3 }}>
+                  {event.at.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} · {event.at.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}
                 </Text>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: ev.color, marginTop: 2 }}>{ev.label}</Text>
-                {ev.detail && <Text style={{ fontSize: 12.5, color: colors.red, marginTop: 2 }}>{ev.detail}</Text>}
+                {event.detail && <Text style={{ fontSize: 12, color: colors.red, lineHeight: 18, marginTop: 3 }}>{event.detail}</Text>}
               </View>
             </View>
-          ))
-        )}
-      </View>
+          ))}
+        </WarmCard>
+      )}
     </ScrollView>
   );
 }

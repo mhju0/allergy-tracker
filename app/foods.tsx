@@ -7,46 +7,28 @@ import { useBaby, useFoodsWithStatus, type FoodWithStatus } from '../src/data/qu
 import { useStartTrialFlow } from '../src/data/useStartTrialFlow';
 import { foodLabel } from '../src/i18n';
 import { pendingAutoclose, type FoodStatus } from '../src/domain/status';
+import { trialDay } from '../src/domain/homeState';
 import { StatusChip } from '../src/ui/StatusChip';
 import { press } from '../src/ui/pressable';
 import { FoodGlyph } from '../src/ui/FoodGlyph';
 import { type FamilyId } from '../src/db/families';
 import { groupByFamily } from '../src/domain/foodGroups';
+import { BottomNav } from '../src/ui/BottomNav';
+import { Icon } from '../src/ui/Icon';
+import { ScreenHeader } from '../src/ui/ScreenHeader';
 import { colors, layout, radii } from '../src/ui/tokens';
 
-// Dependency-free magnifier glyph (no icon lib in the project) — a ring plus a
-// short diagonal handle, drawn in the muted token like the app's other marks.
-function SearchIcon() {
-  return (
-    <View style={{ width: 15, height: 15, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ width: 9, height: 9, borderRadius: radii.pill, borderWidth: 1.5, borderColor: colors.muted }} />
-      <View
-        style={{
-          position: 'absolute', bottom: 1, right: 1, width: 5, height: 1.5,
-          borderRadius: 1, backgroundColor: colors.muted, transform: [{ rotate: '45deg' }],
-        }}
-      />
-    </View>
-  );
-}
-
-// Untried used to sort second, so on a fresh install ~120 foods with no history
-// sat above every food that had one. The rows worth reading now lead.
 const ORDER: Record<FoodStatus, number> = { testing: 0, reacted: 1, safe: 2, untried: 3 };
-const ROW_MIN_H = 44; // minimum, not fixed — rows must grow with Dynamic Type
 const FILTERS = ['testing', 'reacted', 'safe', 'untried'] as const;
 
 type Row =
   | { kind: 'header'; key: string; label: string; count: number }
   | { kind: 'family'; key: string; family: FamilyId; count: number; allHighRisk: boolean }
   | { kind: 'food'; key: string; item: FoodWithStatus; hideHighRisk?: boolean };
-const eyebrowStyle = { fontSize: 10, fontWeight: '700' as const, letterSpacing: 2.2, color: colors.inkSecondary, paddingBottom: 12 };
 
 export default function Foods() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  // pick=1 (home's 새 재료 시작하기): tapping a row starts its trial right away
-  // and returns home, instead of opening the food detail page.
   const { focus, pick } = useLocalSearchParams<{ focus?: string; pick?: string }>();
   const insets = useSafeAreaInsets();
   const foods = useFoodsWithStatus();
@@ -54,283 +36,187 @@ export default function Foods() {
   const windowDays = baby?.defaultWindowDays ?? 3;
   const startFlow = useStartTrialFlow(foods, windowDays);
   const [query, setQuery] = useState('');
-  // Home's count rows arrive as ?focus=<status>. They used to scroll an
-  // unfiltered list to that status; they now actually filter to it, which is
-  // what "안전 8" implies. Seeded once from the param, then user-owned.
   const [filter, setFilter] = useState<FoodStatus | null>(
     FILTERS.includes(focus as (typeof FILTERS)[number]) ? (focus as FoodStatus) : null,
   );
 
   const counts = useMemo(() => {
-    const c = { testing: 0, reacted: 0, safe: 0, untried: 0 } as Record<FoodStatus, number>;
-    for (const f of foods) c[f.status]++;
-    return c;
+    const result = { testing: 0, reacted: 0, safe: 0, untried: 0 } as Record<FoodStatus, number>;
+    for (const food of foods) result[food.status]++;
+    return result;
   }, [foods]);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
     const matched = foods
-      .filter((f) => foodLabel(f.food).toLowerCase().includes(q))
-      .filter((f) => (filter && !q ? f.status === filter : true))
-      .sort((a, b) =>
-        ORDER[a.status] - ORDER[b.status] || foodLabel(a.food).localeCompare(foodLabel(b.food)));
+      .filter((food) => foodLabel(food.food).toLowerCase().includes(q))
+      .filter((food) => (filter && !q ? food.status === filter : true))
+      .sort((a, b) => ORDER[a.status] - ORDER[b.status] || foodLabel(a.food).localeCompare(foodLabel(b.food)));
 
-    // Headers only earn their space in the unfiltered, unsearched view, where
-    // they explain why a run of rows carries no status chip.
     if (filter || q) return matched.map((item): Row => ({ kind: 'food', key: item.food.id, item }));
 
     const out: Row[] = [];
-    const tried = matched.filter((f) => f.status !== 'untried');
-    const untried = matched.filter((f) => f.status === 'untried');
+    const tried = matched.filter((food) => food.status !== 'untried');
+    const untried = matched.filter((food) => food.status === 'untried');
     if (tried.length) {
       out.push({ kind: 'header', key: 'h-tried', label: t('foods.groupTried'), count: tried.length });
       for (const item of tried) out.push({ kind: 'food', key: item.food.id, item });
     }
     if (untried.length) {
       out.push({ kind: 'header', key: 'h-untried', label: t('foods.groupUntried'), count: untried.length });
-
-      // 안 먹어봄 is ~109 rows on a fresh install. Grouped into family bands it
-      // reads as structure instead of a wall, and the band is what carries the
-      // glyph. 가나다순 still decides the order — both between bands and inside
-      // them — so this adds a layer without changing the sort principle.
       const { bands, unfamiliar } = groupByFamily(
         untried,
-        (f) => f.food.id,
-        (f) => Boolean(f.food.allergenGroup),
-        (fam) => t(`foodFamily.${fam}`),
+        (food) => food.food.id,
+        (food) => Boolean(food.food.allergenGroup),
+        (family) => t(`foodFamily.${family}`),
       );
-
       for (const band of bands) {
-        // When every food under a band is high-risk the badge belongs on the
-        // band, said once, and the rows stay clean. A mixed family (곡물 has
-        // one 밀 among twelve) keeps the badge per row, where it discriminates.
-        out.push({
-          kind: 'family', key: `f-${band.family}`, family: band.family,
-          count: band.members.length, allHighRisk: band.allHighRisk,
-        });
-        for (const item of band.members) {
-          out.push({ kind: 'food', key: item.food.id, item, hideHighRisk: band.allHighRisk });
-        }
+        out.push({ kind: 'family', key: `f-${band.family}`, family: band.family, count: band.members.length, allHighRisk: band.allHighRisk });
+        for (const item of band.members) out.push({ kind: 'food', key: item.food.id, item, hideHighRisk: band.allHighRisk });
       }
-
-      // A food from an older build that is no longer in CATALOG has no family.
-      // It still has to appear, so it trails the bands rather than vanishing.
       for (const item of unfamiliar) out.push({ kind: 'food', key: item.food.id, item });
     }
     return out;
   }, [foods, query, filter, i18n.language, t]);
 
-  // The food that a start would auto-close, and as what — per the rule itself.
   const autocloses = useMemo(() => pendingAutoclose(foods, new Date()), [foods]);
 
   return (
-    <View style={{ flex: 1, padding: 22, paddingTop: insets.top + 4, backgroundColor: colors.paper }}>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.back()}
-        hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
-        style={press({ minHeight: 44, justifyContent: 'center' })}
-      >
-        <Text style={eyebrowStyle}>
-          <Text style={{ color: colors.inkSecondary }}>‹ </Text>
-          {t('foods.title')}
-        </Text>
-      </Pressable>
-
-      <View
-        style={{
-          flexDirection: 'row', alignItems: 'center',
-          borderBottomWidth: 2, borderColor: colors.ink, paddingBottom: 8,
-        }}
-      >
-        <SearchIcon />
-        <TextInput
-          placeholder={t('foods.search')}
-          placeholderTextColor={colors.inkSecondary}
-          value={query}
-          // Searching with a filter on would silently hide matches, so typing
-          // drops the filter — visibly, since the pill deselects.
-          onChangeText={(v) => {
-            setQuery(v);
-            if (v.trim()) setFilter(null);
-          }}
-          clearButtonMode="while-editing"
-          autoCorrect={false}
-          style={{ flex: 1, fontSize: 15, color: colors.ink, marginLeft: 7 }}
-        />
-      </View>
-
-      {pick === '1' && (
-        <View style={{ paddingTop: 8, paddingLeft: layout.rowInset }}>
-          <Text style={{ fontSize: 12, color: colors.inkSecondary }}>
-            {t('foods.pickHint', { days: windowDays })}
-          </Text>
-          {/* Starting a food while the previous window has elapsed silently
-              closes it — 안전 if it was observed at all, 미완료 if it never
-              was. Say which before the tap: it is the app's most consequential
-              write, and the parent cannot see it happen. */}
-          {autocloses && (
-            <Text style={{ fontSize: 12, fontWeight: '700', color: autocloses.outcome === 'safe' ? colors.green : colors.inkSecondary, marginTop: 3 }}>
-              {t(autocloses.outcome === 'safe' ? 'foods.pickHintAutoclose' : 'foods.pickHintAutocloseUnobserved',
-                { food: foodLabel(autocloses.food.food) })}
-            </Text>
-          )}
+    <View style={{ flex: 1, backgroundColor: colors.paper }}>
+      <View style={{ paddingHorizontal: layout.screenInset, paddingTop: insets.top + 8 }}>
+        <ScreenHeader eyebrow={t('foods.subtitle', { count: foods.length })} title={t('foods.title')} />
+        <View style={{ minHeight: layout.controlHeight, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 15, borderWidth: 1, borderColor: colors.hairline, borderRadius: radii.md, backgroundColor: colors.surface }}>
+          <Icon name="search" size={20} color={colors.inkSecondary} />
+          <TextInput
+            accessibilityLabel={t('foods.search')}
+            placeholder={t('foods.searchPlain')}
+            placeholderTextColor={colors.inkSecondary}
+            value={query}
+            onChangeText={(value) => {
+              setQuery(value);
+              if (value.trim()) setFilter(null);
+            }}
+            clearButtonMode="while-editing"
+            autoCorrect={false}
+            style={{ flex: 1, minHeight: layout.controlHeight, fontSize: 16, color: colors.ink }}
+          />
         </View>
-      )}
 
-      {!query.trim() && (
-        <View style={{ paddingTop: 12 }}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 6, paddingRight: 22, alignItems: 'center' }}
-        >
-          {([null, ...FILTERS] as const).map((f) => {
-            const on = filter === f;
-            const label = f === null ? t('foods.filterAll') : t(`status.${f}`);
-            const n = f === null ? foods.length : counts[f];
-            if (f !== null && n === 0) return null;
-            return (
-              <Pressable
-                key={f ?? 'all'}
-                accessibilityRole="button"
-                accessibilityState={{ selected: on }}
-                onPress={() => setFilter(f)}
-                style={press({
-                  paddingHorizontal: 11, paddingVertical: 6, borderRadius: radii.pill, borderWidth: 1.5,
-                  borderColor: on ? colors.ink : colors.hairline,
-                  backgroundColor: on ? colors.ink : 'transparent',
-                })}
-              >
-                <Text style={{ fontSize: 12, fontWeight: '700', color: on ? colors.paper : colors.inkSecondary }}>
-                  {label} {n}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-        </View>
-      )}
-
-      <FlatList
-        data={rows}
-        keyExtractor={(r) => r.key}
-        renderItem={({ item: row }) =>
-          row.kind === 'header' ? (
-            <View
-              style={{
-                flexDirection: 'row', alignItems: 'baseline', gap: 6,
-                paddingTop: 16, paddingBottom: 7, paddingHorizontal: layout.rowInset,
-                borderBottomWidth: 1, borderColor: colors.hairline,
-              }}
-            >
-              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 2.2, color: colors.inkSecondary }}>
-                {row.label}
-              </Text>
-              {/* the count sits outside the letterspaced run — 2.2 turned "45" into "4 5" */}
-              <Text style={{ fontSize: 10, fontWeight: '700', color: colors.inkSecondary }}>
-                · {row.count}
-              </Text>
-            </View>
-          ) : row.kind === 'family' ? (
-            <View
-              accessibilityRole="header"
-              accessibilityLabel={[
-                t(`foodFamily.${row.family}`),
-                String(row.count),
-                row.allHighRisk ? t('foods.highRisk') : null,
-              ].filter(Boolean).join(', ')}
-              style={{
-                flexDirection: 'row', alignItems: 'center', gap: 9,
-                paddingVertical: 8, paddingHorizontal: layout.rowInset,
-                backgroundColor: colors.surface,
-                borderTopWidth: 1, borderBottomWidth: 1,
-                borderTopColor: colors.ink, borderBottomColor: colors.hairline,
-              }}
-            >
-              <FoodGlyph family={row.family} size={20} />
-              <Text style={{ flex: 1, fontSize: 11, fontWeight: '800', letterSpacing: 1.6, color: colors.ink }}>
-                {t(`foodFamily.${row.family}`)}
-              </Text>
-              {row.allHighRisk && (
-                <Text
-                  style={{
-                    fontSize: 9, fontWeight: '800', color: colors.red, borderWidth: 1,
-                    borderColor: colors.red, borderRadius: 3, paddingHorizontal: 4, paddingVertical: 1,
-                  }}
+        {!query.trim() && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 7, paddingTop: 12, paddingBottom: 14, paddingRight: 20 }}>
+            {([null, ...FILTERS] as const).map((item) => {
+              const selected = filter === item;
+              const label = item === null ? t('foods.filterAll') : t(`status.${item}`);
+              const count = item === null ? foods.length : counts[item];
+              if (item !== null && count === 0) return null;
+              return (
+                <Pressable
+                  key={item ?? 'all'}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  onPress={() => setFilter(item)}
+                  style={press({
+                    minHeight: 40,
+                    justifyContent: 'center',
+                    paddingHorizontal: 13,
+                    borderRadius: radii.pill,
+                    borderWidth: 1,
+                    borderColor: selected ? colors.ink : colors.hairline,
+                    backgroundColor: selected ? colors.ink : 'transparent',
+                  })}
                 >
-                  {t('foods.highRisk')}
+                  <Text style={{ fontSize: 12, fontWeight: '800', color: selected ? colors.surface : colors.inkSecondary }}>{label} {count}</Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        )}
+
+        {pick === '1' && (
+          <View style={{ minHeight: 68, marginBottom: 12, padding: 14, borderRadius: radii.lg, flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.accentTint }}>
+            <View style={{ width: 42, height: 42, borderRadius: radii.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.7)' }}>
+              <Icon name="plus" size={22} color={colors.accent} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 14, fontWeight: '800', color: colors.accentPressed }}>{t('foods.pickTitle')}</Text>
+              <Text style={{ fontSize: 11.5, color: colors.accentPressed, lineHeight: 17, marginTop: 2 }}>{t('foods.pickHint', { days: windowDays })}</Text>
+              {autocloses && (
+                <Text style={{ fontSize: 11.5, fontWeight: '700', color: autocloses.outcome === 'safe' ? colors.green : colors.inkSecondary, lineHeight: 17, marginTop: 3 }}>
+                  {t(autocloses.outcome === 'safe' ? 'foods.pickHintAutoclose' : 'foods.pickHintAutocloseUnobserved', { food: foodLabel(autocloses.food.food) })}
                 </Text>
               )}
-              {/* outside the letterspaced run — 1.6 would render "11" as "1 1" */}
-              <Text style={{ fontSize: 11, fontWeight: '700', color: colors.inkSecondary }}>
-                {row.count}
-              </Text>
             </View>
-          ) : (
-            <FoodRow
-              item={row.item}
-              hideHighRisk={row.hideHighRisk}
-              onPress={
-                pick === '1'
-                  ? () => startFlow(row.item.food, () => router.back())
-                  : () => router.push({ pathname: '/food/[id]', params: { id: row.item.food.id, from: 'foods' } })
-              }
-            />
-          )
-        }
-        ListEmptyComponent={
-          <Text style={{ color: colors.inkSecondary, fontSize: 14, textAlign: 'center', paddingVertical: 24 }}>
-            {/* both keys written as static t('…') literals so keys.test.ts can see them */}
-            {query.trim() ? t('foods.emptySearch') : t('foods.empty')}
-          </Text>
-        }
+          </View>
+        )}
+      </View>
+
+      <FlatList
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: layout.screenInset, paddingBottom: 18 }}
+        data={rows}
+        keyExtractor={(row) => row.key}
+        renderItem={({ item: row }) => row.kind === 'header' ? (
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', paddingTop: 15, paddingBottom: 9, paddingHorizontal: 2 }}>
+            <Text style={{ fontSize: 16, fontWeight: '900', color: colors.ink }}>{row.label}</Text>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: colors.inkSecondary }}>{row.count}</Text>
+          </View>
+        ) : row.kind === 'family' ? (
+          <View
+            accessibilityRole="header"
+            accessibilityLabel={[t(`foodFamily.${row.family}`), String(row.count), row.allHighRisk ? t('foods.highRisk') : null].filter(Boolean).join(', ')}
+            style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 9, marginTop: 10, paddingHorizontal: 12, borderRadius: radii.sm, backgroundColor: '#F5EEE9' }}
+          >
+            <FoodGlyph family={row.family} size={22} color={colors.inkSecondary} />
+            <Text style={{ flex: 1, fontSize: 12, fontWeight: '900', color: colors.ink }}>{t(`foodFamily.${row.family}`)}</Text>
+            {row.allHighRisk && <Text style={{ fontSize: 10, fontWeight: '800', color: colors.red }}>{t('foods.highRisk')}</Text>}
+            <Text style={{ fontSize: 11, fontWeight: '700', color: colors.inkSecondary }}>{row.count}</Text>
+          </View>
+        ) : (
+          <FoodRow
+            item={row.item}
+            hideHighRisk={row.hideHighRisk}
+            onPress={pick === '1'
+              ? () => startFlow(row.item.food, () => router.dismissAll())
+              : () => router.push({ pathname: '/food/[id]', params: { id: row.item.food.id, from: 'foods' } })}
+          />
+        )}
+        ListEmptyComponent={<Text style={{ color: colors.inkSecondary, fontSize: 14, textAlign: 'center', paddingVertical: 28 }}>{query.trim() ? t('foods.emptySearch') : t('foods.empty')}</Text>}
       />
+      <BottomNav active="foods" />
     </View>
   );
 }
 
-function FoodRow({
-  item, onPress, hideHighRisk = false,
-}: { item: FoodWithStatus; onPress: () => void; hideHighRisk?: boolean }) {
+function FoodRow({ item, onPress, hideHighRisk = false }: { item: FoodWithStatus; onPress: () => void; hideHighRisk?: boolean }) {
   const { t } = useTranslation();
-  const bold = item.status === 'testing';
-  const untried = item.status === 'untried';
+  const statusColor = colors.status[item.status].fg;
+  const icon = item.status === 'testing' ? 'clock' : item.status === 'safe' ? 'check' : item.status === 'reacted' ? 'warning' : 'plus';
+  const iconBackground = item.status === 'testing' ? colors.amberTint : item.status === 'safe' ? colors.greenTint : item.status === 'reacted' ? colors.redTint : '#F5EEE9';
+  const detail = item.status === 'testing' && item.latest
+    ? `${t('status.testing')} · ${t('home.dayOf', { day: trialDay(item.latest, new Date()), total: item.latest.windowDays })}`
+    : item.status === 'untried'
+      ? t('foods.untriedHint')
+      : item.latest?.endedAt
+        ? item.latest.endedAt.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })
+        : t(`status.${item.status}`);
   return (
     <Pressable
       accessibilityRole="button"
-      // The chip is dropped for untried rows below, so the status has to reach
-      // screen readers here — it is the only place it survives for those rows.
-      accessibilityLabel={[
-        foodLabel(item.food),
-        item.food.allergenGroup ? t('foods.highRisk') : null,
-        t(`status.${item.status}`),
-      ].filter(Boolean).join(', ')}
+      accessibilityLabel={[foodLabel(item.food), item.food.allergenGroup ? t('foods.highRisk') : null, t(`status.${item.status}`)].filter(Boolean).join(', ')}
       onPress={onPress}
-      style={press({
-        flexDirection: 'row', alignItems: 'center', minHeight: ROW_MIN_H,
-        paddingVertical: 8, paddingHorizontal: layout.rowInset,
-        borderBottomWidth: 1, borderColor: colors.hairline, gap: 7,
-      })}
+      style={press({ minHeight: 68, marginBottom: 9, padding: 12, borderRadius: radii.md, flexDirection: 'row', alignItems: 'center', gap: 11, backgroundColor: colors.surface })}
     >
-      <Text style={{ flex: 1, fontSize: 15, fontWeight: bold ? '800' : '600', color: colors.ink }}>
-        {foodLabel(item.food)}
-      </Text>
-      {/* hideHighRisk: the family band above already said it for every row in
-          the run. The accessibilityLabel below still carries it, because a
-          screen reader reads this row on its own. */}
-      {item.food.allergenGroup && !hideHighRisk && (
-        <Text
-          style={{
-            fontSize: 10, fontWeight: '800', color: colors.red, borderWidth: 1,
-            borderColor: colors.red, borderRadius: 4, paddingHorizontal: 4, paddingVertical: 1,
-          }}
-        >
-          {t('foods.highRisk')}
+      <View style={{ width: 43, height: 43, borderRadius: radii.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: iconBackground }}>
+        <Icon name={icon} size={21} color={statusColor} />
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={{ fontSize: 15, fontWeight: item.status === 'testing' ? '900' : '700', color: colors.ink }}>{foodLabel(item.food)}</Text>
+        <Text style={{ fontSize: 11, color: colors.inkSecondary, marginTop: 3 }}>
+          {detail}
+          {item.food.allergenGroup && !hideHighRisk ? ` · ${t('foods.highRisk')}` : ''}
         </Text>
-      )}
-      {/* absence IS untried — 45 identical grey chips carried no information */}
-      {!untried && <StatusChip status={item.status} />}
+      </View>
+      {item.status === 'untried' ? <Icon name="chevronRight" size={18} color={colors.muted} /> : <StatusChip status={item.status} />}
     </Pressable>
   );
 }
