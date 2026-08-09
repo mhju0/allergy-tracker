@@ -10,7 +10,7 @@
 <table>
 <tr>
 <td width="42%">
-<img src="docs/screenshots/demo.gif" alt="Logging a no-reaction check-in, the traffic-light food list, a food's reaction timeline, and the calendar history" width="100%">
+<img src="docs/screenshots/home.png" alt="Warm Care home screen with a three-day observation ledger, clear daily actions, and labeled bottom navigation" width="100%">
 </td>
 <td width="58%">
 
@@ -103,22 +103,30 @@ data model, derivation rules and edge cases are in
 
 <table align="center">
   <tr>
+    <th align="center">Today</th>
     <th align="center">Foods</th>
     <th align="center">Food detail</th>
-    <th align="center">Calendar</th>
-    <th align="center">Log a reaction</th>
   </tr>
   <tr>
+    <td><img src="docs/screenshots/home.png" alt="Today — the active observation and one clear primary action" width="200"></td>
     <td><img src="docs/screenshots/foods.png" alt="Foods — the catalogue, foods with history first" width="200"></td>
     <td><img src="docs/screenshots/detail.png" alt="Food detail — the observation ledger replayed, then every record" width="200"></td>
+  </tr>
+  <tr>
+    <th align="center">History</th>
+    <th align="center">Log a reaction</th>
+    <th align="center">Settings</th>
+  </tr>
+  <tr>
     <td><img src="docs/screenshots/calendar.png" alt="Calendar — cleared days green, observation amber, reactions red" width="200"></td>
     <td><img src="docs/screenshots/reaction.png" alt="Reaction logging — symptoms, severity, emergency advisory" width="200"></td>
+    <td><img src="docs/screenshots/settings.png" alt="Settings — baby information, reminders, guidance, and exports grouped into clear cards" width="200"></td>
   </tr>
 </table>
 
-The home screen is in the demo above: the **observation ledger** — one named
-cell per day of the window, where the rule under each cell is its state, so the
-progress bar and the record are the same object.
+The Warm Care UI keeps the **observation ledger** at the center — one named cell
+per day of the window — while one primary action and a persistent labeled bottom
+bar make the next click obvious on first use.
 
 ## What it does
 
@@ -141,12 +149,12 @@ progress bar and the record are the same object.
 | Layer | Choice |
 | --- | --- |
 | App | Expo SDK 57 · React Native 0.86 · TypeScript (strict) |
-| Navigation | Expo Router — file-based, typed routes, stack-only |
+| Navigation | Expo Router — file-based, typed routes, persistent labeled bottom bar |
 | Data | expo-sqlite + Drizzle ORM, generated migrations committed |
-| Domain | Pure TypeScript core, built test-first — Jest, 187 tests |
+| Domain | Pure TypeScript core, built test-first — Jest, 201 tests |
 | Notifications | expo-notifications — all local, no push service |
 | Localization | i18next — Korean-only by design, dates pinned to `ko-KR` |
-| UI | Hand-rolled editorial design system, no component library |
+| UI | Hand-rolled Warm Care design system, no component library |
 
 - **The UI is a thin layer over tested logic.** Status derivation, the
   start-trial decision including the implicit-safe autoclose, notification
@@ -155,14 +163,14 @@ progress bar and the record are the same object.
   contrast from the palette and fails the build if any value that carries text
   drops below 4.5:1.
 - **Accessible by construction.** A status colour never travels without its
-  icon and label; controls meet the 44&nbsp;pt target minimum.
+  icon and label; primary controls use 48&nbsp;pt-or-larger touch targets.
 - **The demo fixture is code.** A deterministic, invariant-tested seed builds a
   month of plausible history — every observed day recorded, times varied by a
   hash rather than `Math.random`, so it rebuilds byte-identically for
   screenshots.
 
 ```
-app/          screens (stack-only, typed routes)
+app/          screens (typed routes + persistent top-level navigation)
 src/domain/   pure logic — status, trial rules, scheduling, calendar maths
 src/data/     mutations, live queries, the shared start-trial flow
 src/db/       schema, seed + catalogue, demo fixture
@@ -175,7 +183,7 @@ src/ui/       design tokens (single source of colour) + shared components
 ```bash
 npm install
 npx expo run:ios       # dev build on the simulator
-npx jest               # 187 unit tests
+npx jest               # 201 unit tests
 npx tsc --noEmit       # typecheck
 ```
 
