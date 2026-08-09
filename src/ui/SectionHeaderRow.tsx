@@ -12,7 +12,7 @@ export function SectionHeaderRow({ title, meta, style }: {
         {
           minHeight: 24,
           flexDirection: 'row',
-          alignItems: 'flex-end',
+          alignItems: 'baseline',
           justifyContent: 'space-between',
           gap: spacing.sm,
           marginTop: spacing.lg,

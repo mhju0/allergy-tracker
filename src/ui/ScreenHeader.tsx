@@ -4,11 +4,26 @@ import { Icon } from './Icon';
 import { press } from './pressable';
 import { colors, layout, radii, spacing, typeStyles } from './tokens';
 
-export function ScreenHeader({ title, eyebrow, right }: {
+export function ScreenHeader({ title, eyebrow, right, alignRightWithTitle = false }: {
   title: string;
   eyebrow?: string;
   right?: ReactNode;
+  alignRightWithTitle?: boolean;
 }) {
+  if (eyebrow && right && alignRightWithTitle) {
+    return (
+      <View style={{ marginBottom: spacing.md }}>
+        <Text style={{ ...typeStyles.screenEyebrow, color: colors.inkSecondary, marginBottom: 2 }}>{eyebrow}</Text>
+        <View style={{ minHeight: layout.touchTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm }}>
+          <Text accessibilityRole="header" style={{ flexShrink: 1, ...typeStyles.screenTitle, color: colors.ink }}>
+            {title}
+          </Text>
+          {right}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={{ minHeight: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm, marginBottom: spacing.md }}>
       <View style={{ flexShrink: 1 }}>

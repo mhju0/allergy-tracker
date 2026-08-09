@@ -103,11 +103,14 @@ function Dashboard({ babyName }: { babyName: string | null }) {
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: layout.screenInset, paddingTop: insets.top + 8, paddingBottom: 24 }}
       >
-        <ScreenHeader
-          eyebrow={babyName ? t('home.greetingName', { name: babyName }) : t('home.greeting')}
-          title={t('home.todayTitle')}
-          right={<HeaderButton label={t('settings.title')} onPress={() => router.push('/settings')} />}
-        />
+        <View style={{ paddingHorizontal: layout.cardPadding }}>
+          <ScreenHeader
+            eyebrow={babyName ? t('home.greetingName', { name: babyName }) : t('home.greeting')}
+            title={t('home.todayTitle')}
+            right={<HeaderButton label={t('settings.title')} onPress={() => router.push('/settings')} />}
+            alignRightWithTitle
+          />
+        </View>
 
         <WarmCard tone={tone}>
           <View style={{ alignSelf: 'flex-start', minHeight: 32, paddingHorizontal: spacing.sm, borderRadius: radii.pill, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, backgroundColor: 'rgba(255,255,255,0.68)' }}>
@@ -166,7 +169,11 @@ function Dashboard({ babyName }: { babyName: string | null }) {
           </WarmCard>
         )}
 
-        <SectionHeaderRow title={t('home.ourFoods')} meta={t('home.totalFoods', { count: foods.length })} />
+        <SectionHeaderRow
+          title={t('home.ourFoods')}
+          meta={t('home.totalFoods', { count: foods.length })}
+          style={{ paddingHorizontal: layout.cardPadding }}
+        />
         <View style={{ flexDirection: 'row', gap: spacing.xs }}>
           {(['safe', 'testing', 'reacted'] as const).map((status) => (
             <Pressable
