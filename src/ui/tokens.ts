@@ -1,51 +1,33 @@
 import type { FoodStatus } from '../domain/status';
 
-// Editorial design bible (owner-approved 2026-07-17), with the 2026-07-25
-// contrast pass layered on, then restruck in the 표본 (herbarium) palette
-// owner-approved 2026-08-07. Ratios below are vs `paper` unless stated.
-//
-// 표본 is a VISUAL LANGUAGE, not a vocabulary — the Korean strings are
-// untouched. What changed is the ground: paper goes from near-white to a warm
-// specimen-sheet cream, so every value that carries text was re-measured
-// against it rather than carried over. src/ui/tokens.test.ts is the authority;
-// the mock's own amber (#A4761D) failed there at 3.31:1 and is kept only as a
-// mark, exactly as the previous amber was.
-//
-// Two colors come in a mark/text pair: the lighter value stays for dots, fills
-// and rules (only 3:1 is required for non-text UI), and a darkened sibling
-// carries anything readable.
-const amber = '#A4761D'; // 3.31:1 — MARKS ONLY (progress fills, dots, tints)
-const amberText = '#825B17'; // 4.97:1 — every amber string
-const green = '#3F6B45'; // 5.05:1
-const red = '#8C3B2E'; // 6.18:1
-const amberTint = '#EDD6A8';
-const greenTint = '#CFE0CA';
-const redTint = '#EDCEC2';
+// Warm Care palette (owner-approved 2026-08-09). Text-bearing pairs are
+// measured in tokens.test.ts; lighter values are surfaces and non-text marks.
+const paper = '#FFF8F2';
+const surface = '#FFFFFF';
+const ink = '#362C27';
+const muted = '#A9968B';
+const inkSecondary = '#6E5D55';
+const hairline = '#EBDDD3';
+const accent = '#B64F37';
+const accentPressed = '#983B27';
+const accentTint = '#F9E5DC';
+const onAccent = '#FFFFFF';
 
-// Home's state field (2026-07-28). One step deeper than the tints above, which
-// keep their own jobs on chips, dots and calendar cells — these are additive.
-//
-// The rule on a field is: THE FIELD CARRIES THE COLOR, `ink` CARRIES THE TEXT.
-// No amber/green/red string is ever set on one. Measured, that pairing fails:
-// amberText on fieldAmber is 3.6:1. `ink` clears 10:1 on all three, and the
-// tint has already said "amber" — repeating it in the type is redundant.
-// These sit a step deeper than they did on the old near-white paper: the
-// herbarium ground is itself tinted, so the previous field values collapsed to
-// ~1.20 against it and the seam disappeared. Re-struck to clear 1.2 with room.
-const fieldAmber = '#E2C793'; // ink 8.72:1, vs paper 1.34
-const fieldGreen = '#C6D9C0'; // ink 9.58:1, vs paper 1.22
-const fieldRed = '#E6C2B4'; // ink 8.66:1, vs paper 1.35
-const inkOnField = '#524C40'; // >=5.17:1 on all three — inkSecondary fails on fieldRed at 3.69
+const amber = '#C18B2A';
+const amberText = '#7A5413';
+const green = '#356B4E';
+const red = '#963944';
+const amberTint = '#FFF0CF';
+const greenTint = '#E4F2E8';
+const redTint = '#F9E5E7';
 
-const paper = '#EDE8DC'; // the specimen sheet itself
-const surface = '#F6F2E8'; // mounted label paper — rows, family bands, cards
-const ink = '#2E2A22'; // 11.68:1
-const muted = '#9C947F'; // 2.55:1 — MARKS ONLY (glyph strokes, dot outlines)
-const inkSecondary = '#6B6152'; // 4.97:1 — every secondary string
-const hairline = '#D3CAB6';
-const accent = '#BE4F26'; // 4.84:1 with onAccent; 3.96:1 vs paper as a control
-const onAccent = '#FFFFFF'; // text/icon on the persimmon primary fill
-const dayOutMonth = '#BFB6A2'; // calendar grid: muted out-of-month day number
+// Deeper fields retain the legacy StateField contract while the screens move
+// to rounded cards. Each remains visually distinct from the paper ground.
+const fieldAmber = '#F7DFA9';
+const fieldGreen = '#D2E5D5';
+const fieldRed = '#EFCFD3';
+const inkOnField = '#5B4942';
+const dayOutMonth = '#BDAEA5';
 
 export const colors = {
   paper,
@@ -55,6 +37,8 @@ export const colors = {
   inkSecondary,
   hairline,
   accent,
+  accentPressed,
+  accentTint,
   onAccent,
   amber,
   amberText,
@@ -87,11 +71,34 @@ export const statusIcon: Record<FoodStatus, string> = {
 };
 
 // Reused across pills/chips/dots — not a full scale, just the one radius that recurs everywhere.
-export const radii = { pill: 999 };
+export const radii = { sm: 14, md: 18, lg: 26, pill: 999 };
 
 // Single source for the horizontal inset of row content inside full-width
 // divider lines. Dividers/buttons stay flush to the screen padding; labels and
 // values sit this far inside. Used across home, calendar, and the foods list.
 // screenInset is the horizontal screen padding. It was a bare 22 in each
 // screen until the state field needed to bleed past it by exactly that much.
-export const layout = { rowInset: 10, screenInset: 22 };
+export const layout = {
+  rowInset: 12,
+  screenInset: 20,
+  controlHeight: 52,
+  touchTarget: 48,
+  navHeight: 76,
+};
+
+export const shadows = {
+  card: {
+    shadowColor: '#5D3D2D',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 2,
+  },
+  nav: {
+    shadowColor: '#5D3D2D',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    elevation: 6,
+  },
+} as const;

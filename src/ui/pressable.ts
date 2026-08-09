@@ -8,7 +8,7 @@ import type { StyleProp, ViewStyle } from 'react-native';
 //
 // Usage: style={press({ ...layout })}
 // Disabled Pressables never report pressed, so a disabled Button stays flat.
-const PRESSED: ViewStyle = { opacity: 0.55 };
+const PRESSED: ViewStyle = { opacity: 0.78, transform: [{ scale: 0.985 }] };
 
 // base is optional: some controls (the home hero) are bare Pressables whose only
 // styling is the text inside them, and they still need to acknowledge a tap.

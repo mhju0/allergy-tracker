@@ -1,4 +1,9 @@
 {
+  "nav": {
+    "today": "오늘",
+    "foods": "재료",
+    "history": "기록"
+  },
   "status": {
     "untried": "안 먹어봄",
     "testing": "관찰 중",
