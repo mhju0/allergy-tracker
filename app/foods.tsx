@@ -18,6 +18,7 @@ import { Icon } from '../src/ui/Icon';
 import { ScreenHeader } from '../src/ui/ScreenHeader';
 import { SectionHeaderRow } from '../src/ui/SectionHeaderRow';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
+import { useFreshNow } from '../src/ui/useFreshNow';
 
 const ORDER: Record<FoodStatus, number> = { testing: 0, reacted: 1, safe: 2, untried: 3 };
 const FILTERS = ['testing', 'reacted', 'safe', 'untried'] as const;
@@ -35,6 +36,8 @@ export default function Foods() {
   const foods = useFoodsWithStatus();
   const baby = useBaby();
   const windowDays = baby?.defaultWindowDays ?? 3;
+  const timedTrial = foods.find((food) => food.status === 'testing')?.latest;
+  const now = useFreshNow(timedTrial);
   const startFlow = useStartTrialFlow(foods, windowDays);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<FoodStatus | null>(
@@ -80,7 +83,7 @@ export default function Foods() {
     return out;
   }, [foods, query, filter, i18n.language, t]);
 
-  const autocloses = useMemo(() => pendingAutoclose(foods, new Date()), [foods]);
+  const autocloses = useMemo(() => pendingAutoclose(foods, now), [foods, now]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.paper }}>
@@ -172,6 +175,7 @@ export default function Foods() {
         ) : (
           <FoodRow
             item={row.item}
+            now={now}
             hideHighRisk={row.hideHighRisk}
             onPress={pick === '1'
               ? () => startFlow(row.item.food, () => router.dismissAll())
@@ -185,13 +189,18 @@ export default function Foods() {
   );
 }
 
-function FoodRow({ item, onPress, hideHighRisk = false }: { item: FoodWithStatus; onPress: () => void; hideHighRisk?: boolean }) {
+function FoodRow({ item, now, onPress, hideHighRisk = false }: {
+  item: FoodWithStatus;
+  now: Date;
+  onPress: () => void;
+  hideHighRisk?: boolean;
+}) {
   const { t } = useTranslation();
   const statusColor = colors.status[item.status].fg;
   const icon = item.status === 'testing' ? 'clock' : item.status === 'safe' ? 'check' : item.status === 'reacted' ? 'warning' : 'plus';
   const iconBackground = item.status === 'testing' ? colors.amberTint : item.status === 'safe' ? colors.greenTint : item.status === 'reacted' ? colors.redTint : '#F5EEE9';
   const detail = item.status === 'testing' && item.latest
-    ? `${t('status.testing')} · ${t('home.dayOf', { day: trialDay(item.latest, new Date()), total: item.latest.windowDays })}`
+    ? `${t('status.testing')} · ${t('home.dayOf', { day: trialDay(item.latest, now), total: item.latest.windowDays })}`
     : item.status === 'untried'
       ? t('foods.untriedHint')
       : item.latest?.endedAt

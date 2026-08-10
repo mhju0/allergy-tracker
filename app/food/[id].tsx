@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Alert, AppState, ScrollView, Text, View } from 'react-native';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { Alert, ScrollView, Text, View } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBaby, useFoodsWithStatus } from '../../src/data/queries';
@@ -20,6 +19,7 @@ import { StatusChip } from '../../src/ui/StatusChip';
 import { WarmCard } from '../../src/ui/WarmCard';
 import { Icon } from '../../src/ui/Icon';
 import { colors, layout, radii, spacing, typeStyles } from '../../src/ui/tokens';
+import { useFreshNow } from '../../src/ui/useFreshNow';
 
 const KIND_COLOR: Record<RecordKind, string> = {
   start: colors.amberText,
@@ -43,22 +43,13 @@ export default function FoodDetail() {
   const insets = useSafeAreaInsets();
   const baby = useBaby();
   const foods = useFoodsWithStatus();
-  const [, setTick] = useState(0);
-  const bump = useCallback(() => setTick((value) => value + 1), []);
-  useFocusEffect(bump);
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') bump();
-    });
-    return () => sub.remove();
-  }, [bump]);
-
   const entry = foods.find((food) => food.food.id === id);
+  const timedTrial = entry?.latest?.outcome === null ? entry.latest : undefined;
+  const now = useFreshNow(timedTrial);
   const startFlow = useStartTrialFlow(foods, baby?.defaultWindowDays ?? 3);
   if (!entry || !baby) return null;
 
   const { food, latest, status } = entry;
-  const now = new Date();
   const activeHere = latest && latest.outcome === null ? latest : undefined;
   const latestReaction = latest?.reactions[0];
   const testingDay = latest && status === 'testing' ? trialDay(latest, now) : 0;

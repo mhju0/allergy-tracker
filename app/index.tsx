@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { AppState, Pressable, ScrollView, Text, View } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBaby, useFoodsWithStatus } from '../src/data/queries';
@@ -19,6 +18,7 @@ import { WarmCard } from '../src/ui/WarmCard';
 import { Icon } from '../src/ui/Icon';
 import { press } from '../src/ui/pressable';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
+import { useFreshNow } from '../src/ui/useFreshNow';
 
 export default function Home() {
   const baby = useBaby();
@@ -75,17 +75,8 @@ function Dashboard({ babyName }: { babyName: string | null }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const foods = useFoodsWithStatus();
-  const [, setTick] = useState(0);
-  const bump = useCallback(() => setTick((x) => x + 1), []);
-  useFocusEffect(bump);
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') bump();
-    });
-    return () => sub.remove();
-  }, [bump]);
-
-  const now = new Date();
+  const timedTrial = foods.find((food) => food.status === 'testing')?.latest;
+  const now = useFreshNow(timedTrial);
   const { state, subline } = describeHome(foods, now, t);
   const counts: Record<FoodStatus, number> = { safe: 0, testing: 0, reacted: 0, untried: 0 };
   for (const f of foods) counts[f.status]++;

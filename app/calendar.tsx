@@ -14,6 +14,7 @@ import { SectionHeaderRow } from '../src/ui/SectionHeaderRow';
 import { WarmCard } from '../src/ui/WarmCard';
 import { press } from '../src/ui/pressable';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
+import { useFreshNow } from '../src/ui/useFreshNow';
 
 const weekdayKeys = ['w0', 'w1', 'w2', 'w3', 'w4', 'w5', 'w6'] as const;
 const TINT_BG = { amber: colors.amberTint, green: colors.greenTint, red: colors.redTint, none: 'transparent' } as const;
@@ -37,12 +38,13 @@ export default function Calendar() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const foods = useFoodsWithStatus();
+  const timedTrial = foods.find((food) => food.status === 'testing')?.latest;
+  const today = useFreshNow(timedTrial);
   const [display, setDisplay] = useState(() => {
     const date = new Date();
     return { year: date.getFullYear(), month0: date.getMonth() };
   });
   const [selectedDate, setSelectedDate] = useState(() => new Date());
-  const today = new Date();
 
   const goMonth = (delta: -1 | 1) => {
     const next = new Date(display.year, display.month0 + delta, 1);
@@ -50,7 +52,7 @@ export default function Calendar() {
     setSelectedDate(next);
   };
   const goToday = () => {
-    const date = new Date();
+    const date = today;
     setDisplay({ year: date.getFullYear(), month0: date.getMonth() });
     setSelectedDate(date);
   };
