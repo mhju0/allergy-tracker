@@ -11,7 +11,7 @@ import { trialDay } from '../../src/domain/homeState';
 import { buildRecords, reactionSummary, type RecordKind } from '../../src/domain/records';
 import { Button } from '../../src/ui/Button';
 import { CheckinPill } from '../../src/ui/CheckinPill';
-import { buildLedger, DayLedger } from '../../src/ui/DayLedger';
+import { DayLedger } from '../../src/ui/DayLedger';
 import { MarkSafeButton } from '../../src/ui/MarkSafeButton';
 import { BackButton } from '../../src/ui/ScreenHeader';
 import { SectionHeaderRow } from '../../src/ui/SectionHeaderRow';
@@ -26,14 +26,14 @@ const KIND_COLOR: Record<RecordKind, string> = {
   safe: colors.green,
   reacted: colors.red,
   cancelled: colors.inkSecondary,
-  checkin: colors.green,
+  observation: colors.green,
 };
 const KIND_LABEL: Record<RecordKind, string> = {
   start: 'calendar.trialStart',
   safe: 'food.outcome.safe',
   reacted: 'food.outcome.reacted',
   cancelled: 'food.outcome.cancelled',
-  checkin: 'food.checkinClear',
+  observation: 'food.checkinClear',
 };
 
 export default function FoodDetail() {
@@ -96,7 +96,7 @@ export default function FoodDetail() {
       {latest && (
         <WarmCard style={{ marginBottom: spacing.md }}>
           <Text style={{ ...typeStyles.rowTitle, fontWeight: '900', color: colors.ink, marginBottom: spacing.sm }}>{t('food.observationProgress')}</Text>
-          <DayLedger days={buildLedger(latest, now, t)} backfillFoodId={activeHere ? food.id : undefined} />
+          <DayLedger trial={latest} now={now} backfillFoodId={activeHere ? food.id : undefined} />
         </WarmCard>
       )}
 

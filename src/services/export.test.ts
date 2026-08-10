@@ -14,7 +14,7 @@ const t = (key: string, opts?: Record<string, unknown>) =>
 let n = 0;
 const mk = (over: Partial<RecordedTrial> = {}): RecordedTrial => ({
   id: `t${n++}`, startedAt: D('2026-07-10T09:00:00Z'), windowDays: 3, outcome: null, endedAt: null,
-  reactions: [], checkins: [], ...over,
+  reactions: [], observations: [], ...over,
 });
 const foodRow = (name: string) => ({ isCustom: true as const, name });
 
@@ -51,7 +51,7 @@ describe('buildReport', () => {
   test('a safe food carries how much of its window was actually observed', () => {
     const watched = mk({
       outcome: 'safe', endedAt: D('2026-07-13T09:00:00Z'),
-      checkins: [
+      observations: [
         { id: 'c1', trialId: 't', occurredAt: D('2026-07-10T20:00:00Z') },
         { id: 'c2', trialId: 't', occurredAt: D('2026-07-11T20:00:00Z') },
       ],

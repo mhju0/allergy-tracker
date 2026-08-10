@@ -1,5 +1,6 @@
 import { reactionSummary, type RecordedTrial } from '../domain/records';
-import { coverage, latestTrial, type TrialLike } from '../domain/status';
+import { latestTrial, type TrialLike } from '../domain/status';
+import { coverage } from '../observation';
 import { foodLabel } from '../i18n';
 
 export function escapeHtml(s: string): string {

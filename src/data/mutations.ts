@@ -1,19 +1,19 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import { db } from '../db/client';
 import { baby, checkin, food, reaction, trial, type Checkin, type Trial } from '../db/schema';
-import { decideStartTrial, isObservableDay, isSameLocalDay, isWindowElapsed, latestTrial } from '../domain/status';
+import { decideStartTrial, isWindowElapsed, latestTrial } from '../domain/status';
 import { computeTrialNotifications } from '../domain/notifications';
 import { cancelTrialNotifications, scheduleTrialNotifications } from '../services/notify';
 import { newId } from './ids';
 
-// Carries its check-ins: the autoclose outcome depends on whether the window
+// Carries its Observations: the autoclose outcome depends on whether the window
 // was ever observed, so the decision cannot be made from the trial row alone.
-async function getActiveTrial(): Promise<(Trial & { checkins: Checkin[] }) | undefined> {
+async function getActiveTrial(): Promise<(Trial & { observations: Checkin[] }) | undefined> {
   const rows = await db.select().from(trial).where(isNull(trial.outcome));
   const active = rows[0];
   if (!active) return undefined;
-  const checkins = await db.select().from(checkin).where(eq(checkin.trialId, active.id));
-  return { ...active, checkins };
+  const observations = await db.select().from(checkin).where(eq(checkin.trialId, active.id));
+  return { ...active, observations };
 }
 
 export async function startTrial(
@@ -48,29 +48,6 @@ export async function logReaction(
     await db.update(trial).set({ outcome: 'reacted', endedAt: now }).where(eq(trial.id, latest.id));
   }
   if (latest.outcome === null) await cancelTrialNotifications(latest.id);
-  return { ok: true };
-}
-
-export type CheckinFailure = 'no_active_trial' | 'outside_window' | 'already_logged';
-
-// `occurredAt` used to be implicit — always the moment of the tap. The ledger
-// now offers missed days, so the day is an input, and an input at a trust
-// boundary gets bounded here rather than in the two screens that pass it.
-export async function logCheckin(
-  foodId: string, occurredAt: Date, now: Date,
-): Promise<{ ok: true } | { ok: false; reason: CheckinFailure }> {
-  const trials = await db.select().from(trial).where(eq(trial.foodId, foodId));
-  const latest = latestTrial(trials);
-  if (!latest || latest.outcome !== null) return { ok: false, reason: 'no_active_trial' };
-  if (!isObservableDay(latest, occurredAt, now)) return { ok: false, reason: 'outside_window' };
-  const logged = await db.select().from(checkin).where(eq(checkin.trialId, latest.id));
-  if (logged.some((c) => isSameLocalDay(c.occurredAt, occurredAt))) {
-    return { ok: false, reason: 'already_logged' };
-  }
-  await db.insert(checkin).values({
-    id: newId(), trialId: latest.id, occurredAt, note: null,
-    backfilledAt: isSameLocalDay(occurredAt, now) ? null : now,
-  });
   return { ok: true };
 }
 

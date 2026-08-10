@@ -1,4 +1,6 @@
-export const MS_PER_DAY = 86_400_000;
+import { coverage } from '../observation';
+export { coverage, isEligibleObservationDay, isSameLocalDay, MS_PER_DAY } from '../observation';
+import { MS_PER_DAY } from '../observation';
 
 export type TrialLike = {
   id: string;
@@ -16,10 +18,6 @@ export function windowEnd(t: Pick<TrialLike, 'startedAt' | 'windowDays'>): Date 
 
 export function isWindowElapsed(t: TrialLike, now: Date): boolean {
   return now.getTime() >= windowEnd(t).getTime();
-}
-
-export function isSameLocalDay(a: Date, b: Date): boolean {
-  return a.toDateString() === b.toDateString();
 }
 
 export function latestTrial<T extends TrialLike>(trials: T[]): T | undefined {
@@ -44,48 +42,16 @@ export function deriveStatus(trials: TrialLike[]): FoodStatus {
   }
 }
 
-// Which days a check-in may be dated to: exactly the days coverage counts and
-// the ledger draws, and only ones that have happened.
-//
-// Deliberately not `startedAt <= occurredAt < windowEnd` — the window is 72
-// hours but observation is by calendar day, so a trial started at 23:30 runs
-// across FOUR of them. That fourth, partial day passed the instant test while
-// having no ledger cell and no place in coverage: the check-in was stored, the
-// pill collapsed to its ✓ done-state, and the observed count never moved.
-export function isObservableDay(
-  t: Pick<TrialLike, 'startedAt' | 'windowDays'>, occurredAt: Date, now: Date,
-): boolean {
-  if (occurredAt.getTime() > now.getTime()) return false;
-  if (occurredAt.getTime() < t.startedAt.getTime()) return false; // before the food was eaten
-  return observedDays(t).some((day) => isSameLocalDay(occurredAt, day));
-}
-
-function observedDays(t: Pick<TrialLike, 'startedAt' | 'windowDays'>): Date[] {
-  return Array.from(
-    { length: t.windowDays },
-    (_, i) => new Date(t.startedAt.getTime() + i * MS_PER_DAY),
-  );
-}
-
 // How much of a window was actually observed. Derived, never stored — same
 // discipline as deriveStatus.
 //
-// A trial that ends without check-ins is not the same record as one watched
+// A Trial that ends without Observations is not the same record as one watched
 // every day, and until now nothing anywhere could tell them apart: the ledger
 // painted a closed-safe window green regardless, and the doctor's report
 // printed a bare 안전. Everything that claims safety asks this first.
 export type Observed = Pick<TrialLike, 'startedAt' | 'windowDays'> & {
-  checkins: { occurredAt: Date }[];
+  observations: { occurredAt: Date }[];
 };
-
-export function coverage(t: Observed): { observed: number; of: number } {
-  // Days, not rows: two check-ins on one day are one observed day, and a
-  // check-in outside the window counts for nothing. Same day list isObservableDay
-  // admits, so the guard and the count can never disagree.
-  const observed = observedDays(t)
-    .filter((day) => t.checkins.some((c) => isSameLocalDay(c.occurredAt, day))).length;
-  return { observed, of: t.windowDays };
-}
 
 export type AutoClose = { trialId: string; outcome: 'safe' | 'cancelled' };
 

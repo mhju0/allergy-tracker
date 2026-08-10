@@ -7,7 +7,7 @@ import migrations from '../drizzle/migrations';
 import i18n from '../src/i18n';
 import { db } from '../src/db/client';
 import { seedDemoIfEmpty, seedIfEmpty } from '../src/db/seed';
-import { logCheckin } from '../src/data/mutations';
+import { recordObservation } from '../src/observation/sqlite';
 import { CHECKIN_ACTION, initNotificationHandler, registerCheckinAction } from '../src/services/notify';
 import { colors } from '../src/ui/tokens';
 
@@ -49,10 +49,9 @@ export default function RootLayout() {
     Notifications.clearLastNotificationResponse();
     const { foodId } = response.notification.request.content.data ?? {};
     if (typeof foodId !== 'string') return;
-    const at = new Date();
-    // logCheckin owns the guards: a closed trial, a day outside the window, or
+    // recordObservation owns the guards: a closed Trial, a day outside the window, or
     // one already logged makes this a no-op rather than a bad row.
-    void logCheckin(foodId, at, at);
+    void recordObservation({ foodId });
   }, [response, seeded]);
 
   if (error || seedError) {

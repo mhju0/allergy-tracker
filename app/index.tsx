@@ -7,7 +7,7 @@ import { updateBabySettings } from '../src/data/mutations';
 import { foodLabel } from '../src/i18n';
 import { autoclosedBy, type FoodStatus } from '../src/domain/status';
 import { describeHome } from '../src/domain/homeState';
-import { buildLedger, DayLedger } from '../src/ui/DayLedger';
+import { DayLedger } from '../src/ui/DayLedger';
 import { Button } from '../src/ui/Button';
 import { CheckinPill } from '../src/ui/CheckinPill';
 import { MarkSafeButton } from '../src/ui/MarkSafeButton';
@@ -82,7 +82,6 @@ function Dashboard({ babyName }: { babyName: string | null }) {
   for (const f of foods) counts[f.status]++;
 
   const active = state.kind === 'observing' || state.kind === 'confirm' ? state : null;
-  const ledger = active ? buildLedger(active.trial, now, t) : null;
   const autoclosed = active ? autoclosedBy(foods, active.trial) : undefined;
   const tone = state.kind === 'reacted' ? 'reaction' : state.kind === 'safe' ? 'safe' : state.kind === 'empty' ? 'accent' : 'observing';
   const stateColor = state.kind === 'reacted' ? colors.red : state.kind === 'safe' ? colors.green : state.kind === 'empty' ? colors.accent : colors.amberText;
@@ -116,7 +115,7 @@ function Dashboard({ babyName }: { babyName: string | null }) {
           <Text style={{ ...typeStyles.body, fontWeight: '600', color: state.kind === 'reacted' ? colors.red : colors.inkSecondary, marginTop: spacing.xxs }}>
             {subline}
           </Text>
-          {ledger && <View style={{ marginTop: spacing.md }}><DayLedger days={ledger} backfillFoodId={active?.food.id} /></View>}
+          {active && <View style={{ marginTop: spacing.md }}><DayLedger trial={active.trial} now={now} backfillFoodId={active.food.id} /></View>}
         </WarmCard>
 
         <View style={{ gap: spacing.xs, marginTop: spacing.md }}>

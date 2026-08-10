@@ -1,15 +1,16 @@
 import { sortDayEvents } from './calendar';
 import type { TrialLike } from './status';
+import type { ObservationLike } from '../observation';
 
 // Every observable moment in a trial's life, as one ordered stream.
 //
 // The calendar and the food-detail page both show a trial's history — one
 // sliced by day, one by food — and each used to walk trials, reactions and
-// check-ins itself. That put the same four rules in two screens, including the
+// Observations itself. That put the same four rules in two screens, including the
 // subtle one: a reacted trial's END row is never emitted, because the reaction
 // row already marks that moment. Written twice, it can be fixed once.
 
-export type RecordKind = 'start' | 'safe' | 'reacted' | 'cancelled' | 'checkin';
+export type RecordKind = 'start' | 'safe' | 'reacted' | 'cancelled' | 'observation';
 
 export type ReactionLike = {
   id: string;
@@ -20,11 +21,7 @@ export type ReactionLike = {
   note?: string | null;
 };
 
-export type CheckinLike = {
-  id: string; trialId: string; occurredAt: Date; backfilledAt?: Date | null;
-};
-
-export type RecordedTrial = TrialLike & { reactions: ReactionLike[]; checkins: CheckinLike[] };
+export type RecordedTrial = TrialLike & { reactions: ReactionLike[]; observations: ObservationLike[] };
 
 export type TrialRecord<F> = {
   key: string;
@@ -56,8 +53,14 @@ export function buildRecords<F>(
       for (const r of tr.reactions) {
         rows.push({ key: `reaction-${r.id}`, at: r.occurredAt, kind: 'reacted', food, trialId: tr.id, reaction: r });
       }
-      for (const c of tr.checkins) {
-        rows.push({ key: `checkin-${c.id}`, at: c.occurredAt, kind: 'checkin', food, trialId: tr.id });
+      for (const observation of tr.observations) {
+        rows.push({
+          key: `observation-${observation.id}`,
+          at: observation.occurredAt,
+          kind: 'observation',
+          food,
+          trialId: tr.id,
+        });
       }
     }
   }

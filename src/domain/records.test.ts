@@ -1,18 +1,19 @@
 import {
-  buildRecords, reactionSummary, type CheckinLike, type ReactionLike, type RecordedTrial,
+  buildRecords, reactionSummary, type ReactionLike, type RecordedTrial,
 } from './records';
+import type { ObservationLike } from '../observation';
 
 const D = (s: string) => new Date(s);
 
 let n = 0;
 const mk = (over: Partial<RecordedTrial> = {}): RecordedTrial => ({
   id: `t${n++}`, startedAt: D('2026-07-01T09:00:00Z'), windowDays: 3, outcome: null, endedAt: null,
-  reactions: [], checkins: [], ...over,
+  reactions: [], observations: [], ...over,
 });
 const reaction = (over: Partial<ReactionLike> & { trialId: string }): ReactionLike => ({
   id: `r${n++}`, occurredAt: D('2026-07-02T14:00:00Z'), severity: 'mild', symptoms: ['hives'], ...over,
 });
-const checkin = (trialId: string, at: string): CheckinLike => ({ id: `c${n++}`, trialId, occurredAt: D(at) });
+const observation = (trialId: string, at: string): ObservationLike => ({ id: `o${n++}`, trialId, occurredAt: D(at) });
 
 const kinds = (rows: { kind: string }[]) => rows.map((r) => r.kind);
 
@@ -39,9 +40,9 @@ describe('buildRecords', () => {
   test('check-ins and reactions attach through their trial', () => {
     const tr = mk();
     tr.reactions = [reaction({ trialId: tr.id })];
-    tr.checkins = [checkin(tr.id, '2026-07-02T11:00:00Z')];
+    tr.observations = [observation(tr.id, '2026-07-02T11:00:00Z')];
     const rows = buildRecords([{ food: '두부', trials: [tr] }]);
-    expect(kinds(rows)).toEqual(['start', 'checkin', 'reacted']);
+    expect(kinds(rows)).toEqual(['start', 'observation', 'reacted']);
     expect(rows.every((r) => r.food === '두부')).toBe(true);
   });
 
@@ -51,7 +52,7 @@ describe('buildRecords', () => {
 
   describe('cancelled trials', () => {
     const tr = mk({ outcome: 'cancelled', endedAt: D('2026-07-02T09:00:00Z') });
-    tr.checkins = [checkin(tr.id, '2026-07-01T20:00:00Z')];
+    tr.observations = [observation(tr.id, '2026-07-01T20:00:00Z')];
     const foods = [{ food: '두부', trials: [tr] }];
 
     test('are invisible by default — the calendar shows no rows, no dots', () => {
@@ -62,7 +63,7 @@ describe('buildRecords', () => {
     });
     test('but the detail page opts them back in, end row and all', () => {
       const rows = buildRecords(foods, { includeCancelled: true });
-      expect(kinds(rows)).toEqual(['start', 'checkin', 'cancelled']);
+      expect(kinds(rows)).toEqual(['start', 'observation', 'cancelled']);
     });
   });
 

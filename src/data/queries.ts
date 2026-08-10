@@ -11,9 +11,9 @@ export function useBaby(): Baby | undefined {
 
 // A trial with everything that was ever recorded against it. Four flat tables
 // went out of here once, and every screen rebuilt the trial→reaction and
-// trial→check-in joins for itself — the report's did it at O(n·m). The join
+// Trial→Observation joins for itself — the report's did it at O(n·m). The join
 // happens here now, once.
-export type TrialWithRecords = Trial & { reactions: Reaction[]; checkins: Checkin[] };
+export type TrialWithRecords = Trial & { reactions: Reaction[]; observations: Checkin[] };
 export type FoodWithStatus = {
   food: Food;
   trials: TrialWithRecords[];
@@ -39,7 +39,7 @@ export function connectFoods(
   const byTrial = new Map<string, TrialWithRecords>();
   const byFood = new Map<string, TrialWithRecords[]>();
   for (const t of trials) {
-    const withRecords: TrialWithRecords = { ...t, reactions: [], checkins: [] };
+    const withRecords: TrialWithRecords = { ...t, reactions: [], observations: [] };
     byTrial.set(t.id, withRecords);
     const list = byFood.get(t.foodId) ?? [];
     list.push(withRecords);
@@ -48,7 +48,7 @@ export function connectFoods(
   // Chronological, never insertion order — the row order sqlite hands back is
   // not a promise anything should read.
   for (const r of [...reactions].sort(byTime)) byTrial.get(r.trialId)?.reactions.push(r);
-  for (const c of [...checkins].sort(byTime)) byTrial.get(c.trialId)?.checkins.push(c);
+  for (const c of [...checkins].sort(byTime)) byTrial.get(c.trialId)?.observations.push(c);
 
   return foods.map((f) => {
     const ts = byFood.get(f.id) ?? [];

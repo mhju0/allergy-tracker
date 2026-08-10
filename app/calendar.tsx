@@ -23,14 +23,14 @@ const KIND_COLOR: Record<RecordKind, string> = {
   safe: colors.green,
   reacted: colors.red,
   cancelled: colors.inkSecondary,
-  checkin: colors.green,
+  observation: colors.green,
 };
 const KIND_LABEL: Record<RecordKind, string> = {
   start: 'calendar.trialStart',
   safe: 'food.outcome.safe',
   reacted: 'food.outcome.reacted',
   cancelled: 'food.outcome.cancelled',
-  checkin: 'food.checkinClear',
+  observation: 'food.checkinClear',
 };
 
 export default function Calendar() {
@@ -66,7 +66,7 @@ export default function Calendar() {
   const allTrials = useMemo(() => foods.flatMap((food) => food.trials), [foods]);
   const records = useMemo(() => buildRecords(foods), [foods]);
   const reactionDays = useMemo(() => records.filter((record) => record.kind === 'reacted').map((record) => record.at), [records]);
-  const checkinDays = useMemo(() => records.filter((record) => record.kind === 'checkin').map((record) => record.at), [records]);
+  const observationDays = useMemo(() => records.filter((record) => record.kind === 'observation').map((record) => record.at), [records]);
   const events = useMemo(() => records.filter((record) => sameLocalDay(record.at, selectedDate)).map((record) => ({
     key: record.key,
     at: record.at,
@@ -100,7 +100,7 @@ export default function Calendar() {
           {weeks.map((week, weekIndex) => (
             <View key={weekIndex} style={{ flexDirection: 'row' }}>
               {week.map((cell) => {
-                const mark = dayMark(cell.date, allTrials, reactionDays, checkinDays, today);
+                const mark = dayMark(cell.date, allTrials, reactionDays, observationDays, today);
                 const selected = sameLocalDay(cell.date, selectedDate);
                 const isToday = sameLocalDay(cell.date, today);
                 const marks = [

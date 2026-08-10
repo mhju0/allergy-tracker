@@ -1,7 +1,8 @@
 import {
-  autoclosedBy, coverage, deriveStatus, decideStartTrial, isObservableDay, isWindowElapsed,
-  latestTrial, pendingAutoclose, windowEnd, MS_PER_DAY, TrialLike,
+  autoclosedBy, deriveStatus, decideStartTrial, isWindowElapsed,
+  latestTrial, pendingAutoclose, windowEnd, TrialLike,
 } from './status';
+import { coverage, isEligibleObservationDay, MS_PER_DAY } from '../observation';
 
 const D = (s: string) => new Date(s);
 let n = 0;
@@ -53,36 +54,36 @@ describe('window math', () => {
 });
 
 // The ledger lets a parent fill in a day they missed, so the date reaching
-// logCheckin is user input. This is the bound on it.
-describe('isObservableDay', () => {
+// A backfilled Observation day is user input. This is the bound on it.
+describe('isEligibleObservationDay', () => {
   const t = mk({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 });
   const NOW = D('2026-07-04T12:00:00Z'); // window elapsed
 
   test('a day inside the window that has already happened', () => {
-    expect(isObservableDay(t, D('2026-07-02T10:00:00Z'), NOW)).toBe(true);
+    expect(isEligibleObservationDay(t, D('2026-07-02T10:00:00Z'), NOW)).toBe(true);
   });
   test('the start instant itself is day 1', () => {
-    expect(isObservableDay(t, D('2026-07-01T10:00:00Z'), NOW)).toBe(true);
+    expect(isEligibleObservationDay(t, D('2026-07-01T10:00:00Z'), NOW)).toBe(true);
   });
   test('a moment before the trial started belongs to no day of it', () => {
-    expect(isObservableDay(t, D('2026-07-01T09:59:59Z'), NOW)).toBe(false);
+    expect(isEligibleObservationDay(t, D('2026-07-01T09:59:59Z'), NOW)).toBe(false);
   });
   test('the last day of the window is the third one, not the closing instant', () => {
-    expect(isObservableDay(t, D('2026-07-03T13:00:00Z'), NOW)).toBe(true); // 22:00 on day 3
-    expect(isObservableDay(t, windowEnd(t), NOW)).toBe(false);
+    expect(isEligibleObservationDay(t, D('2026-07-03T13:00:00Z'), NOW)).toBe(true); // 22:00 on day 3
+    expect(isEligibleObservationDay(t, windowEnd(t), NOW)).toBe(false);
   });
   test('a day that has not happened yet cannot have been observed', () => {
-    expect(isObservableDay(t, D('2026-07-03T10:00:00Z'), D('2026-07-02T12:00:00Z'))).toBe(false);
+    expect(isEligibleObservationDay(t, D('2026-07-03T10:00:00Z'), D('2026-07-02T12:00:00Z'))).toBe(false);
   });
 
   // The window is 72 hours but observation is by calendar day, so a late start
   // spills into a fourth one. It has no ledger cell and no place in coverage,
-  // so a check-in there was stored and then counted by nothing.
+  // so an Observation there was stored and then counted by nothing.
   test('the fourth calendar day a late-evening start spills into is not a day of the window', () => {
     const late = mk({ startedAt: D('2026-07-01T14:30:00Z'), windowDays: 3 }); // 23:30 KST
     const fourth = D('2026-07-04T05:00:00Z'); // 14:00 KST on day four, still inside the 72h
     expect(fourth.getTime()).toBeLessThan(windowEnd(late).getTime());
-    expect(isObservableDay(late, fourth, D('2026-07-04T06:00:00Z'))).toBe(false);
+    expect(isEligibleObservationDay(late, fourth, D('2026-07-04T06:00:00Z'))).toBe(false);
   });
 });
 
@@ -91,21 +92,21 @@ describe('coverage', () => {
   const obs = (windowDays: number, ...days: string[]) => ({
     startedAt: new Date('2026-07-16T18:00:00'),
     windowDays,
-    checkins: days.map((d) => ({ occurredAt: new Date(d) })),
+    observations: days.map((d) => ({ occurredAt: new Date(d) })),
   });
 
   test('a window nobody watched → 0 of 3', () => {
     expect(coverage(obs(3))).toEqual({ observed: 0, of: 3 });
   });
-  test('one check-in per day → 3 of 3', () => {
+  test('one Observation per day → 3 of 3', () => {
     expect(coverage(obs(3, '2026-07-16T20:00:00', '2026-07-17T09:00:00', '2026-07-18T09:00:00')))
       .toEqual({ observed: 3, of: 3 });
   });
-  test('two check-ins on one day are one observed day', () => {
+  test('two Observation rows on one day are one observed day', () => {
     expect(coverage(obs(3, '2026-07-17T09:00:00', '2026-07-17T21:00:00')))
       .toEqual({ observed: 1, of: 3 });
   });
-  test('a check-in after the window counts for nothing', () => {
+  test('an Observation after the window counts for nothing', () => {
     expect(coverage(obs(3, '2026-07-19T09:00:00'))).toEqual({ observed: 0, of: 3 });
   });
   test('the denominator is the trial’s own window, not 3', () => {
@@ -122,10 +123,10 @@ describe('latestTrial', () => {
 });
 
 describe('decideStartTrial', () => {
-  // Trials reaching this decision carry their check-ins: whether the window was
+  // Trials reaching this decision carry their Observations: whether the window was
   // ever observed is what decides which outcome an autoclose writes.
   const obs = (over: Partial<TrialLike>, ...days: string[]) => ({
-    ...mk(over), checkins: days.map((d) => ({ occurredAt: D(d) })),
+    ...mk(over), observations: days.map((d) => ({ occurredAt: D(d) })),
   });
 
   test('no active trial → allowed, nothing to close', () => {
@@ -161,7 +162,7 @@ describe('decideStartTrial', () => {
 // timestamps. These are those two questions, asked of the rule.
 describe('pendingAutoclose', () => {
   const obs = (over: Partial<TrialLike>, ...days: string[]) => ({
-    ...mk(over), checkins: days.map((d) => ({ occurredAt: D(d) })),
+    ...mk(over), observations: days.map((d) => ({ occurredAt: D(d) })),
   });
   const entry = (status: 'testing' | 'safe' | 'untried', latest?: ReturnType<typeof obs>) =>
     ({ status, latest });

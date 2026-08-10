@@ -32,10 +32,10 @@ describe('connectFoods', () => {
       [checkin('c1', 't1', '2026-07-02T11:00:00Z')],
     );
     const [first, second] = f.trials;
-    expect(first.checkins.map((c) => c.id)).toEqual(['c1']);
+    expect(first.observations.map((c) => c.id)).toEqual(['c1']);
     expect(first.reactions).toEqual([]);
     expect(second.reactions.map((r) => r.id)).toEqual(['r1']);
-    expect(second.checkins).toEqual([]);
+    expect(second.observations).toEqual([]);
   });
 
   test('a record whose trial is gone is dropped, not attached to the wrong one', () => {
@@ -46,7 +46,7 @@ describe('connectFoods', () => {
       [checkin('c1', 'deleted-trial', '2026-07-02T11:00:00Z')],
     );
     expect(f.trials[0].reactions).toEqual([]);
-    expect(f.trials[0].checkins).toEqual([]);
+    expect(f.trials[0].observations).toEqual([]);
   });
 
   // Everything downstream reads reactions[0] / checkins[i], so the order has to
@@ -59,7 +59,7 @@ describe('connectFoods', () => {
       [checkin('c-late', 't1', '2026-07-03T20:00:00Z'), checkin('c-early', 't1', '2026-07-02T20:00:00Z')],
     );
     expect(f.trials[0].reactions.map((r) => r.id)).toEqual(['early', 'late']);
-    expect(f.trials[0].checkins.map((c) => c.id)).toEqual(['c-early', 'c-late']);
+    expect(f.trials[0].observations.map((c) => c.id)).toEqual(['c-early', 'c-late']);
   });
 
   test('trials land on their own food, and status is derived from them', () => {

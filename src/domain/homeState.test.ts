@@ -7,7 +7,7 @@ const NOW = D('2026-07-28T09:00:00Z');
 let n = 0;
 const mk = (over: Partial<HomeTrial> = {}): HomeTrial => ({
   id: `t${n++}`, startedAt: D('2026-07-26T10:00:00Z'), windowDays: 3, outcome: null, endedAt: null,
-  reactions: [], checkins: [], ...over,
+  reactions: [], observations: [], ...over,
 });
 
 // Mirrors what useFoodsWithStatus produces, minus the db row. Uses the real
@@ -163,7 +163,7 @@ describe('describeHome', () => {
     const startedAt = D('2026-07-20T08:00:00Z');
     const v = describeHome([food('두부', [mk({
       startedAt,
-      checkins: [
+      observations: [
         { id: 'c1', trialId: 'x', occurredAt: D('2026-07-21T02:00:00Z') },
         { id: 'c2', trialId: 'x', occurredAt: D('2026-07-21T09:00:00Z') },
         { id: 'c3', trialId: 'x', occurredAt: D('2026-07-22T09:00:00Z') },
@@ -175,7 +175,7 @@ describe('describeHome', () => {
   test('safe → counts every safe food, and how much of the window was watched', () => {
     const closed = mk({
       outcome: 'safe', endedAt: D('2026-07-27T10:00:00Z'),
-      checkins: [{ id: 'c1', trialId: 'x', occurredAt: D('2026-07-27T02:00:00Z') }],
+      observations: [{ id: 'o1', trialId: 'x', occurredAt: D('2026-07-27T02:00:00Z') }],
     });
     const v = describeHome([
       food('두부', [closed]),

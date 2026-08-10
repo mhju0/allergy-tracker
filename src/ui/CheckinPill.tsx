@@ -1,15 +1,15 @@
 import { useRef } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { logCheckin } from '../data/mutations';
 import type { RecordedTrial } from '../domain/records';
-import { isObservableDay, isSameLocalDay } from '../domain/status';
+import { isEligibleObservationDay, isSameLocalDay } from '../observation';
+import { recordObservation } from '../observation/sqlite';
 import { Icon } from './Icon';
 import { press } from './pressable';
 import { colors, layout, radii, spacing, typeStyles } from './tokens';
 
 // One-tap "이상 없음" observation for an active trial. Never touches trial
-// outcome — just logs a checkin row. Collapses to a done-state line once one
+// outcome — it only records an Observation. Collapses to a done-state line once one
 // exists for today (local calendar date).
 // `filled` makes this the screen's primary action. On the two days out of three
 // when the app is asking for a check-in, this IS the thing to do — it used to be
@@ -21,14 +21,14 @@ export function CheckinPill(
 ) {
   const { t } = useTranslation();
   const checkingIn = useRef(false);
-  // The trial carries its own check-ins, so this no longer reads the whole
+  // The Trial carries its own Observations, so this no longer reads the whole
   // table (or the clock) to answer a question about one trial.
-  const doneToday = trial.checkins.find((c) => isSameLocalDay(c.occurredAt, now));
+  const doneToday = trial.observations.find((observation) => isSameLocalDay(observation.occurredAt, now));
 
   // Today may not be a day this window covers — past the close, or the fourth
-  // calendar day a late-evening start spills into. logCheckin rejects those, so
+  // calendar day a late-evening start spills into. The Observation module rejects those, so
   // offering the button would be offering an action that quietly does nothing.
-  if (!doneToday && !isObservableDay(trial, now, now)) return null;
+  if (!doneToday && !isEligibleObservationDay(trial, now, now)) return null;
 
   if (doneToday) {
     const time = doneToday.occurredAt.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
@@ -51,8 +51,8 @@ export function CheckinPill(
     if (checkingIn.current) return;
     checkingIn.current = true;
     try {
-      const at = new Date();
-      await logCheckin(foodId, at, at);
+      const result = await recordObservation({ foodId });
+      if (!result.ok) Alert.alert(t('errors.generic'));
     } catch {
       Alert.alert(t('errors.generic'));
     } finally {

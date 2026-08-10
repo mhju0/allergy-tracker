@@ -2,7 +2,7 @@ import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { confirmSafe } from '../data/mutations';
 import type { RecordedTrial } from '../domain/records';
-import { coverage } from '../domain/status';
+import { coverage } from '../observation';
 import { Button } from './Button';
 
 // 안전으로 표시, with the one guard the action needs: a window with nothing
