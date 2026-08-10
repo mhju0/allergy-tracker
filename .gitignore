@@ -16,8 +16,6 @@ coverage/
 .DS_Store
 expo-env.d.ts
 
-# local-only docs & config
-CLAUDE.md
-docs/agents/
+# local-only config
 .claude/
 .superpowers/

@@ -9,7 +9,13 @@ Spec: docs/design-spec.md (public). Build plan: .superpowers/rebuild-plan-2026-0
 
 ## Rules
 - Status is derived (src/domain/status.ts), never stored. One active trial at
-  a time. Trial ends only by explicit outcome (or implicit-safe on next start).
+  a time. Trial transitions go through src/trialLifecycle; an elapsed Trial
+  auto-closes safe on the next start only with Observation coverage, otherwise
+  it closes cancelled.
+- Observation eligibility, idempotency, coverage, and day projection live in
+  src/observation. Screens use src/ui/useFreshNow for time-aware state and
+  src/foodCatalogue for catalogue filtering/grouping rather than rebuilding
+  those rules.
 - Every user-visible string via i18next (KO ONLY — Korean-only app, owner decision 2026-07-17; no locale switching, dates pinned ko-KR). Colors only from
   src/ui/tokens.ts. Icon + label always accompany status colors.
 - Gates before any commit: `npx tsc --noEmit` && `npx jest`.
@@ -21,3 +27,17 @@ Spec: docs/design-spec.md (public). Build plan: .superpowers/rebuild-plan-2026-0
 npx expo start            # dev server (Expo Go has notification limits)
 npx expo run:ios          # dev build on iOS simulator — use this for smoke
 npx jest                  # unit tests
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs are tracked in this repository's GitHub Issues. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Triage uses the five default canonical labels. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+This repository uses the single-context domain documentation layout. See `docs/agents/domain.md`.
