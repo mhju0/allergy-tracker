@@ -6,13 +6,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBaby, useFoodsWithStatus, type FoodWithStatus } from '../src/data/queries';
 import { useStartTrialFlow } from '../src/data/useStartTrialFlow';
 import { foodLabel } from '../src/i18n';
-import { pendingAutoclose, type FoodStatus } from '../src/domain/status';
-import { trialDay } from '../src/domain/homeState';
+import { type FoodStatus } from '../src/domain/status';
+import { projectFoodCatalogue, type CatalogueDetail } from '../src/foodCatalogue';
 import { StatusChip } from '../src/ui/StatusChip';
 import { press } from '../src/ui/pressable';
 import { FoodGlyph } from '../src/ui/FoodGlyph';
-import { type FamilyId } from '../src/db/families';
-import { groupByFamily } from '../src/domain/foodGroups';
 import { BottomNav } from '../src/ui/BottomNav';
 import { Icon } from '../src/ui/Icon';
 import { ScreenHeader } from '../src/ui/ScreenHeader';
@@ -20,13 +18,7 @@ import { SectionHeaderRow } from '../src/ui/SectionHeaderRow';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
 import { useFreshNow } from '../src/ui/useFreshNow';
 
-const ORDER: Record<FoodStatus, number> = { testing: 0, reacted: 1, safe: 2, untried: 3 };
 const FILTERS = ['testing', 'reacted', 'safe', 'untried'] as const;
-
-type Row =
-  | { kind: 'header'; key: string; label: string; count: number }
-  | { kind: 'family'; key: string; family: FamilyId; count: number; allHighRisk: boolean }
-  | { kind: 'food'; key: string; item: FoodWithStatus; hideHighRisk?: boolean };
 
 export default function Foods() {
   const { t, i18n } = useTranslation();
@@ -44,51 +36,19 @@ export default function Foods() {
     FILTERS.includes(focus as (typeof FILTERS)[number]) ? (focus as FoodStatus) : null,
   );
 
-  const counts = useMemo(() => {
-    const result = { testing: 0, reacted: 0, safe: 0, untried: 0 } as Record<FoodStatus, number>;
-    for (const food of foods) result[food.status]++;
-    return result;
-  }, [foods]);
-
-  const rows = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const matched = foods
-      .filter((food) => foodLabel(food.food).toLowerCase().includes(q))
-      .filter((food) => (filter && !q ? food.status === filter : true))
-      .sort((a, b) => ORDER[a.status] - ORDER[b.status] || foodLabel(a.food).localeCompare(foodLabel(b.food)));
-
-    if (filter || q) return matched.map((item): Row => ({ kind: 'food', key: item.food.id, item }));
-
-    const out: Row[] = [];
-    const tried = matched.filter((food) => food.status !== 'untried');
-    const untried = matched.filter((food) => food.status === 'untried');
-    if (tried.length) {
-      out.push({ kind: 'header', key: 'h-tried', label: t('foods.groupTried'), count: tried.length });
-      for (const item of tried) out.push({ kind: 'food', key: item.food.id, item });
-    }
-    if (untried.length) {
-      out.push({ kind: 'header', key: 'h-untried', label: t('foods.groupUntried'), count: untried.length });
-      const { bands, unfamiliar } = groupByFamily(
-        untried,
-        (food) => food.food.id,
-        (food) => Boolean(food.food.allergenGroup),
-        (family) => t(`foodFamily.${family}`),
-      );
-      for (const band of bands) {
-        out.push({ kind: 'family', key: `f-${band.family}`, family: band.family, count: band.members.length, allHighRisk: band.allHighRisk });
-        for (const item of band.members) out.push({ kind: 'food', key: item.food.id, item, hideHighRisk: band.allHighRisk });
-      }
-      for (const item of unfamiliar) out.push({ kind: 'food', key: item.food.id, item });
-    }
-    return out;
-  }, [foods, query, filter, i18n.language, t]);
-
-  const autocloses = useMemo(() => pendingAutoclose(foods, now), [foods, now]);
+  const catalogue = useMemo(() => projectFoodCatalogue({
+    foods,
+    now,
+    query,
+    filter,
+    foodLabel: (item) => foodLabel(item.food),
+    familyLabel: (family) => t(`foodFamily.${family}`),
+  }), [foods, now, query, filter, i18n.language, t]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.paper }}>
       <View style={{ paddingHorizontal: layout.screenInset, paddingTop: insets.top + 8 }}>
-        <ScreenHeader eyebrow={t('foods.subtitle', { count: foods.length })} title={t('foods.title')} />
+        <ScreenHeader eyebrow={t('foods.subtitle', { count: catalogue.total })} title={t('foods.title')} />
         <View style={{ minHeight: layout.controlHeight, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: layout.cardPadding, borderWidth: 1, borderColor: colors.hairline, borderRadius: radii.md, backgroundColor: colors.surface }}>
           <Icon name="search" size={20} color={colors.inkSecondary} />
           <TextInput
@@ -111,7 +71,7 @@ export default function Foods() {
             {([null, ...FILTERS] as const).map((item) => {
               const selected = filter === item;
               const label = item === null ? t('foods.filterAll') : t(`status.${item}`);
-              const count = item === null ? foods.length : counts[item];
+              const count = item === null ? catalogue.total : catalogue.counts[item];
               if (item !== null && count === 0) return null;
               return (
                 <Pressable
@@ -144,9 +104,9 @@ export default function Foods() {
             <View style={{ flex: 1 }}>
               <Text style={{ ...typeStyles.rowTitle, color: colors.accentPressed }}>{t('foods.pickTitle')}</Text>
               <Text style={{ fontSize: 11.5, color: colors.accentPressed, lineHeight: 17 }}>{t('foods.pickHint', { days: windowDays })}</Text>
-              {autocloses && (
-                <Text style={{ fontSize: 11.5, fontWeight: '700', color: autocloses.outcome === 'safe' ? colors.green : colors.inkSecondary, lineHeight: 17, marginTop: spacing.xxs }}>
-                  {t(autocloses.outcome === 'safe' ? 'foods.pickHintAutoclose' : 'foods.pickHintAutocloseUnobserved', { food: foodLabel(autocloses.food.food) })}
+              {catalogue.pendingAutoClose && (
+                <Text style={{ fontSize: 11.5, fontWeight: '700', color: catalogue.pendingAutoClose.outcome === 'safe' ? colors.green : colors.inkSecondary, lineHeight: 17, marginTop: spacing.xxs }}>
+                  {t(catalogue.pendingAutoClose.outcome === 'safe' ? 'foods.pickHintAutoclose' : 'foods.pickHintAutocloseUnobserved', { food: foodLabel(catalogue.pendingAutoClose.food.food) })}
                 </Text>
               )}
             </View>
@@ -157,10 +117,10 @@ export default function Foods() {
       <FlatList
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: layout.screenInset, paddingBottom: 18 }}
-        data={rows}
+        data={catalogue.rows}
         keyExtractor={(row) => row.key}
         renderItem={({ item: row }) => row.kind === 'header' ? (
-          <SectionHeaderRow title={row.label} meta={String(row.count)} style={{ marginTop: spacing.md }} />
+          <SectionHeaderRow title={t(row.section === 'tried' ? 'foods.groupTried' : 'foods.groupUntried')} meta={String(row.count)} style={{ marginTop: spacing.md }} />
         ) : row.kind === 'family' ? (
           <View
             accessibilityRole="header"
@@ -175,7 +135,8 @@ export default function Foods() {
         ) : (
           <FoodRow
             item={row.item}
-            now={now}
+            detail={row.detail}
+            highRisk={row.highRisk}
             hideHighRisk={row.hideHighRisk}
             onPress={pick === '1'
               ? () => startFlow(row.item.food, () => router.dismissAll())
@@ -189,27 +150,28 @@ export default function Foods() {
   );
 }
 
-function FoodRow({ item, now, onPress, hideHighRisk = false }: {
+function FoodRow({ item, detail, highRisk, onPress, hideHighRisk }: {
   item: FoodWithStatus;
-  now: Date;
+  detail: CatalogueDetail;
+  highRisk: boolean;
   onPress: () => void;
-  hideHighRisk?: boolean;
+  hideHighRisk: boolean;
 }) {
   const { t } = useTranslation();
   const statusColor = colors.status[item.status].fg;
   const icon = item.status === 'testing' ? 'clock' : item.status === 'safe' ? 'check' : item.status === 'reacted' ? 'warning' : 'plus';
   const iconBackground = item.status === 'testing' ? colors.amberTint : item.status === 'safe' ? colors.greenTint : item.status === 'reacted' ? colors.redTint : '#F5EEE9';
-  const detail = item.status === 'testing' && item.latest
-    ? `${t('status.testing')} · ${t('home.dayOf', { day: trialDay(item.latest, now), total: item.latest.windowDays })}`
-    : item.status === 'untried'
+  const detailLabel = detail.kind === 'testing'
+    ? `${t('status.testing')} · ${t('home.dayOf', { day: detail.day, total: detail.total })}`
+    : detail.kind === 'untried'
       ? t('foods.untriedHint')
-      : item.latest?.endedAt
-        ? item.latest.endedAt.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })
-        : t(`status.${item.status}`);
+      : detail.kind === 'ended'
+        ? detail.at.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })
+        : t(`status.${detail.status}`);
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={[foodLabel(item.food), item.food.allergenGroup ? t('foods.highRisk') : null, t(`status.${item.status}`)].filter(Boolean).join(', ')}
+      accessibilityLabel={[foodLabel(item.food), highRisk ? t('foods.highRisk') : null, t(`status.${item.status}`)].filter(Boolean).join(', ')}
       onPress={onPress}
       style={press({ minHeight: layout.rowHeight, marginBottom: spacing.xs, paddingHorizontal: layout.cardPadding, paddingVertical: spacing.sm, borderRadius: radii.md, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surface })}
     >
@@ -219,8 +181,8 @@ function FoodRow({ item, now, onPress, hideHighRisk = false }: {
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={{ fontSize: 15, lineHeight: 20, fontWeight: item.status === 'testing' ? '900' : '700', color: colors.ink }}>{foodLabel(item.food)}</Text>
         <Text style={{ ...typeStyles.rowDetail, color: colors.inkSecondary }}>
-          {detail}
-          {item.food.allergenGroup && !hideHighRisk ? ` · ${t('foods.highRisk')}` : ''}
+          {detailLabel}
+          {highRisk && !hideHighRisk ? ` · ${t('foods.highRisk')}` : ''}
         </Text>
       </View>
       {item.status === 'untried' ? <Icon name="chevronRight" size={18} color={colors.muted} /> : <StatusChip status={item.status} />}
