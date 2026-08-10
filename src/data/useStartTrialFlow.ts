@@ -1,9 +1,8 @@
 import { useRef } from 'react';
 import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { cancelTrial, startTrial } from './mutations';
+import { cancelTrial, startTrial } from '../trialLifecycle/sqlite';
 import type { FoodWithStatus } from './queries';
-import { ensurePermission } from '../services/notify';
 import { foodLabel } from '../i18n';
 import type { Food } from '../db/schema';
 
@@ -19,8 +18,7 @@ export function useStartTrialFlow(foods: FoodWithStatus[], windowDays: number) {
     if (starting.current) return;
     starting.current = true;
     try {
-      await ensurePermission(); // contextual ask; denial degrades gracefully
-      const res = await startTrial(food, windowDays, new Date());
+      const res = await startTrial({ food, windowDays });
       if (res.ok) {
         onStarted?.();
         return;
@@ -42,13 +40,13 @@ export function useStartTrialFlow(foods: FoodWithStatus[], windowDays: number) {
             try {
               // The window may have elapsed while the alert sat open — try starting
               // first so implicit-safe autoclose wins over cancelling a clean trial.
-              const first = await startTrial(food, windowDays, new Date());
+              const first = await startTrial({ food, windowDays });
               if (first.ok) {
                 onStarted?.();
                 return;
               }
-              await cancelTrial(activeTrialId, new Date());
-              const retry = await startTrial(food, windowDays, new Date());
+              await cancelTrial({ trialId: activeTrialId });
+              const retry = await startTrial({ food, windowDays });
               if (retry.ok) onStarted?.();
               else Alert.alert(t('food.trialBlocked'));
             } catch {

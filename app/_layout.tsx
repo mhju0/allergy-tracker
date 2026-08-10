@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { AppState, Text, View } from 'react-native';
 import { Stack } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
@@ -9,6 +9,7 @@ import { db } from '../src/db/client';
 import { seedDemoIfEmpty, seedIfEmpty } from '../src/db/seed';
 import { recordObservation } from '../src/observation/sqlite';
 import { CHECKIN_ACTION, initNotificationHandler, registerCheckinAction } from '../src/services/notify';
+import { reconcileTrialLifecycle } from '../src/trialLifecycle/sqlite';
 import { colors } from '../src/ui/tokens';
 
 initNotificationHandler();
@@ -31,9 +32,18 @@ export default function RootLayout() {
 
   useEffect(() => { void registerCheckinAction(); }, []);
 
+  useEffect(() => {
+    if (!seeded) return;
+    void reconcileTrialLifecycle();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void reconcileTrialLifecycle();
+    });
+    return () => subscription.remove();
+  }, [seeded]);
+
   // The 이상 없음 button on the check-in banner. It lands here rather than in
-  // services/notify because writing the row needs data/mutations, which already
-  // imports notify — this is the one place both sides can meet.
+  // Root waits for migrations because the action may cold-launch the app before
+  // the Observation persistence adapter can read its active Trial.
   //
   // The hook, NOT addNotificationResponseReceivedListener: that listener never
   // fires for the response that cold-launched the app, which is the ordinary

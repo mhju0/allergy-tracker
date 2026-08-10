@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBaby, useFoodsWithStatus } from '../../src/data/queries';
-import { cancelTrial } from '../../src/data/mutations';
+import { cancelTrial } from '../../src/trialLifecycle/sqlite';
 import { useStartTrialFlow } from '../../src/data/useStartTrialFlow';
 import { foodLabel } from '../../src/i18n';
 import { isWindowElapsed } from '../../src/domain/status';
@@ -112,7 +112,7 @@ export default function FoodDetail() {
               t('food.cancelConfirmTitle', { food: foodLabel(food) }),
               t('food.cancelConfirmBody'),
               [
-                { text: t('food.cancelConfirmYes'), style: 'destructive', onPress: () => cancelTrial(activeHere.id, new Date()) },
+                { text: t('food.cancelConfirmYes'), style: 'destructive', onPress: () => cancelTrial({ trialId: activeHere.id }) },
                 { text: t('food.keepGoing'), style: 'cancel' },
               ],
             )}

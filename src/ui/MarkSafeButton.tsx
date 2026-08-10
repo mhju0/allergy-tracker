@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { confirmSafe } from '../data/mutations';
+import { confirmSafe } from '../trialLifecycle/sqlite';
 import type { RecordedTrial } from '../domain/records';
 import { coverage } from '../observation';
 import { Button } from './Button';
@@ -15,7 +15,7 @@ export function MarkSafeButton({ trial }: { trial: RecordedTrial }) {
   const { observed, of } = coverage(trial);
 
   const onPress = () => {
-    const mark = () => confirmSafe(trial.id, new Date());
+    const mark = () => confirmSafe({ trialId: trial.id });
     if (observed > 0) return void mark();
     Alert.alert(t('home.markSafeNoRecordTitle'), t('home.markSafeNoRecordBody', { total: of }), [
       { text: t('home.markSafeAnyway'), onPress: () => void mark() },

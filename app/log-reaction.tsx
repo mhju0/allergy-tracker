@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFoodsWithStatus } from '../src/data/queries';
-import { logReaction } from '../src/data/mutations';
+import { recordReaction } from '../src/trialLifecycle/sqlite';
 import { foodLabel } from '../src/i18n';
 import { Button } from '../src/ui/Button';
 import { HeaderButton, ScreenHeader } from '../src/ui/ScreenHeader';
@@ -54,7 +54,13 @@ export default function LogReaction() {
     if (saving.current) return;
     saving.current = true;
     try {
-      const result = await logReaction(entry.food.id, { symptoms, severity, occurredAt, note: note.trim() || null }, new Date());
+      const result = await recordReaction({
+        foodId: entry.food.id,
+        symptoms,
+        severity,
+        occurredAt,
+        note: note.trim() || null,
+      });
       if (!result.ok) {
         Alert.alert(t('errors.generic'));
         return;

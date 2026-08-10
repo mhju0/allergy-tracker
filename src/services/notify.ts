@@ -61,25 +61,55 @@ function content(p: PlannedNotification, label: string) {
 
 // Takes the food row, not a display string: resolving the Korean name is this
 // module's job, since it already owns every other word the user reads here.
-export async function scheduleTrialNotifications(
+export type TrialNotificationDriver = {
+  getAllScheduledNotificationsAsync: () => Promise<{ identifier: string }[]>;
+  cancelScheduledNotificationAsync: (identifier: string) => Promise<void>;
+  scheduleNotificationAsync: (
+    request: Parameters<typeof Notifications.scheduleNotificationAsync>[0],
+  ) => Promise<string>;
+};
+
+async function scheduleTrialNotifications(
+  driver: TrialNotificationDriver,
   trialId: string, food: { id: string; isCustom: boolean; name: string }, planned: PlannedNotification[],
 ): Promise<void> {
   const label = foodLabel(food);
   for (const p of planned) {
-    await Notifications.scheduleNotificationAsync({
+    await driver.scheduleNotificationAsync({
       identifier: `${trialId}:${p.kind}${p.kind === 'checkin' ? p.day : p.attempt}`,
       // the action handler needs to know which food it is clearing
-      content: { ...content(p, label), data: { foodId: food.id } },
+      content: { ...content(p, label), data: { foodId: food.id, trialLifecycle: true } },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: p.fireAt },
     });
   }
 }
 
-export async function cancelTrialNotifications(trialId: string): Promise<void> {
-  const all = await Notifications.getAllScheduledNotificationsAsync();
+const TRIAL_NOTIFICATION_ID = /:(?:checkin\d+|windowEnd\d+)$/;
+
+// Rebuilds notification state from the one authoritative active Trial. This
+// also removes schedules left behind when a previous post-commit notification
+// operation failed or the app was terminated between persistence and cleanup.
+export async function replaceTrialNotificationsWith(
+  driver: TrialNotificationDriver,
+  active?: {
+  trialId: string;
+  food: { id: string; isCustom: boolean; name: string };
+  planned: PlannedNotification[];
+  },
+): Promise<void> {
+  const scheduled = await driver.getAllScheduledNotificationsAsync();
   await Promise.all(
-    all
-      .filter((n) => n.identifier.startsWith(`${trialId}:`))
-      .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)),
+    scheduled
+      .filter((notification) => TRIAL_NOTIFICATION_ID.test(notification.identifier))
+      .map((notification) => driver.cancelScheduledNotificationAsync(notification.identifier)),
   );
+  if (active) {
+    await scheduleTrialNotifications(driver, active.trialId, active.food, active.planned);
+  }
 }
+
+export const replaceTrialNotifications = (active?: {
+  trialId: string;
+  food: { id: string; isCustom: boolean; name: string };
+  planned: PlannedNotification[];
+}) => replaceTrialNotificationsWith(Notifications, active);
