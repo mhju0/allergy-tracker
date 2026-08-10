@@ -15,10 +15,11 @@ slug `allergy-tracker`.
 > - **Korean-only.** The EN-default i18n plan (and the settings language
 >   picker) was dropped on 2026-07-17; the UI and dates are pinned to
 >   `ko-KR`.
-> - **A sixth surface: 캘린더** — a month-view history screen (tinted trial
->   windows, reaction/check-in dots, per-day event list).
-> - **Check-ins.** A `checkin` table records one-tap "이상 없음"
->   observations (once per day) during a trial; they never change status.
+> - **A sixth surface: 캘린더** — a month-view history screen (tinted Trial
+>   windows, reaction/Observation dots, per-day event list).
+> - **Observations and check-ins.** A check-in is the interaction; the
+>   `checkin` storage table persists its Observation (once per eligible day)
+>   during a Trial. Observations contribute coverage and never change status.
 > - **No setup screen.** First launch shows a one-time welcome card instead;
 >   baby name/birthdate are optional, report-only fields in Settings.
 > - **The watch window is fixed at 3 days** — the settings control described
@@ -39,6 +40,11 @@ slug `allergy-tracker`.
 > - `deriveStatus(trials)` needs neither `now` nor the reactions list — an
 >   active trial never has reactions attached, so trial history alone
 >   determines status.
+> - **Deep modules.** `src/observation` owns Observation eligibility,
+>   idempotency, coverage, and day projection; `src/trialLifecycle` owns atomic
+>   Trial transitions and post-commit notification reconciliation;
+>   `src/foodCatalogue` owns the complete Foods-list projection. Time-aware
+>   screens share `src/ui/useFreshNow` instead of taking render-time snapshots.
 
 ## 1. Purpose & positioning
 
@@ -105,6 +111,8 @@ Drizzle schema on expo-sqlite:
   outcome (`safe` | `reacted` | `cancelled` | NULL = active), endedAt.
 - `reaction` — id, trialId, symptoms (JSON array of fixed keys), severity
   (`mild` | `moderate` | `severe`), occurredAt, note.
+- `checkin` — the legacy storage name for an Observation: id, trialId,
+  occurredAt, backfilledAt, note.
 
 ### Rule 1 — status is derived, never stored
 One pure function, the unit-tested heart of the app:
@@ -128,31 +136,31 @@ deriveStatus(trials, reactions, now) →
   window has fully elapsed with zero reactions auto-closes that previous
   trial. (Moving on to the next food *is* the confirmation.) It closes as
   `safe` only if at least one day of the window was actually observed; with
-  **zero** check-ins it closes `cancelled` (미완료) and the food returns to
+  **zero** Observations it closes `cancelled` (미완료) and the food returns to
   untried, because elapsed time is not evidence of safety.
   If the previous trial's window has NOT elapsed, starting a new trial is
   blocked (see Rule 2). A reaction is always an explicit log.
 
 ### Rule 1b — observation coverage
-`coverage(trial)` → how many of the window's calendar days carry a check-in.
+`coverage(trial)` → how many of the window's calendar days carry an Observation.
 Derived, never stored. Every surface that claims safety discloses it: the home
 subline, the day ledger (an unrecorded day reads 기록 없음, never 이상 없음),
 and the pediatrician report's status column. Marking a 0-coverage window safe
 by hand is allowed but confirmed first — the parent's memory is evidence, the
 passage of time is not.
 
-Days are **calendar** days, so a trial started at 23:30 touches four of them;
-only the first `windowDays` count, and check-ins outside that set are refused
-(`isObservableDay`). A day filled in after the fact records `backfilledAt` and
+Days are **calendar** days, so a Trial started at 23:30 touches four of them;
+only the first `windowDays` count, and Observations outside that set are refused
+(`isEligibleObservationDay`). A day filled in after the fact records `backfilledAt` and
 is shown as a recollection, not as an observation made at the time.
 - `cancelled` trials are ignored by status derivation (food reverts to its
   previous state's logic — derivation just skips them).
 
 ### Rule 2 — one active trial at a time
 Only one non-elapsed active trial may exist across all foods (isolating the
-variable is the medical point of a food trial). Enforced as a guard in the
-start-trial mutation — not a DB constraint. Retesting a safe or reacted food
-is always allowed and just creates a new trial.
+variable is the medical point of a food trial). Enforced by the serialized,
+transactional Trial lifecycle command — not a DB constraint. Retesting a safe
+or reacted food is always allowed and just creates a new trial.
 
 ## 5. Reminders
 
@@ -167,8 +175,9 @@ is always allowed and just creates a new trial.
   — the 안전으로 표시 button does not exist until the window has elapsed. If it
   goes unanswered it repeats twice more (+1 day, +3 days) in a warmer register,
   then stops. Nothing nags past that.
-- Logging an outcome (or cancelling the trial) cancels its pending
-  notifications.
+- Logging an outcome (or cancelling the Trial) rebuilds the lifecycle-owned
+  notification set from persisted state. Foreground reconciliation repairs a
+  delivery failure or app termination that happened after the DB commit.
 - Notification permission is requested at **first trial start** (in context),
   never at app launch. Denied permission degrades gracefully: the app works
   identically, just without nudges.
@@ -209,8 +218,9 @@ Shipped as a JSON asset, inserted on first launch:
 - **Jest unit tests on `deriveStatus`** — every transition, the implicit-
   confirmation edge, cancelled-trial skipping, window boundary at exactly
   `startedAt + windowDays`.
-- Unit tests on the notification scheduling/cancellation logic (pure
-  scheduling computation extracted from the expo-notifications calls).
+- Unit tests on notification schedule computation and reconciliation, Trial
+  lifecycle serialization/transactions, Observation semantics, catalogue
+  projection, and focus/foreground time refresh.
 - No E2E suite in v1. Manual smoke on the iOS simulator before tagging.
 
 ## 10. Teardown & migration (completed)

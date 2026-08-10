@@ -7,7 +7,7 @@
     <text x="330" y="68" font-size="12.5" fill="#6E675A">inside the 3-day window</text>
 
     <text x="550" y="42" font-size="19" font-weight="800" fill="#2E7D4F">✓&#160;&#160;안전</text>
-    <text x="550" y="68" font-size="12.5" fill="#6E675A">window closed, nothing seen</text>
+    <text x="550" y="68" font-size="12.5" fill="#6E675A">window closed, marked safe</text>
 
     <text x="770" y="42" font-size="19" font-weight="800" fill="#A8432B">✕&#160;&#160;반응</text>
     <text x="770" y="68" font-size="12.5" fill="#6E675A">a reaction was logged</text>

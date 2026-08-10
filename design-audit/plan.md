@@ -1,7 +1,11 @@
 # Implementation plan — Allergy Tracker
 
-Companion to `report.html`. Nothing here has been implemented; no existing project
-file has been modified.
+**Status:** Historical implementation plan. The Warm Care work described here
+has shipped; current architecture and behavior live in `README.md`,
+`docs/design-spec.md`, and `CONTEXT.md`. File names, line references, and
+unchecked boxes below are retained as the original decision record.
+
+Companion to the original local `report.html`.
 
 **Constraints honoured throughout:** no new dependencies, no schema change, no
 generated-migration change, nothing in `src/domain/`, `src/db/`, `src/data/`,

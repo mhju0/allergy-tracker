@@ -1,5 +1,8 @@
 # Warm Care — UI redesign direction
 
+**Status:** Shipped design direction. Current behavior and architecture are
+documented in `README.md`, `docs/design-spec.md`, and `CONTEXT.md`.
+
 ## Design philosophy
 
 Warm Care treats the app as a calm second memory for a busy parent. The interface should answer three questions without interpretation: what food is being watched, what should I do now, and where will the record go. Large rounded surfaces group each answer, while generous cream-colored space prevents the medical context from feeling clinical.
@@ -53,4 +56,3 @@ Settings moves to a clearly labeled profile control in the Today header. Reactio
 - Huckleberry: one organized view and reduced mental load — <https://explore.huckleberrycare.com/app/>
 - Nara Baby: intuitive, calming, fuss-free tracking — <https://play.google.com/store/apps/details?id=com.naraorganics.nara>
 - Solid Starts: food progress, allergen guidance, and shareable reaction records — <https://solidstarts.com/app/>
-

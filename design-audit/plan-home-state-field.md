@@ -1,10 +1,10 @@
 # Implementation plan — Home state field (Direction B′)
 
 **Date:** 2026-07-28
-**Status:** design approved by owner (mockup round 2, `mockup-directions-2.html` rack 1)
+**Status:** Historical implementation plan; the approved state field has shipped.
 **Companion:** `mockup-directions.html` (round 1) · `mockup-directions-2.html` (round 2, the approved rack)
-**Supersedes nothing.** This is additive to `plan.md`; M6 (Dynamic Type) and M7
-(status ribbon) from that document remain open and untouched.
+**Decision record:** This was additive to `plan.md`; file names and line
+references below describe the pre-implementation checkout.
 
 **Constraints honoured throughout:** no new dependencies, no schema change, no
 generated-migration change, nothing in `src/db/`, `src/services/` or `drizzle/`.

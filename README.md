@@ -40,7 +40,7 @@ real device.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/status-key-dark.svg">
-  <img src="docs/status-key-light.svg" alt="안 먹어봄 — never introduced · 관찰 중 — inside the 3-day window · 안전 — window closed, nothing seen · 반응 — a reaction was logged" width="860">
+  <img src="docs/status-key-light.svg" alt="안 먹어봄 — never introduced · 관찰 중 — inside the 3-day window · 안전 — window closed and marked safe · 반응 — a reaction was logged" width="860">
 </picture>
 
 </div>
@@ -84,11 +84,12 @@ convention.
 ```
 introduce a food ──▶ 관찰 중   the 3-day window opens
                      │
-                     │  이상 없음 check-ins — evidence, never a status change
+                     │  이상 없음 check-ins record Observations, never a status change
                      │
-                     ├─ log a reaction     ──▶ 반응  · pending reminders cancelled
+                     ├─ log a reaction     ──▶ 반응  · reminders reconciled
                      ├─ confirm it safe    ──▶ 안전  · only once the window elapsed
-                     ├─ start the next one ──▶ 안전  · moving on IS the confirmation
+                     ├─ start the next one ──▶ 안전  · if at least one day was observed
+                     │                       미완료 · if no day was observed
                      └─ stop the trial     ──▶ record kept, reverts to prior status
 
 a reaction logged on an already-safe food ──▶ 반응
@@ -151,14 +152,19 @@ bar make the next click obvious on first use.
 | App | Expo SDK 57 · React Native 0.86 · TypeScript (strict) |
 | Navigation | Expo Router — file-based, typed routes, persistent labeled bottom bar |
 | Data | expo-sqlite + Drizzle ORM, generated migrations committed |
-| Domain | Pure TypeScript core, built test-first — Jest, 201 tests |
+| Domain | Deep TypeScript modules, built test-first — Jest, 209 tests |
 | Notifications | expo-notifications — all local, no push service |
 | Localization | i18next — Korean-only by design, dates pinned to `ko-KR` |
 | UI | Hand-rolled Warm Care design system, no component library |
 
-- **The UI is a thin layer over tested logic.** Status derivation, the
-  start-trial decision including the implicit-safe autoclose, notification
-  scheduling and calendar maths are all side-effect-free modules.
+- **The UI is a thin layer over tested interfaces.** Observation owns
+  eligibility, idempotency, coverage, and ledger projection. Trial lifecycle
+  owns atomic state transitions and rebuilds local notifications from persisted
+  state. Food catalogue owns filtering, ordering, family bands, counts, and row
+  semantics. SQLite and Expo sit behind adapters.
+- **Time-sensitive screens stay fresh.** Home, Foods, Food detail, and History
+  share one focus-aware clock that advances at local midnight and exact Trial
+  boundaries, and reconciles again when the app returns to the foreground.
 - **Colour is measured, not eyeballed.** `src/ui/tokens.test.ts` computes WCAG
   contrast from the palette and fails the build if any value that carries text
   drops below 4.5:1.
@@ -171,11 +177,14 @@ bar make the next click obvious on first use.
 
 ```
 app/          screens (typed routes + persistent top-level navigation)
-src/domain/   pure logic — status, trial rules, scheduling, calendar maths
-src/data/     mutations, live queries, the shared start-trial flow
+src/observation/     Observation rules + SQLite adapter
+src/trialLifecycle/ atomic Trial commands + SQLite/notification adapters
+src/foodCatalogue/  complete Foods-list semantic projection
+src/domain/   pure policy — status, scheduling, calendar and Home state
+src/data/     live queries, settings writes, the shared start-trial UI flow
 src/db/       schema, seed + catalogue, demo fixture
 src/services/ local notifications, PDF/JSON export builders
-src/ui/       design tokens (single source of colour) + shared components
+src/ui/       shared clock, design tokens, and components
 ```
 
 ## Run it
@@ -183,7 +192,7 @@ src/ui/       design tokens (single source of colour) + shared components
 ```bash
 npm install
 npx expo run:ios       # dev build on the simulator
-npx jest               # 201 unit tests
+npx jest               # 209 unit tests
 npx tsc --noEmit       # typecheck
 ```
 
