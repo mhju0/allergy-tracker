@@ -21,7 +21,6 @@ Spec: docs/design-spec.md (public). Build plan: .superpowers/rebuild-plan-2026-0
 - Gates before any commit: `npx tsc --noEmit` && `npx jest`.
 - DB changes = edit src/db/schema.ts + `npx drizzle-kit generate` + commit the
   new files under drizzle/. Never edit generated migration SQL by hand.
-- Local Postgres `mammacare_db` is v1 leftover; safe to drop, not used.
 
 ## Run
 npx expo start            # dev server (Expo Go has notification limits)
