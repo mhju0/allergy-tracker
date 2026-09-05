@@ -28,7 +28,7 @@ export const CATALOG: { id: string; group: string | null }[] = [
   { id: 'beansprout', group: 'soy' }, { id: 'blacksoybean', group: 'soy' },
   { id: 'pistachio', group: 'tree_nut' }, { id: 'pecan', group: 'tree_nut' },
   { id: 'hazelnut', group: 'tree_nut' }, { id: 'macadamia', group: 'tree_nut' },
-  { id: 'chestnut', group: 'tree_nut' }, { id: 'squid', group: 'shellfish' },
+  { id: 'squid', group: 'shellfish' },
   { id: 'octopus', group: 'shellfish' }, { id: 'smalloctopus', group: 'shellfish' },
   { id: 'abalone', group: 'shellfish' }, { id: 'oyster', group: 'shellfish' },
   { id: 'manilaclam', group: 'shellfish' }, { id: 'cod', group: 'fish' },
@@ -37,6 +37,7 @@ export const CATALOG: { id: string; group: string | null }[] = [
   { id: 'croaker', group: 'fish' }, { id: 'seabream', group: 'fish' },
   { id: 'hairtail', group: 'fish' }, { id: 'anchovy', group: 'fish' },
   // imported from MammaCare v1 — everyday foods
+  { id: 'chestnut', group: null },
   { id: 'radish', group: null }, { id: 'napacabbage', group: null },
   { id: 'bokchoy', group: null }, { id: 'redcabbage', group: null }, { id: 'kale', group: null },
   { id: 'chard', group: null }, { id: 'curledmallow', group: null },
