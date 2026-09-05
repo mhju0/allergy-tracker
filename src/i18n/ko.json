@@ -228,7 +228,7 @@
     "dbInit": "데이터베이스 초기화에 실패했어요: {{message}}"
   },
   "foodName": {
-    "egg": "달걀",
+    "egg": "달걀 (전란)",
     "milk": "우유",
     "wheat": "밀",
     "peanut": "땅콩",
@@ -329,7 +329,7 @@
     "chard": "근대",
     "curledmallow": "아욱",
     "driedradishgreens": "시래기",
-    "celery": "샐러리",
+    "celery": "셀러리",
     "waterparsley": "미나리",
     "wildparsley": "참나물",
     "chive": "부추",

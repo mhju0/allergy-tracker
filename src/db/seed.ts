@@ -1,4 +1,4 @@
-import { and, eq, notInArray } from 'drizzle-orm';
+import { and, eq, notInArray, sql } from 'drizzle-orm';
 import { db } from './client';
 import { baby, checkin, food, reaction, trial } from './schema';
 import { CATALOG } from './catalog';
@@ -12,10 +12,8 @@ export async function seedIfEmpty(): Promise<void> {
   if (babyRow.length === 0) {
     await db.insert(baby).values({ id: newId(), name: null, birthdate: null, defaultWindowDays: 3 });
   }
-  // Runs on every launch, not just the first: an install seeded by an older
-  // build must pick up foods ADDED to the catalog since (the v1 import took it
-  // from 55 to 148). Existing rows are left alone — ids are stable, and a
-  // user's trial history hangs off them.
+  // Reconcile additions and risk-group corrections on every launch. Update
+  // only catalogue metadata; stable ids, history and legacy custom rows stay.
   await db
     .insert(food)
     .values(
@@ -26,7 +24,11 @@ export async function seedIfEmpty(): Promise<void> {
         allergenGroup: c.group,
       })),
     )
-    .onConflictDoNothing();
+    .onConflictDoUpdate({
+      target: food.id,
+      set: { allergenGroup: sql`excluded.allergen_group` },
+      setWhere: eq(food.isCustom, false),
+    });
   // ...and drop seeded foods REMOVED from the catalog since (they'd render as
   // raw i18n keys), but never ones the user has trial history for — those keep
   // a legacy name in ko.json.

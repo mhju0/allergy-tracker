@@ -27,7 +27,7 @@ slug `allergy-tracker`.
 > - **Symptom list** gained 기침/쌕쌕거림; 얼굴 부종 triggers the emergency
 >   advisory at any severity.
 > - **Catalog** shipped as a TypeScript module (not a JSON asset), now 120
->   foods (44 high-risk) — the big-9 allergen groups plus Korean staples
+>   foods (43 high-risk) — the big-9 allergen groups plus Korean staples
 >   (e.g. 메밀). Grown from 55 by importing the v1 ingredient list, then
 >   audited down: duplicates that would split one food's record (동태/명태),
 >   foods that mislead in a trial context (매실, 분유, 참치), and ones too

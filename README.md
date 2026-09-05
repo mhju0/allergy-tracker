@@ -140,8 +140,8 @@ bar make the next click obvious on first use.
   marked safe flips it back to 반응, which is how real allergies surface.
 - **A calendar that means something** — days a food actually cleared are green,
   days under observation amber, reactions red. Future days are never shaded.
-- **120 curated Korean weaning foods**, 44 of them flagged 고위험 — the big-9
-  allergen groups plus Korean staples (메밀, 잣, 밤).
+- **120 curated Korean weaning foods**, 43 of them flagged 고위험 — the big-9
+  allergen groups plus Korean staples (메밀, 잣).
 - **A doctor-ready PDF** of every food tried and every reaction logged, plus a
   JSON export — both generated on device and handed to the share sheet.
 
