@@ -1,4 +1,5 @@
-import { MS_PER_DAY, windowEnd } from './status';
+import { windowEnd } from './status';
+import { MS_PER_DAY } from '../observation';
 
 export type PlannedNotification =
   | { kind: 'checkin'; day: number; fireAt: Date }

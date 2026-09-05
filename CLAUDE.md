@@ -1,7 +1,7 @@
 @AGENTS.md
 
-## Agent skills (Claude only; Codex does not inherit them, DECISIONS D-42)
+## Historical agent tooling
 
-- Issue tracker: GitHub Issues in this repository. See `docs/agents/issue-tracker.md`.
-- Triage labels: the five default canonical labels. See `docs/agents/triage-labels.md`.
-- Domain docs: single-context layout. See `docs/agents/domain.md`.
+The vendored skill set and unused tracker conventions were removed in the
+2026-09-05 cleanup (DECISIONS D-46). `CONTEXT.md` retains the domain glossary;
+`AGENTS.md` contains the current project instructions.

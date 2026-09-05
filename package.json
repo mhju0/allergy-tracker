@@ -50,11 +50,17 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run typecheck && npm test -- --ci --runInBand",
+    "verify:bundle": "expo export --platform ios --platform android"
   },
   "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "jest": {
     "preset": "jest-expo",
+    "roots": ["<rootDir>/app", "<rootDir>/src", "<rootDir>/tests"],
     "testMatch": [
       "**/*.test.ts",
       "**/*.test.tsx"

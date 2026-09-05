@@ -1,5 +1,6 @@
 import { describeHome, deriveHomeState, trialDay, type HomeFood, type HomeTrial } from './homeState';
-import { deriveStatus, latestTrial, MS_PER_DAY, type TrialLike } from './status';
+import { deriveStatus, latestTrial } from './status';
+import { MS_PER_DAY } from '../observation';
 
 const D = (s: string) => new Date(s);
 const NOW = D('2026-07-28T09:00:00Z');

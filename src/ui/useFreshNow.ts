@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { MS_PER_DAY } from '../domain/status';
+import { MS_PER_DAY } from '../observation';
 
 type TimedTrial = { startedAt: Date; windowDays: number };
 

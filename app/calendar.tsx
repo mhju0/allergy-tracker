@@ -4,7 +4,8 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFoodsWithStatus } from '../src/data/queries';
-import { dayMark, monthMatrix, sameLocalDay } from '../src/domain/calendar';
+import { dayMark, monthMatrix } from '../src/domain/calendar';
+import { isSameLocalDay } from '../src/observation';
 import { buildRecords, reactionSummary, type RecordKind } from '../src/domain/records';
 import { foodLabel } from '../src/i18n';
 import { BottomNav } from '../src/ui/BottomNav';
@@ -67,7 +68,7 @@ export default function Calendar() {
   const records = useMemo(() => buildRecords(foods), [foods]);
   const reactionDays = useMemo(() => records.filter((record) => record.kind === 'reacted').map((record) => record.at), [records]);
   const observationDays = useMemo(() => records.filter((record) => record.kind === 'observation').map((record) => record.at), [records]);
-  const events = useMemo(() => records.filter((record) => sameLocalDay(record.at, selectedDate)).map((record) => ({
+  const events = useMemo(() => records.filter((record) => isSameLocalDay(record.at, selectedDate)).map((record) => ({
     key: record.key,
     at: record.at,
     color: KIND_COLOR[record.kind],
@@ -101,8 +102,8 @@ export default function Calendar() {
             <View key={weekIndex} style={{ flexDirection: 'row' }}>
               {week.map((cell) => {
                 const mark = dayMark(cell.date, allTrials, reactionDays, observationDays, today);
-                const selected = sameLocalDay(cell.date, selectedDate);
-                const isToday = sameLocalDay(cell.date, today);
+                const selected = isSameLocalDay(cell.date, selectedDate);
+                const isToday = isSameLocalDay(cell.date, today);
                 const marks = [
                   mark.tint === 'amber' ? t('calendar.a11yObserving') : null,
                   mark.tint === 'green' ? t('calendar.a11ySafe') : null,
