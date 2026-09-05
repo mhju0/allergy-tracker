@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, AppState, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,7 +7,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
-import { readAllTables, useBaby, useFoodsWithStatus } from '../src/data/queries';
+import { connectFoods, readAllTables, useBaby } from '../src/data/queries';
 import { updateBabySettings } from '../src/data/mutations';
 import { isPermissionGranted } from '../src/services/notify';
 import { buildBackup, buildReport } from '../src/services/export';
@@ -22,17 +22,30 @@ export default function Settings() {
   const router = useRouter();
   const baby = useBaby();
   const insets = useSafeAreaInsets();
-  const foods = useFoodsWithStatus();
   const exporting = useRef(false);
   const [notifOn, setNotifOn] = useState<boolean | null>(null);
-  useEffect(() => { isPermissionGranted().then(setNotifOn).catch(() => {}); }, []);
+  useEffect(() => {
+    let mounted = true;
+    const refresh = () => {
+      isPermissionGranted().then((granted) => {
+        if (mounted) setNotifOn(granted);
+      }).catch(() => { if (mounted) setNotifOn(null); });
+    };
+    refresh();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refresh();
+    });
+    return () => { mounted = false; subscription.remove(); };
+  }, []);
   if (!baby) return null;
 
   const exportPdf = async () => {
     if (exporting.current) return;
     exporting.current = true;
     try {
-      const html = buildReport({ baby, foods }, new Date(), t);
+      const data = await readAllTables();
+      const foods = connectFoods(data.foods, data.trials, data.reactions, data.checkins);
+      const html = buildReport({ baby: data.baby[0], foods }, new Date(), t);
       const { uri } = await Print.printToFileAsync({ html });
       await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
     } catch {

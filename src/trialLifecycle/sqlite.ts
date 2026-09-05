@@ -1,7 +1,7 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import { db } from '../db/client';
 import { checkin, food, reaction, trial, type Trial } from '../db/schema';
-import { newId } from '../data/ids';
+import { randomUUID as newId } from 'expo-crypto';
 import {
   ensurePermission,
   isPermissionGranted,
@@ -29,11 +29,8 @@ export const sqliteLifecyclePersistence: LifecyclePersistence = {
       ),
       trialsForFood: (foodId) => tx.select().from(trial)
         .where(eq(trial.foodId, foodId))
-        .all()
-        .map((row) => withObservations(row)!),
-      trialById: (trialId) => withObservations(
-        tx.select().from(trial).where(eq(trial.id, trialId)).all()[0],
-      ),
+        .all(),
+      trialById: (trialId) => tx.select().from(trial).where(eq(trial.id, trialId)).get(),
       foodById: (foodId) => tx.select().from(food)
         .where(eq(food.id, foodId))
         .all()[0],

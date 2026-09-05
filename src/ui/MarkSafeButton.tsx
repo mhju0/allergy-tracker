@@ -15,7 +15,10 @@ export function MarkSafeButton({ trial }: { trial: RecordedTrial }) {
   const { observed, of } = coverage(trial);
 
   const onPress = () => {
-    const mark = () => confirmSafe({ trialId: trial.id });
+    const mark = async () => {
+      const result = await confirmSafe({ trialId: trial.id });
+      if (!result.ok) Alert.alert(t('errors.generic'));
+    };
     if (observed > 0) return void mark();
     Alert.alert(t('home.markSafeNoRecordTitle'), t('home.markSafeNoRecordBody', { total: of }), [
       { text: t('home.markSafeAnyway'), onPress: () => void mark() },

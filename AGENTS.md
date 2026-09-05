@@ -10,11 +10,11 @@ Commands (CI uses Node 22):
 npm ci                 # install locked dependencies
 npm start              # Metro development server
 npm run ios            # native iOS build/run; requires Xcode and CocoaPods
-npm run typecheck
-npm test -- --ci
+npm run verify         # typecheck and tests
+npm run verify:bundle  # production iOS/Android JavaScript bundles
 ```
 
-There is no lint or separate build script.
+There is no lint script. Bundle verification does not compile the native app.
 
 - The product is Korean-only and on-device: no backend, accounts, or sync.
   UI copy uses i18next; dates use `ko-KR`.
