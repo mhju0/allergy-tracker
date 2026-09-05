@@ -255,6 +255,15 @@ All four came out of a grilling session and are recorded in `.superpowers/sdd/pr
 - Remove 밤's automatic 고위험 badge (`allergenGroup: null`). The [FDA's revised 2025 guidance](https://www.fda.gov/food/food-allergensgluten-free-guidance-documents-regulatory-information/frequently-asked-questions-food-allergen-labeling-guidance-industry) excludes chestnut from its major-allergen tree-nut list, invalidating the earlier rationale for the badge. This is a catalogue classification decision, not a claim that chestnut cannot cause an allergy; personal reaction status remains derived from Trial history.
 - Apply risk-group corrections to existing catalogue rows on launch. Preserve IDs, Trial/Reaction/Observation history, settings and legacy custom rows; no schema migration is needed.
 
+### D-44 · Replacing an active Trial is one atomic command — `ACTIVE`
+- **2026-09-05 cleanup audit:** the existing cancel-then-start UI could leave the old Trial cancelled when inserting its replacement failed. Cancellation and insertion now share the lifecycle transaction; SQLite rollback preserves the original record and Observations on failure.
+- Replacement carries the Trial ID shown in the confirmation. A stale confirmation cannot cancel a different active Trial. If the window elapsed meanwhile, the existing coverage-based autoclose rule applies. Explicit early replacement is not disclosed as an automatic zero-coverage close.
+- Structured persistence failures are displayed for start, confirm-safe and cancellation. This changes failure handling, not the one-active-Trial or safety policy.
+
+### D-45 · Remove unadopted agent workflows; verify through project commands — `ACTIVE`
+- **2026-09-05 cleanup mandate, supersedes D-38:** delete the vendored `.agents/skills/`, `skills-lock.json` and unused `docs/agents/` workflow wiring. They were never adopted and conflict with the approved clean-slate direction. Retain the domain glossary, historical evidence and environment inventory archive; install no replacements.
+- Keep `AGENTS.md` minimal. `npm run verify` and `npm run verify:bundle` provide the same checks locally and in CI, including PRs targeting another branch. Database regressions use Node 22.13+ built-in SQLite with the production Drizzle driver; no additional dependency or agent harness is required.
+
 ---
 
 ## Part III — standing prohibitions
@@ -280,7 +289,7 @@ Not dated decisions so much as fences. Sources: `docs/design-spec.md` §11, `des
 | Add a dependency without explicit justification | `ACTIVE` prohibition | `design-audit/plan.md` §3; no icon, chart or animation library |
 | Rename the Korean UI vocabulary for a visual direction | `ACTIVE` prohibition | D-30 |
 | Hand-edit generated migration SQL | `ACTIVE` prohibition | `CLAUDE.md` |
-| Nest a git worktree inside this repo | `ACTIVE` prohibition | It makes bare `npx jest` fail on a clean tree |
+| Nested worktrees | `PARTIALLY SUPERSEDED` by D-45 | TypeScript/Jest now scope their roots; Metro/native sharing remains unverified, so sibling checkouts remain the proven option |
 
 ---
 
@@ -289,6 +298,6 @@ Not dated decisions so much as fences. Sources: `docs/design-spec.md` §11, `des
 | Question | Status |
 | --- | --- |
 | Whether the 표본 → Warm Care switch one day later was an owner reversal or a planned two-stage design process | `UNKNOWN` — no conversation record survives explaining the trigger; git shows only the commits |
-| Whether the `.agents/` skill set was meant to be permanent repo content or a temporary experiment | `UNKNOWN` historical intent; D-42 resolves that it is not automatically adopted for Codex |
+| Whether the `.agents/` skill set was meant to be permanent repo content or a temporary experiment | `UNKNOWN` historical intent; D-45 resolves removal under the approved cleanup |
 | Whether `v2.2.4` was the last intended release or tagging simply stopped | `UNKNOWN` — 86 commits on main since the tag at takeover |
 | Whether `docs/screenshots/social-preview.png` was ever re-uploaded to the live GitHub social card | `UNKNOWN` — the repo PNG is a manual upload target; committing it does not update the card |

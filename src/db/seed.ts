@@ -3,7 +3,7 @@ import { db } from './client';
 import { baby, checkin, food, reaction, trial } from './schema';
 import { CATALOG } from './catalog';
 import { buildDemoHistory } from './demoData';
-import { newId } from '../data/ids';
+import { randomUUID as newId } from 'expo-crypto';
 
 export async function seedIfEmpty(): Promise<void> {
   // The single settings row (window days; optional name/birthdate for the
@@ -27,7 +27,10 @@ export async function seedIfEmpty(): Promise<void> {
     .onConflictDoUpdate({
       target: food.id,
       set: { allergenGroup: sql`excluded.allergen_group` },
-      setWhere: eq(food.isCustom, false),
+      setWhere: and(
+        eq(food.isCustom, false),
+        sql`${food.allergenGroup} is not excluded.allergen_group`,
+      ),
     });
   // ...and drop seeded foods REMOVED from the catalog since (they'd render as
   // raw i18n keys), but never ones the user has trial history for — those keep

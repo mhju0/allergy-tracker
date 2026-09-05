@@ -152,7 +152,7 @@ bar make the next click obvious on first use.
 | App | Expo SDK 57 · React Native 0.86 · TypeScript (strict) |
 | Navigation | Expo Router — file-based, typed routes, persistent labeled bottom bar |
 | Data | expo-sqlite + Drizzle ORM, generated migrations committed |
-| Domain | Deep TypeScript modules, built test-first — Jest, 209 tests |
+| Domain | Pure domain rules + SQLite adapters — Jest |
 | Notifications | expo-notifications — all local, no push service |
 | Localization | i18next — Korean-only by design, dates pinned to `ko-KR` |
 | UI | Hand-rolled Warm Care design system, no component library |
@@ -189,12 +189,23 @@ src/ui/       shared clock, design tokens, and components
 
 ## Run it
 
+Use Node 22.13+ (CI uses Node 22). No server, API keys or environment file is
+needed. Native iOS development requires Xcode and CocoaPods.
+
 ```bash
-npm install
-npx expo run:ios       # dev build on the simulator
-npx jest               # 209 unit tests
-npx tsc --noEmit       # typecheck
+npm ci
+npm run ios            # build and launch iOS; starts Metro
+npm start              # Metro only, for an already-installed development build
+npm run verify         # TypeScript + all tests, also run in CI
+npm test -- --runInBand src/trialLifecycle/sqlite.test.ts  # targeted regression
+npm run verify:bundle  # production iOS + Android bundles, also run in CI
 ```
+
+Database tests execute the committed migrations and production Drizzle adapter
+against Node's built-in SQLite. No device or database service is needed.
+`verify:bundle` checks bundling, not native compilation or notification delivery.
+Jest and TypeScript scan `app/`, `src/`, and `tests/`, keeping unrelated checkout
+folders out of their input.
 
 Boot it pre-filled with a month of history — 11 trials, two reactions, daily
 check-ins, one food mid-window:

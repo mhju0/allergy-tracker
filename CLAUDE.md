@@ -27,16 +27,8 @@ npx expo start            # dev server (Expo Go has notification limits)
 npx expo run:ios          # dev build on iOS simulator — use this for smoke
 npx jest                  # unit tests
 
-## Agent skills
+## Historical agent tooling
 
-### Issue tracker
-
-Issues and specs are tracked in this repository's GitHub Issues. See `docs/agents/issue-tracker.md`.
-
-### Triage labels
-
-Triage uses the five default canonical labels. See `docs/agents/triage-labels.md`.
-
-### Domain docs
-
-This repository uses the single-context domain documentation layout. See `docs/agents/domain.md`.
+The vendored skill set and unused tracker conventions were removed in the
+2026-09-05 cleanup (DECISIONS D-45). `CONTEXT.md` retains the domain glossary;
+`AGENTS.md` contains the current project instructions.

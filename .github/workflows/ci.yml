@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
 
 jobs:
   check:
@@ -16,5 +15,5 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx tsc --noEmit
-      - run: npx jest --ci
+      - run: npm run verify
+      - run: npm run verify:bundle

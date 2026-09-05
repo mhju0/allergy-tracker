@@ -1,7 +1,7 @@
 import {
-  isWindowElapsed, latestTrial, windowEnd, MS_PER_DAY, type FoodStatus, type TrialLike,
+  isWindowElapsed, latestTrial, windowEnd, type FoodStatus, type TrialLike,
 } from './status';
-import { coverage } from '../observation';
+import { coverage, MS_PER_DAY } from '../observation';
 import type { RecordedTrial } from './records';
 
 // What Home shows. Derived, never stored — same discipline as deriveStatus.

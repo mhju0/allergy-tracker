@@ -15,7 +15,10 @@ The three catalogue questions are **completed**: `달걀 (전란)`,
 `셀러리`, and removal of 밤's automatic 고위험 badge. Existing installs receive the badge
 correction without changing personal history or custom rows. See DECISIONS D-43. `[Verified]`
 
-No other NOW item is selected. Follow-up candidates are prioritized below.
+The cleanup audit is complete on `codex/audit-cleanup`, pending PR review. Trial
+persistence failures and atomic replacement are fixed; database work and verification
+loops are improved. See [CLEANUP_AUDIT.md](CLEANUP_AUDIT.md) and D-44/D-45.
+Follow-up candidates are prioritized below.
 
 ---
 
@@ -23,25 +26,19 @@ No other NOW item is selected. Follow-up candidates are prioritized below.
 
 Prioritized follow-up work after the catalogue corrections:
 
-1. **Surface Trial persistence failures correctly.** `MarkSafeButton` and detail cancellation
-   ignore structured failures; `useStartTrialFlow` treats any failed start as an active-Trial
-   conflict. Handle `persistence_failed` explicitly and preserve the current record on failure.
-   Confirm-safe and start failure handling were reproduced during takeover. `[Verified]`
-2. **Resolve the 7 open Dependabot alerts** — `js-yaml` ×2 (high), `image-size` ×2 (high),
+1. **Resolve the 7 open Dependabot alerts** — `js-yaml` ×2 (high), `image-size` ×2 (high),
    `xmldom` ×2 (moderate), `decode-uri-component` (moderate). The blanket claim that these are
    outside runtime was incorrect: `decode-uri-component` is reachable through Expo Router's
    `query-string` dependency; exploitability remains unverified. [PR #2](https://github.com/mhju0/allergy-tracker/pull/2)
    updates both affected xmldom versions and has green CI. `[Verified]`
-3. **Tag a release.** The last tag is `v2.2.4` (2026-07-19), 86 commits behind main at takeover.
+2. **Tag a release.** The last tag is `v2.2.4` (2026-07-19), 86 commits behind main at takeover.
    Release scope/version and a fresh native smoke check remain to be determined. `[Verified]`
-4. **Delete the merged `feat/warm-care-ui` branch, local and remote.** It has zero unique commits
-   and `main` is 10 ahead. A separate Dependabot branch also exists. `[Verified]`
-5. **Decide the fate of the Firebase project `mammacare-ce9a5`.** Both secret-scanning alerts are
+3. **Decide the fate of the Firebase project `mammacare-ce9a5`.** Both secret-scanning alerts are
    closed as `false_positive` (v1 Firebase *client* config — no private key), but the project is
    still live, so an unrestricted API key can still be abused for quota/billing. Restrict the key
    or delete the project. Complication: v1 was a **shared** project (`github.com/kehdgus96`), so
    deletion is not unilaterally ours. `[Verified] gh api` + `[Conversation]`
-6. **Drop the `food.is_custom` column.** The feature was removed 2026-08-07; the column, the
+4. **Drop the `food.is_custom` column.** The feature was removed 2026-08-07; the column, the
    `foodLabel` branch and the `seed.ts` reconcile guard were kept on purpose so an install from an
    older build does not lose a typed row. Safe to drop only after confirming the owner's device DB
    has no custom rows. `[Verified] src/db/seed.ts:33-44`
@@ -66,17 +63,17 @@ was scoped out of v1 rather than rejected.
 
 ## BLOCKED
 
-### iOS Debug failure — needs fresh reproduction
-`ld: cannot link directly with 'SwiftUICore' because product being built is not an allowed client
-of it` was reported after `react-native-svg` was added; Release was reported to work.
-`[Conversation]` However, the local 2026-08-10 `.expo/xcodebuild.log` records a successful
-Debug device build. The handoff's categorical current-blocker claim is **contradictory**;
-current native build status remains **unknown** until a fresh build. `[Verified]` log
+### Physical-device notifications and signing
+The reported SwiftUICore Debug failure was **not reproduced**: a fresh iOS Simulator
+Debug build and launch succeeded on 2026-09-05. Start, Observation recording and
+replacement passed on an isolated simulator, with persisted rows checked. The unsigned
+build emitted an expo-notifications keychain warning; signed notification delivery and
+cold-launch actions still need physical-device verification. `[Verified]`
 
 ### Anything needing a physical device
 Dogfooding runs on the owner's **iPhone 12 mini** ("mj iphone 12 mini"), which must be passed to
-`expo run:ios`. Notification behaviour, the cold-launch check-in action and provisioning cannot be
-verified in CI or by an agent. `[Conversation]`
+`expo run:ios`. Signed notification delivery, cold-launch actions and provisioning remain outside
+the automated checks; verify them on a designated test device. `[Conversation]`
 
 ### Deleting the local Postgres `mammacare_db`
 Not blocked so much as **forbidden until extracted**: it holds the richest surviving copy of the v1
@@ -96,9 +93,6 @@ Ideas that were genuinely discussed and left in the air. **These are not queued 
   food name. Never proposed for v2; noted here only because the asset exists and is non-trivial. `[Conversation]`
 - **v1 nutrient data** (six levels per ingredient, in `mammacare_db`). No schema column, no
   surface, no decision. Same status: an asset, not a plan.
-- **Exercising the issue-tracker / triage-label conventions that are committed to the repo.**
-  `docs/agents/issue-tracker.md` and `docs/agents/triage-labels.md` describe a workflow; the repo
-  has **zero issues, open or closed**. Either adopt it or delete the docs. `[Verified]`
 - **Re-uploading `docs/screenshots/social-preview.png` to the live GitHub social card.** The PNG is
   committed; whether the card was ever actually set is unverified — it is a manual upload. `[Verified] file exists` / `[Unknown] whether uploaded`
 
@@ -132,11 +126,13 @@ Each was decided, not merely skipped. Sources: `docs/design-spec.md` §11, `desi
 
 ## COMPLETED RECENTLY
 
-Newest first. The 2026-09-05 changes are included in the takeover PR; earlier entries cite commits.
-Current validation: typecheck passes; **210 tests pass in 18 suites**. `[Verified]`
+Newest first. The cleanup builds on the takeover PR; earlier entries cite commits.
+Current validation: typecheck, **225 tests in 20 suites**, both mobile bundles and a fresh
+iOS Simulator Debug build pass. See CLEANUP_AUDIT for limits. `[Verified]`
 
 | When | What | Evidence |
 | --- | --- | --- |
+| 2026-09-05 | Atomic Trial replacement, visible persistence failures, fewer database reads/writes, reusable SQLite verification; unused agent workflows and fully merged `feat/warm-care-ui` branch removed | D-44/D-45; CLEANUP_AUDIT |
 | 2026-09-05 | Catalogue vocabulary resolved; 밤 badge corrected on fresh and existing installs, preserving history and custom rows | D-43; SQLite seed regression tests |
 | 2026-09-05 | Clean-slate Codex takeover approved; minimal AGENTS.md and explicit evidence hierarchy | Owner instruction; D-42 |
 | 2026-09-02 | Removed the incorrect `CLAUDE.md` claim that `mammacare_db` was droppable | `23cf63d` |

@@ -112,7 +112,10 @@ export default function FoodDetail() {
               t('food.cancelConfirmTitle', { food: foodLabel(food) }),
               t('food.cancelConfirmBody'),
               [
-                { text: t('food.cancelConfirmYes'), style: 'destructive', onPress: () => cancelTrial({ trialId: activeHere.id }) },
+                { text: t('food.cancelConfirmYes'), style: 'destructive', onPress: async () => {
+                  const result = await cancelTrial({ trialId: activeHere.id });
+                  if (!result.ok) Alert.alert(t('errors.generic'));
+                } },
                 { text: t('food.keepGoing'), style: 'cancel' },
               ],
             )}

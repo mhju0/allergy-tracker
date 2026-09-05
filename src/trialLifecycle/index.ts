@@ -25,8 +25,8 @@ export type LifecycleReaction = {
 
 export type LifecycleTransaction = {
   activeTrial: () => LifecycleTrial | undefined;
-  trialsForFood: (foodId: string) => LifecycleTrial[];
-  trialById: (trialId: string) => LifecycleTrial | undefined;
+  trialsForFood: (foodId: string) => TrialLike[];
+  trialById: (trialId: string) => TrialLike | undefined;
   foodById: (foodId: string) => LifecycleFood | undefined;
   insertTrial: (trial: LifecycleTrial) => void;
   insertReaction: (reaction: LifecycleReaction) => void;
@@ -101,7 +101,11 @@ export function createTrialLifecycle({ persistence, notifier, now, newId }: {
     }
   };
 
-  const start = (command: { food: LifecycleFood; windowDays: number }) => serialized(async () => {
+  const start = (command: {
+    food: LifecycleFood;
+    windowDays: number;
+    replaceActiveTrialId?: string;
+  }) => serialized(async () => {
     const at = now();
     let transition:
       | { ok: true; trial: LifecycleTrial; autoClosed: AutoClose | null }
@@ -109,12 +113,20 @@ export function createTrialLifecycle({ persistence, notifier, now, newId }: {
       | PersistenceFailure;
     try {
       transition = persistence.transaction((transaction) => {
-        const decision = decideStartTrial(transaction.activeTrial(), at);
-        if (!decision.allowed) return { ok: false, reason: decision.reason };
-        if (decision.autoClose) {
+        const active = transaction.activeTrial();
+        const decision = decideStartTrial(active, at);
+        // An explicit replacement is limited to the Trial shown in the alert.
+        // If its window elapsed meanwhile, the normal coverage rule wins.
+        if (!decision.allowed && (!active || active.id !== command.replaceActiveTrialId)) {
+          return { ok: false, reason: decision.reason };
+        }
+        const closing: AutoClose | null = decision.allowed
+          ? decision.autoClose
+          : { trialId: active!.id, outcome: 'cancelled' };
+        if (closing) {
           const closed = transaction.closeOpenTrial(
-            decision.autoClose.trialId,
-            decision.autoClose.outcome,
+            closing.trialId,
+            closing.outcome,
             at,
           );
           if (!closed) throw new Error('active Trial changed during start');
@@ -129,7 +141,7 @@ export function createTrialLifecycle({ persistence, notifier, now, newId }: {
           observations: [],
         };
         transaction.insertTrial(created);
-        return { ok: true, trial: created, autoClosed: decision.autoClose };
+        return { ok: true, trial: created, autoClosed: decision.allowed ? decision.autoClose : null };
       });
     } catch {
       transition = { ok: false, reason: 'persistence_failed' };

@@ -1,6 +1,4 @@
-import { coverage } from '../observation';
-export { coverage, isEligibleObservationDay, isSameLocalDay, MS_PER_DAY } from '../observation';
-import { MS_PER_DAY } from '../observation';
+import { coverage, MS_PER_DAY } from '../observation';
 
 export type TrialLike = {
   id: string;
@@ -21,9 +19,13 @@ export function isWindowElapsed(t: TrialLike, now: Date): boolean {
 }
 
 export function latestTrial<T extends TrialLike>(trials: T[]): T | undefined {
-  return [...trials]
-    .filter((t) => t.outcome !== 'cancelled')
-    .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())[0];
+  let latest: T | undefined;
+  for (const trial of trials) {
+    if (trial.outcome !== 'cancelled' && (!latest || trial.startedAt.getTime() > latest.startedAt.getTime())) {
+      latest = trial;
+    }
+  }
+  return latest;
 }
 
 export function deriveStatus(trials: TrialLike[]): FoodStatus {
@@ -42,13 +44,7 @@ export function deriveStatus(trials: TrialLike[]): FoodStatus {
   }
 }
 
-// How much of a window was actually observed. Derived, never stored — same
-// discipline as deriveStatus.
-//
-// A Trial that ends without Observations is not the same record as one watched
-// every day, and until now nothing anywhere could tell them apart: the ledger
-// painted a closed-safe window green regardless, and the doctor's report
-// printed a bare 안전. Everything that claims safety asks this first.
+// Safety disclosures use recorded coverage, never elapsed time alone.
 export type Observed = Pick<TrialLike, 'startedAt' | 'windowDays'> & {
   observations: { occurredAt: Date }[];
 };
@@ -59,14 +55,7 @@ export type StartDecision =
   | { allowed: true; autoClose: AutoClose | null }
   | { allowed: false; reason: 'trial_in_progress' };
 
-// Which outcome an elapsed window has earned. A window that ran its course with
-// at least one observation behind it closes 안전; one with none closes 미완료.
-//
-// The second case used to close 안전 too, which meant starting the next food
-// could silently print 안전 for a food nobody ever watched — in the food list,
-// in the status counts, and in the doctor's report. Elapsed time is not
-// evidence. 미완료 sends the food back to 안 먹어봄, and the feed itself stays
-// on the food's own history page, which shows cancelled trials.
+// An elapsed window closes safe with evidence, otherwise incomplete.
 export function autoCloseOutcome(t: Observed): AutoClose['outcome'] {
   return coverage(t).observed === 0 ? 'cancelled' : 'safe';
 }
@@ -85,10 +74,6 @@ export function decideStartTrial(
   }
   return { allowed: false, reason: 'trial_in_progress' };
 }
-
-// The autoclose is a silent write, so the two screens that disclose it used to
-// restate the rule — the picker predicting it, Home reconstructing it. Both ask
-// here now, so the copy cannot drift from what startTrial actually does.
 
 type WithLatest = { status: FoodStatus; latest: (TrialLike & Observed) | undefined };
 
@@ -118,6 +103,7 @@ export function autoclosedBy<T extends { trials: TrialLike[] }>(
   for (const f of foods) {
     for (const tr of f.trials) {
       if (tr.id === trial.id || tr.endedAt?.getTime() !== trial.startedAt.getTime()) continue;
+      if (!isWindowElapsed(tr, trial.startedAt)) continue;
       if (tr.outcome === 'safe' || tr.outcome === 'cancelled') return { food: f, outcome: tr.outcome };
     }
   }
