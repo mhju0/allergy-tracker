@@ -244,7 +244,7 @@ All four came out of a grilling session and are recorded in `.superpowers/sdd/pr
 - `23cf63d`, 2026-09-02 — the most recent commit on `main`. It deletes the line *"Local Postgres `mammacare_db` is v1 leftover; safe to drop, not used"* from `CLAUDE.md`.
 - **Why:** that database holds the **richest surviving copy** of the v1 ingredient master — 145 rows with `name` / `emoji` / `recommended_month` / six nutrient levels. The git archive has the cross-reactivity map but not this. `[Verified] git show 23cf63d` + `[Conversation]`
 
-### D-42 · Clean-slate Codex takeover — `ACTIVE`
+### D-42 · Clean-slate Codex takeover — `ACTIVE` (handoff parts superseded by D-44)
 - **Owner decision, 2026-09-05:** takeover approved. Evidence order is source/tests → Git state/history → this ledger → ROADMAP → PROJECT_HANDOFF → historical Claude material.
 - Keep `AGENTS.md` minimal and rely on native agent judgment. Claude instructions, skills, MCP servers, hooks, subagents and preferences are not inherited; migrating any requires an explicit request. Existing archived files remain in place.
 - Propose persistent configuration only for a repeatedly observed limitation, using the smallest suitable mechanism: project instruction, specialized skill, external connection or client/runtime setting.
@@ -254,6 +254,11 @@ All four came out of a grilling session and are recorded in `.superpowers/sdd/pr
 - **2026-09-05, owner delegated judgment:** use `달걀 (전란)` to distinguish the whole egg from the existing yolk/white entries, and `셀러리`, the [National Institute of Korean Language's spelling](https://krdict.korean.go.kr/kor/dicSearch/SearchView?ParaWordNo=74831).
 - Remove 밤's automatic 고위험 badge (`allergenGroup: null`). The [FDA's revised 2025 guidance](https://www.fda.gov/food/food-allergensgluten-free-guidance-documents-regulatory-information/frequently-asked-questions-food-allergen-labeling-guidance-industry) excludes chestnut from its major-allergen tree-nut list, invalidating the earlier rationale for the badge. This is a catalogue classification decision, not a claim that chestnut cannot cause an allergy; personal reaction status remains derived from Trial history.
 - Apply risk-group corrections to existing catalogue rows on launch. Preserve IDs, Trial/Reaction/Observation history, settings and legacy custom rows; no schema migration is needed.
+
+
+### D-44 · Agent handoff moves out of Git — `ACTIVE` (supersedes the PROJECT_HANDOFF parts of D-42)
+- **Owner decision, 2026-10-28:** agent session handoff, agent memory, and agent-environment notes live in a private, git-ignored `.memory/` folder shared by the coding agents. The tracked handoff and Claude environment inventory are removed from the repo.
+- Evidence order is now source/tests → Git state/history → this ledger → ROADMAP → `.memory/` and historical agent material.
 
 ---
 
