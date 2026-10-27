@@ -2,7 +2,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/logo-dark.svg">
-  <img src="docs/logo-light.svg" alt="알레르기 트래커 — Allergy Tracker" width="420">
+  <img src="docs/logo-light.svg" alt="알레르기 트래커 · Allergy Tracker" width="420">
 </picture>
 
 </div>
@@ -20,7 +20,7 @@ A food reaction can surface **up to three days after** the feed. Across months
 of weaning, that makes this a memory problem before it is anything else: what
 went in, when, what happened, and what is still untested.
 
-This is that memory — a private notebook that turns the food list into a
+This is that memory: a private notebook that turns the food list into a
 traffic light. **It has no accounts, no server, and no network code at all.**
 Everything lives in one SQLite file on the phone.
 
@@ -40,7 +40,7 @@ real device.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/status-key-dark.svg">
-  <img src="docs/status-key-light.svg" alt="안 먹어봄 — never introduced · 관찰 중 — inside the 3-day window · 안전 — window closed and marked safe · 반응 — a reaction was logged" width="860">
+  <img src="docs/status-key-light.svg" alt="안 먹어봄: never introduced · 관찰 중: inside the 3-day window · 안전: window closed and marked safe · 반응: a reaction was logged" width="860">
 </picture>
 
 </div>
@@ -51,7 +51,7 @@ Every food's status is computed from its trial history, every time it is read.
 Nothing stores it, so nothing can disagree with the record:
 
 ```ts
-// src/domain/status.ts — verbatim
+// src/domain/status.ts (verbatim)
 export function deriveStatus(trials: TrialLike[]): FoodStatus {
   const latest = latestTrial(trials);
   if (!latest) return 'untried';
@@ -70,8 +70,8 @@ export function deriveStatus(trials: TrialLike[]): FoodStatus {
 ```
 
 That exhaustive switch is the whole state machine. Adding an outcome to the
-schema fails the typecheck here until it is handled, and a delayed reaction —
-logged weeks after a food was marked safe — flips it back to red for free,
+schema fails the typecheck here until it is handled, and a delayed reaction
+(logged weeks after a food was marked safe) flips it back to red for free,
 because there was never a cached answer to invalidate.
 
 ## One food at a time, enforced
@@ -96,7 +96,7 @@ a reaction logged on an already-safe food ──▶ 반응
 ```
 
 Guidance from 질병관리청, 대한소아청소년과학회, NHS and CDC converges on the same
-two rules — one new food at a time, and watch for two to three days. The full
+two rules: one new food at a time, and watch for two to three days. The full
 data model, derivation rules and edge cases are in
 [docs/design-spec.md](docs/design-spec.md).
 
@@ -109,9 +109,9 @@ data model, derivation rules and edge cases are in
     <th align="center">Food detail</th>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/home.png" alt="Today — the active observation and one clear primary action" width="200"></td>
-    <td><img src="docs/screenshots/foods.png" alt="Foods — the catalogue, foods with history first" width="200"></td>
-    <td><img src="docs/screenshots/detail.png" alt="Food detail — the observation ledger replayed, then every record" width="200"></td>
+    <td><img src="docs/screenshots/home.png" alt="Today: the active observation and one clear primary action" width="200"></td>
+    <td><img src="docs/screenshots/foods.png" alt="Foods: the catalogue, foods with history first" width="200"></td>
+    <td><img src="docs/screenshots/detail.png" alt="Food detail: the observation ledger replayed, then every record" width="200"></td>
   </tr>
   <tr>
     <th align="center">History</th>
@@ -119,42 +119,42 @@ data model, derivation rules and edge cases are in
     <th align="center">Settings</th>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/calendar.png" alt="Calendar — cleared days green, observation amber, reactions red" width="200"></td>
-    <td><img src="docs/screenshots/reaction.png" alt="Reaction logging — symptoms, severity, emergency advisory" width="200"></td>
-    <td><img src="docs/screenshots/settings.png" alt="Settings — baby information, reminders, guidance, and exports grouped into clear cards" width="200"></td>
+    <td><img src="docs/screenshots/calendar.png" alt="Calendar: cleared days green, observation amber, reactions red" width="200"></td>
+    <td><img src="docs/screenshots/reaction.png" alt="Reaction logging: symptoms, severity, emergency advisory" width="200"></td>
+    <td><img src="docs/screenshots/settings.png" alt="Settings: baby information, reminders, guidance, and exports grouped into clear cards" width="200"></td>
   </tr>
 </table>
 
-The Warm Care UI keeps the **observation ledger** at the center — one named cell
-per day of the window — while one primary action and a persistent labeled bottom
+The Warm Care UI keeps the **observation ledger** at the center (one named cell
+per day of the window), while one primary action and a persistent labeled bottom
 bar make the next click obvious on first use.
 
 ## What it does
 
 - **A fixed 3-day window** with gentle local check-in reminders and a
-  window-end prompt. No push service — every notification is scheduled on the
+  window-end prompt. No push service: every notification is scheduled on the
   device.
 - **이상 없음 one-tap check-ins** record "nothing seen today" without ending the
   trial. Affirmative evidence, not just the absence of an alarm.
-- **Delayed reactions handled properly** — logging one against a food already
+- **Delayed reactions handled properly:** logging one against a food already
   marked safe flips it back to 반응, which is how real allergies surface.
-- **A calendar that means something** — days a food actually cleared are green,
+- **A calendar that means something:** days a food actually cleared are green,
   days under observation amber, reactions red. Future days are never shaded.
-- **120 curated Korean weaning foods**, 43 of them flagged 고위험 — the big-9
+- **120 curated Korean weaning foods**, 43 of them flagged 고위험: the big-9
   allergen groups plus Korean staples (메밀, 잣).
 - **A doctor-ready PDF** of every food tried and every reaction logged, plus a
-  JSON export — both generated on device and handed to the share sheet.
+  JSON export, both generated on device and handed to the share sheet.
 
 ## How it is built
 
 | Layer | Choice |
 | --- | --- |
 | App | Expo SDK 57 · React Native 0.86 · TypeScript (strict) |
-| Navigation | Expo Router — file-based, typed routes, persistent labeled bottom bar |
+| Navigation | Expo Router (file-based, typed routes, persistent labeled bottom bar) |
 | Data | expo-sqlite + Drizzle ORM, generated migrations committed |
-| Domain | Deep TypeScript modules, built test-first — Jest, 209 tests |
-| Notifications | expo-notifications — all local, no push service |
-| Localization | i18next — Korean-only by design, dates pinned to `ko-KR` |
+| Domain | Deep TypeScript modules, built test-first (Jest, 209 tests) |
+| Notifications | expo-notifications (all local, no push service) |
+| Localization | i18next (Korean-only by design, dates pinned to `ko-KR`) |
 | UI | Hand-rolled Warm Care design system, no component library |
 
 - **The UI is a thin layer over tested interfaces.** Observation owns
@@ -171,7 +171,7 @@ bar make the next click obvious on first use.
 - **Accessible by construction.** A status colour never travels without its
   icon and label; primary controls use 48&nbsp;pt-or-larger touch targets.
 - **The demo fixture is code.** A deterministic, invariant-tested seed builds a
-  month of plausible history — every observed day recorded, times varied by a
+  month of plausible history: every observed day recorded, times varied by a
   hash rather than `Math.random`, so it rebuilds byte-identically for
   screenshots.
 
@@ -180,7 +180,7 @@ app/          screens (typed routes + persistent top-level navigation)
 src/observation/     Observation rules + SQLite adapter
 src/trialLifecycle/ atomic Trial commands + SQLite/notification adapters
 src/foodCatalogue/  complete Foods-list semantic projection
-src/domain/   pure policy — status, scheduling, calendar and Home state
+src/domain/   pure policy: status, scheduling, calendar and Home state
 src/data/     live queries, settings writes, the shared start-trial UI flow
 src/db/       schema, seed + catalogue, demo fixture
 src/services/ local notifications, PDF/JSON export builders
@@ -196,8 +196,8 @@ npx jest               # 209 unit tests
 npx tsc --noEmit       # typecheck
 ```
 
-Boot it pre-filled with a month of history — 11 trials, two reactions, daily
-check-ins, one food mid-window:
+Boot it pre-filled with a month of history (11 trials, two reactions, daily
+check-ins, one food mid-window):
 
 ```bash
 EXPO_PUBLIC_DEMO=1 npx expo run:ios
@@ -209,7 +209,7 @@ are never touched.
 ## Privacy
 
 There is no network code in the app. Nothing is collected, synced or sent
-anywhere — the only way data leaves the phone is a PDF or JSON file you hand to
+anywhere: the only way data leaves the phone is a PDF or JSON file you hand to
 the share sheet yourself.
 
 ## Status
@@ -217,8 +217,8 @@ the share sheet yourself.
 Feature-complete and in maintenance mode. © 2026 Michael Ju.
 
 > [!IMPORTANT]
-> 이 앱은 기록 보조 도구이며 의학적 조언이 아닙니다 — a tracking aid, not medical
-> advice. Always consult your paediatrician about allergies.
+> 이 앱은 기록 보조 도구이며 의학적 조언이 아닙니다 (a tracking aid, not medical
+> advice). Always consult your paediatrician about allergies.
 
 ## License
 
