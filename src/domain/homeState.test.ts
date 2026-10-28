@@ -24,6 +24,11 @@ describe('trialDay', () => {
   test('clamps to the window length once the window has run out', () => {
     expect(trialDay({ startedAt: D('2026-07-01T10:00:00Z'), windowDays: 3 }, NOW)).toBe(3);
   });
+  test('a time before the start is day 1, never 0 or negative', () => {
+    const t = { startedAt: D('2026-07-28T08:00:00Z'), windowDays: 3 };
+    expect(trialDay(t, D('2026-07-28T07:00:00Z'))).toBe(1);
+    expect(trialDay(t, D('2026-07-26T07:00:00Z'))).toBe(1);
+  });
 });
 
 describe('deriveHomeState', () => {
@@ -198,6 +203,17 @@ describe('describeHome', () => {
       + 'symptoms=reaction.symptom.hives, reaction.symptom.rash',
     );
     expect(v.filled).toBe(2); // NOT 3 — the window stopped when the reaction landed
+  });
+
+  test.each([
+    ['before the Trial started', D('2026-07-25T14:00:00Z')],
+    ['after the window closed', D('2026-07-30T14:00:00Z')],
+  ])('reacted %s → no day number', (_label, reactedAt) => {
+    const trial = mk({ startedAt: D('2026-07-26T10:00:00Z'), outcome: 'reacted', endedAt: D('2026-07-27T10:00:00Z') });
+    const v = describeHome([food('달걀', [{ ...trial, reactions: [
+      { id: 'r1', trialId: trial.id, occurredAt: reactedAt, severity: 'mild', symptoms: ['rash'] },
+    ] }])], NOW, t);
+    expect(v.subline).toBe('home.sub.reactedNoDay|severity=reaction.severityLevel.mild,symptoms=reaction.symptom.rash');
   });
 
   test('reacted with the reaction row missing → falls back, never crashes', () => {

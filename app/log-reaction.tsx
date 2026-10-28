@@ -54,6 +54,8 @@ export default function LogReaction() {
 
   const toggle = (symptom: string) => setSymptoms((current) => current.includes(symptom) ? current.filter((item) => item !== symptom) : [...current, symptom]);
   const delayed = entry.status !== 'testing';
+  // Against an active Trial, a reaction cannot predate the food being started.
+  const minimumDate = delayed ? undefined : entry.latest?.startedAt;
 
   const save = async () => {
     if (saving.current) return;
@@ -152,7 +154,7 @@ export default function LogReaction() {
 
         <Text style={FIELD_LABEL_STYLE}>{t('reaction.when')}</Text>
         <View style={{ minHeight: layout.controlHeight, borderWidth: 1, borderColor: colors.hairline, borderRadius: radii.md, justifyContent: 'center', paddingHorizontal: layout.cardPadding, backgroundColor: colors.surface }}>
-          <DateTimePicker locale="ko-KR" value={occurredAt} mode="datetime" maximumDate={new Date()} onValueChange={(_, date) => setOccurredAt(date)} />
+          <DateTimePicker locale="ko-KR" value={occurredAt} mode="datetime" minimumDate={minimumDate} maximumDate={new Date()} onValueChange={(_, date) => setOccurredAt(date)} />
         </View>
 
         <Text style={FIELD_LABEL_STYLE}>{t('reaction.note')}</Text>

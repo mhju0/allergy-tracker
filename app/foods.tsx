@@ -134,13 +134,15 @@ export default function Foods() {
             <Text style={{ fontSize: 11, lineHeight: 16, fontWeight: '700', color: colors.inkSecondary }}>{row.count}</Text>
           </View>
         ) : (
+          // The food under observation is never a pick: picking it would close
+          // and restart its own Trial. It opens its detail page instead.
           <FoodRow
             item={row.item}
             detail={row.detail}
             highRisk={row.highRisk}
             hideHighRisk={row.hideHighRisk}
-            hint={pick === '1' ? t('foods.pickHint', { days: windowDays }) : undefined}
-            onPress={pick === '1'
+            hint={pick === '1' && row.item.status !== 'testing' ? t('foods.pickHint', { days: windowDays }) : undefined}
+            onPress={pick === '1' && row.item.status !== 'testing'
               ? () => startFlow(row.item.food, () => router.dismissAll())
               : () => router.push({ pathname: '/food/[id]', params: { id: row.item.food.id, from: 'foods' } })}
           />

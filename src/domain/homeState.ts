@@ -26,9 +26,14 @@ export type HomeState<F> =
 
 export type HomeFood<F> = { food: F; trials: HomeTrial[]; status: FoodStatus; latest: HomeTrial | undefined };
 
-// Day n of the window, 1-based, clamped to the window length.
+// Day n of the window, 1-based, clamped to the window: a time before the start
+// is day 1, never day 0 or -1.
 export function trialDay(t: Pick<TrialLike, 'startedAt' | 'windowDays'>, now: Date): number {
-  return Math.min(t.windowDays, Math.floor((now.getTime() - t.startedAt.getTime()) / MS_PER_DAY) + 1);
+  return Math.max(1, Math.min(t.windowDays, Math.floor((now.getTime() - t.startedAt.getTime()) / MS_PER_DAY) + 1));
+}
+
+function isInWindow(t: Pick<TrialLike, 'startedAt' | 'windowDays'>, at: Date): boolean {
+  return at.getTime() >= t.startedAt.getTime() && at.getTime() < windowEnd(t).getTime();
 }
 
 export function deriveHomeState<F>(foods: HomeFood<F>[], now: Date): HomeState<F> {
@@ -107,14 +112,17 @@ function subline<F>(state: WithTrial<F>, reaction: ReactionLike | undefined, t: 
         observed: coverage(state.trial).observed,
         count: state.safeCount,
       });
-    case 'reacted':
-      return reaction
-        ? t('home.sub.reacted', {
-            day: trialDay(state.trial, reaction.occurredAt),
-            severity: t(`reaction.severityLevel.${reaction.severity}`),
-            symptoms: reaction.symptoms.map((s) => t(`reaction.symptom.${s}`)).join(', '),
-          })
-        : t('status.reacted');
+    case 'reacted': {
+      if (!reaction) return t('status.reacted');
+      const detail = {
+        severity: t(`reaction.severityLevel.${reaction.severity}`),
+        symptoms: reaction.symptoms.map((s) => t(`reaction.symptom.${s}`)).join(', '),
+      };
+      // A reaction outside the window has no honest day number to show.
+      return isInWindow(state.trial, reaction.occurredAt)
+        ? t('home.sub.reacted', { day: trialDay(state.trial, reaction.occurredAt), ...detail })
+        : t('home.sub.reactedNoDay', detail);
+    }
   }
 }
 
