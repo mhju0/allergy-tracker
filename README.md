@@ -24,8 +24,8 @@ This is that memory: a private notebook that turns the food list into a
 traffic light. **It has no accounts, no server, and no network code at all.**
 Everything lives in one SQLite file on the phone.
 
-Native iOS · Korean-only UI · built as a portfolio project and dogfooded on a
-real device.
+Native iOS app **이유식 기록** · Korean-only UI · built as a portfolio project and
+dogfooded on a real device.
 
 ![Expo SDK 57](https://img.shields.io/badge/Expo-SDK%2057-000020?logo=expo&logoColor=white)
 ![React Native 0.86](https://img.shields.io/badge/React%20Native-0.86-61DAFB?logo=react&logoColor=black)
@@ -222,6 +222,9 @@ are never touched.
 There is no network code in the app. Nothing is collected, synced or sent
 anywhere: the only way data leaves the phone is a PDF or JSON file you hand to
 the share sheet yourself.
+
+[Privacy policy](https://mhju0.github.io/allergy-tracker/privacy/) ·
+[Support](https://mhju0.github.io/allergy-tracker/support/) (Korean; source in `site/`).
 
 ## Status
 
