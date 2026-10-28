@@ -12,6 +12,7 @@
     },
     "ios": {
       "bundleIdentifier": "com.mhju.allergytracker",
+      "buildNumber": "1",
       "supportsTablet": false,
       "config": {
         "usesNonExemptEncryption": false
