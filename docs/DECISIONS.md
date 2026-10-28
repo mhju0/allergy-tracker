@@ -314,6 +314,11 @@ All four came out of a grilling session and are recorded in `.superpowers/sdd/pr
 - **2026-10-28, decided under the owner's delegation:** no Expo account is used. Xcode, signed in to the developer account, archives and uploads to App Store Connect (`docs/APP_STORE.md` §2).
 - Build numbers are tracked in `app.json` `ios.buildNumber` and raised for every upload.
 
+### D-53 · Scene lifecycle for iOS 27 — `ACTIVE`
+- **2026-10-28:** TestFlight build 1 crashed at launch on iOS 27.2 (`_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`). The SDK 57 prebuild template creates the window in the app delegate, which iOS 27 rejects for apps built with the iOS 27 SDK; release QA ran on an iOS 26.5 simulator and missed it.
+- `plugins/with-scene-lifecycle.js` adopts the scene lifecycle as the SDK 58 template does: the app delegate only creates the React Native factory, and Expo's `ExpoAppSceneDelegate` creates the window. The plugin fails the prebuild if the template changes shape. Remove it when moving to Expo SDK 58.
+- Release checks include a launch on the newest iOS runtime.
+
 ---
 
 ## Part III — standing prohibitions
