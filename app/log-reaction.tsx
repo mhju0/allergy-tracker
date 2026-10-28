@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { AccessibilityInfo, Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -82,10 +82,14 @@ export default function LogReaction() {
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: colors.paper }}>
+    // The ScrollView insets itself for the keyboard; a KeyboardAvoidingView
+    // misjudges the offset inside a modal sheet and left the memo covered.
+    <View style={{ flex: 1, backgroundColor: colors.paper }}>
       <ScrollView
         style={{ flex: 1 }}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        automaticallyAdjustKeyboardInsets
         contentContainerStyle={{ paddingHorizontal: layout.screenInset, paddingTop: insets.top + 8, paddingBottom: 24 }}
       >
         <ScreenHeader title={t('reaction.title')} right={<HeaderButton label={t('food.close')} icon="close" onPress={() => router.back()} />} />
@@ -176,6 +180,6 @@ export default function LogReaction() {
           onPress={save}
         />
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }

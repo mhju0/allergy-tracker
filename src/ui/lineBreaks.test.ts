@@ -12,6 +12,10 @@ describe('keepKoreanLinesTogether', () => {
     expect(keepKoreanLinesTogether('먹은 뒤 2시간 안에')).toBe(`먹은 뒤 2${WJ}시간${NBSP}안에`);
   });
 
+  test('keeps a closing quote attached to the particle after it', () => {
+    expect(keepKoreanLinesTogether('‘이상 없음’을 눌러요')).toBe(`‘이상 없음’${WJ}을${NBSP}눌러요`);
+  });
+
   test('leaves a single word unchanged', () => {
     expect(keepKoreanLinesTogether('설정')).toBe('설정');
   });

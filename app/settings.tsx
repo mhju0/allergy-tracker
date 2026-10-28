@@ -49,7 +49,8 @@ export default function Settings() {
       const data = await readAllTables();
       const foods = connectFoods(data.foods, data.trials, data.reactions, data.checkins);
       const html = buildReport({ baby: data.baby[0], foods }, new Date(), t);
-      const { uri } = await Print.printToFileAsync({ html });
+      // A4 in points; the default is US Letter.
+      const { uri } = await Print.printToFileAsync({ html, width: 595, height: 842 });
       const path = `${FileSystem.cacheDirectory}allergy-record-${localDateStamp(new Date())}.pdf`;
       await FileSystem.deleteAsync(path, { idempotent: true });
       await FileSystem.moveAsync({ from: uri, to: path });
@@ -110,10 +111,10 @@ export default function Settings() {
             defaultValue={baby.name ?? ''}
             placeholder={t('settings.optional')}
             placeholderTextColor={colors.inkSecondary}
-            maxLength={20}
             returnKeyType="done"
             submitBehavior="blurAndSubmit"
-            onChangeText={(text) => { void updateBabySettings({ name: text.trim() || null }).catch(() => {}); }}
+            // No maxLength: it cuts a Korean syllable mid-composition ("김ㅅ").
+            onChangeText={(text) => { void updateBabySettings({ name: text.trim().slice(0, 20) || null }).catch(() => {}); }}
             style={{ width: 96, minHeight: layout.touchTarget, fontSize: 14, lineHeight: 20, fontWeight: '700', color: colors.ink, textAlign: 'right', paddingVertical: 0 }}
           />
         </View>
