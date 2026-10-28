@@ -2,16 +2,24 @@
   "expo": {
     "name": "Allergy Tracker",
     "slug": "allergy-tracker",
-    "version": "1.0.0",
+    "version": "3.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "allergytracker",
     "userInterfaceStyle": "light",
+    "locales": {
+      "ko": "./assets/locales/ko.json"
+    },
     "ios": {
       "bundleIdentifier": "com.mhju.allergytracker",
       "supportsTablet": false,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
       "infoPlist": {
-        "CFBundleDisplayName": "알레르기"
+        "CFBundleDisplayName": "이유식 기록",
+        "CFBundleDevelopmentRegion": "ko",
+        "CFBundleLocalizations": ["ko"]
       }
     },
     "android": {
