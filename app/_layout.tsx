@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AppState, Text, View } from 'react-native';
+import { AppState, View } from 'react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
@@ -12,6 +12,7 @@ import { recordObservation } from '../src/observation/sqlite';
 import { CHECKIN_ACTION, initNotificationHandler, registerCheckinAction } from '../src/services/notify';
 import { reconcileTrialLifecycle } from '../src/trialLifecycle/sqlite';
 import { colors, layout, spacing } from '../src/ui/tokens';
+import { Text } from '../src/ui/Text';
 
 initNotificationHandler();
 

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +17,7 @@ import { ScreenHeader } from '../src/ui/ScreenHeader';
 import { SectionHeaderRow } from '../src/ui/SectionHeaderRow';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
 import { useFreshNow } from '../src/ui/useFreshNow';
+import { Text } from '../src/ui/Text';
 
 const FILTERS = ['testing', 'reacted', 'safe', 'untried'] as const;
 

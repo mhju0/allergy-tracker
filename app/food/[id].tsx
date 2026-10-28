@@ -1,4 +1,4 @@
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +21,7 @@ import { WarmCard } from '../../src/ui/WarmCard';
 import { Icon } from '../../src/ui/Icon';
 import { colors, layout, radii, spacing, typeStyles } from '../../src/ui/tokens';
 import { useFreshNow } from '../../src/ui/useFreshNow';
+import { Text } from '../../src/ui/Text';
 
 const KIND_COLOR: Record<RecordKind, string> = {
   start: colors.amberText,

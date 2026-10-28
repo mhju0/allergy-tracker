@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { RecordedTrial } from '../domain/records';
 import { isEligibleObservationDay, isSameLocalDay } from '../observation';
@@ -7,6 +7,7 @@ import { recordObservation } from '../observation/sqlite';
 import { Icon } from './Icon';
 import { press } from './pressable';
 import { colors, layout, radii, spacing, typeStyles } from './tokens';
+import { Text } from './Text';
 
 // One-tap "이상 없음" observation for an active trial. Never touches trial
 // outcome — it only records an Observation. Collapses to a done-state line once one

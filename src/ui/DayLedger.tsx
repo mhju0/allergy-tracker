@@ -1,10 +1,11 @@
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { RecordedTrial } from '../domain/records';
 import { projectObservationDays, type ObservationDay } from '../observation';
 import { recordObservation } from '../observation/sqlite';
 import { press } from './pressable';
 import { colors, radii, spacing } from './tokens';
+import { Text } from './Text';
 
 // The observation window, rendered as one named cell per day instead of an
 // anonymous progress bar. The rule under each cell carries its state, so the

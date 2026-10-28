@@ -1,8 +1,9 @@
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { FoodStatus } from '../domain/status';
 import { Icon } from './Icon';
 import { colors, radii, spacing } from './tokens';
+import { Text } from './Text';
 
 export function StatusChip({ status }: { status: FoodStatus }) {
   const { t } = useTranslation();

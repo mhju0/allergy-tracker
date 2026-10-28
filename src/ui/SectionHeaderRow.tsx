@@ -1,5 +1,6 @@
-import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { View, type StyleProp, type ViewStyle } from 'react-native';
 import { colors, spacing, typeStyles } from './tokens';
+import { Text } from './Text';
 
 export function SectionHeaderRow({ title, meta, style }: {
   title: string;

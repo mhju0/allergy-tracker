@@ -1,10 +1,11 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, type IconName } from './Icon';
 import { press } from './pressable';
 import { colors, layout, radii, shadows, spacing } from './tokens';
+import { Text } from './Text';
 
 type Tab = 'today' | 'foods' | 'history';
 

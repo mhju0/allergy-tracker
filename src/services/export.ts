@@ -91,7 +91,7 @@ function render(v: ReportView): string {
         `<li><strong>${e(r.food)}</strong> — ${e(r.date)} · ${e(r.summary)}${r.note ? ` · ${e(r.note)}` : ''}</li>`,
       ).join('')}</ul>`;
   return `<!doctype html><html><head><meta charset="utf-8"><style>
-    body { font-family: -apple-system, sans-serif; padding: 32px; color: #1c1c1e; }
+    body { font-family: -apple-system, sans-serif; padding: 32px; color: #1c1c1e; word-break: keep-all; }
     h1 { font-size: 22px; } h2 { font-size: 16px; margin-top: 24px; }
     p.meta { color: #6e6e73; font-size: 13px; }
     table { border-collapse: collapse; width: 100%; font-size: 13px; }
