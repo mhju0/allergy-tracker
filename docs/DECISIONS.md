@@ -110,7 +110,7 @@ resurrecting any of it.
 ### D-20 · 얼굴 부종 triggers the emergency (119) advisory at any severity — `ACTIVE`
 - `e1468cd`, 2026-07-17, from the same KB audit. `[Conversation]`
 
-### D-21 · Add a 기침·쌕쌕거림 symptom chip (non-emergency) — `ACTIVE`
+### D-21 · Add a 기침·쌕쌕거림 symptom chip (non-emergency) — `SUPERSEDED` by D-47
 - `cd09601`, 2026-07-17. The KB audit had flagged it as "noted-not-done, 기타 covers it"; the owner left the call to the agent, which added it. `[Conversation]`
 
 ### D-22 · NO 권장 개월 (per-food recommended introduction month) — `ABANDONED` / permanently rejected
@@ -268,6 +268,39 @@ All four came out of a grilling session and are recorded in `.superpowers/sdd/pr
 ### D-46 · Remove unadopted agent workflows; verify through project commands — `ACTIVE`
 - **2026-09-05 cleanup mandate, supersedes D-38:** delete the vendored `.agents/skills/`, `skills-lock.json` and unused `docs/agents/` workflow wiring. They were never adopted and conflict with the approved clean-slate direction. Retain the domain glossary, historical evidence and environment inventory archive; install no replacements.
 - Keep `AGENTS.md` minimal. `npm run verify` and `npm run verify:bundle` provide the same checks locally and in CI, including PRs targeting another branch. Database regressions use Node 22.13+ built-in SQLite with the production Drizzle driver; no additional dependency or agent harness is required.
+
+### D-47 · Emergency guidance covers infant anaphylaxis signs — `ACTIVE` (supersedes D-21's "non-emergency")
+- **2026-10-28, decided under the owner's delegation** after a source-checked research pass; `62c82a4`.
+- **Rule** (`src/domain/emergency.ts`, used by `app/log-reaction.tsx`): the 119 card shows when severity is 심각, or any one red flag is selected — 호흡 곤란·쉰 울음소리, 얼굴·입술·혀 부종, 쌕쌕거림·계속되는 기침, 축 처짐·창백함 — or 구토 together with a skin sign (두드러기 or 발진). 구토 alone does not trigger it. The card is announced to VoiceOver when it appears. `[Verified]`
+- **New symptom 축 처짐·창백함** (stored key `floppy`; symptoms are JSON strings, no schema change). The emergency copy now names wheeze, swelling of lips/face/tongue, a hoarse voice or cry, and a pale, floppy baby, and says any one of them is enough. The 호흡 곤란 chip also names 쉰 울음소리, so a hoarse cry alone (one ASCIA sign) reaches the card without a new key.
+- **얼굴·입술 부종 alone sending to 119 is a deliberate conservative extension beyond ASCIA,** which lists lip/face swelling as mild–moderate and only tongue or throat swelling as anaphylaxis (D-20 kept).
+- **Why D-21's "non-emergency" went:** ASCIA lists "wheeze or persistent cough" and "pale and floppy (in young children)" as single anaphylaxis signs and says severe vomiting in isolation is unlikely to be one. NHS sends a child who is limp or floppy, or whose skin or lips turn pale, to emergency care. The 구토 + skin clause is a loose stand-in for the skin plus persistent severe gastrointestinal criterion; that is acceptable because the card is conditional advice, not a diagnosis.
+- **Sources:** [ASCIA acute management of anaphylaxis](https://www.allergy.org.au/hp/anaphylaxis/acute-management-guidelines) · [ASCIA anaphylaxis](https://www.allergy.org.au/patients/about-allergy/anaphylaxis) · [NHS anaphylaxis](https://www.nhs.uk/conditions/anaphylaxis/) · WAO Anaphylaxis Guidance 2020 clinical criteria (cited by name; no link was checked in the research pass).
+
+### D-48 · Record-keeping positioning for the App Store — `ACTIVE`
+- **2026-10-28, decided under the owner's delegation;** `62c82a4`, `1d6e0e4`, `feffad5`.
+- **Copy never certifies safety.** The status word 안전 is kept (protected vocabulary); the framing around it changed from "확인" to record ("안전으로 기록됨", "안전 기록"). Welcome, home, calendar, notification and settings copy follow. `[Verified] src/i18n/ko.json`
+- **Disclaimers carry the doctor reminder** (App Review Guideline 1.4.1): the settings disclaimer says the app does not diagnose or replace a doctor's judgement, points to a paediatrician and to 119 for severe symptoms.
+- **Home-screen name 이유식 기록** (`CFBundleDisplayName` plus a `ko` locale file); the in-app home title matches.
+- **고위험 badge → 알레르기 주의**, with an explanation card that the food is one to which reactions are relatively common.
+- **PDF footer:** the report states that it is the caregiver's own record and that 안전 means no reaction was recorded during the window, not a diagnosis or test result. Reaction rows show the time as well as the date.
+- **Privacy policy link in the app** (Settings → 개인정보 처리방침) and in App Store Connect, as Guideline 5.1.1(i) requires. The pages live in `site/`; the URLs are in `src/appLinks.ts`.
+- **Source:** [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) 1.4.1, 5.1.1(i).
+
+### D-49 · Feeding cautions on food detail; high-risk flag basis; reacted-food re-trial — `ACTIVE`
+- **2026-10-28, decided under the owner's delegation;** `62c82a4`.
+- **Feeding cautions:** every food detail shows a neutral 먹이기 전에 card: a generic cook-and-mash line, plus a per-food or per-family line where one exists (`foodPrep.food.*` / `foodPrep.family.*`). They cover choking (nuts and seeds, small round fruit, chestnut, jujube, quail egg), must-cook foods (egg, shellfish, fish), milk as a drink, salt (cheese, anchovy, seasoned laver) and soft mould-ripened cheese (NHS). Tofu and bean sprouts override the soak-and-cook bean line.
+- **This is explicitly not 권장 개월** (D-22 stands). No introduction ages appear; the only age is the milk-as-drink hazard boundary 돌 전, because cow's milk cannot replace breast milk or formula.
+- **High-risk flag basis:** the international major-allergen lists plus 메밀 and 잣 (43 of 120 foods). Meats and fruits on the Korean labelling list (돼지고기, 닭고기, 쇠고기, 복숭아, 토마토) are intentionally unflagged: they are not common infant allergens, and flagging meats would discourage iron-rich first foods. Copy must never claim the list follows 식약처 designation.
+- **Re-trial of a reacted food** asks first: starting a food whose status is 반응, from detail or the Foods picker, shows an alert asking the caregiver to talk to a paediatrician before feeding it again (ASCIA: stop the food and seek medical advice after a reaction).
+- **Sources:** [AAP / HealthyChildren — starting solid foods](https://www.healthychildren.org/English/ages-stages/baby/feeding-nutrition/Pages/starting-solid-foods.aspx) · [HealthyChildren — common food allergens](https://www.healthychildren.org/English/healthy-living/nutrition/Pages/when-to-introduce-egg-peanut-butter-and-other-common-food-allergens-to-your-baby-food-allergy-prevention-tips.aspx) · [HealthyChildren — formula instead of cow's milk](https://www.healthychildren.org/English/ages-stages/baby/formula-feeding/Pages/Why-Formula-Instead-of-Cows-Milk.aspx) · [ASCIA infant feeding](https://www.allergy.org.au/patients/allergy-prevention/ascia-how-to-introduce-solid-foods-to-babies) · [NHS foods to avoid giving babies](https://www.nhs.uk/baby/weaning-and-feeding/foods-to-avoid-giving-babies-and-young-children/).
+
+### D-50 · Release versioning — `ACTIVE`
+- **2026-10-28, decided under the owner's delegation;** `feffad5`.
+- Marketing version **3.0.0** (`app.json`, `package.json`) = git tag `v3.0.0`, created after App Store approval. The last earlier tag is `v2.2.4`.
+- Build numbers come from EAS (`eas.json`: `appVersionSource: "remote"`, `autoIncrement` on the production profile); nothing in the repo tracks them.
+- The demo fixture is excluded from production bundles: `src/db/demoSeed.ts` is required lazily inside the `EXPO_PUBLIC_DEMO === '1'` branch of `app/_layout.tsx`, and `eas.json` sets no `EXPO_PUBLIC_DEMO`. `[Verified]`
+- The submission runbook and listing copy are in `docs/APP_STORE.md`.
 
 ---
 

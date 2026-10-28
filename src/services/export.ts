@@ -16,6 +16,7 @@ export type ReportInput<F extends { isCustom: boolean; name: string }> = {
 };
 
 const koDate = (d: Date) => d.toLocaleDateString('ko-KR');
+const koDateTime = (d: Date) => `${koDate(d)} ${d.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}`;
 
 // The pediatrician hand-out, from domain values to a printable document.
 //
@@ -53,10 +54,11 @@ export function buildReport<F extends { isCustom: boolean; name: string }>(
       })),
     reactionRows: reactions.map(({ food, r }) => ({
       food: foodLabel(food),
-      date: koDate(r.occurredAt),
+      date: koDateTime(r.occurredAt),
       summary: reactionSummary(r, t),
       note: r.note ?? '',
     })),
+    footer: t('report.footer'),
   });
 }
 
@@ -76,6 +78,7 @@ type ReportView = {
   cols: { food: string; status: string; lastTried: string };
   rows: { food: string; status: string; lastTried: string }[];
   reactionRows: { food: string; date: string; summary: string; note: string }[];
+  footer: string;
 };
 
 function render(v: ReportView): string {
@@ -88,7 +91,7 @@ function render(v: ReportView): string {
         `<li><strong>${e(r.food)}</strong> — ${e(r.date)} · ${e(r.summary)}${r.note ? ` · ${e(r.note)}` : ''}</li>`,
       ).join('')}</ul>`;
   return `<!doctype html><html><head><meta charset="utf-8"><style>
-    body { font-family: -apple-system, sans-serif; padding: 32px; color: #1c1c1e; }
+    body { font-family: -apple-system, sans-serif; padding: 32px; color: #1c1c1e; word-break: keep-all; }
     h1 { font-size: 22px; } h2 { font-size: 16px; margin-top: 24px; }
     p.meta { color: #6e6e73; font-size: 13px; }
     table { border-collapse: collapse; width: 100%; font-size: 13px; }
@@ -101,6 +104,7 @@ function render(v: ReportView): string {
     <table><tr><th>${e(v.cols.food)}</th><th>${e(v.cols.status)}</th><th>${e(v.cols.lastTried)}</th></tr>${rows}</table>
     <h2>${e(v.reactionsHeading)}</h2>
     ${reactions}
+    <p class="meta">${e(v.footer)}</p>
   </body></html>`;
 }
 

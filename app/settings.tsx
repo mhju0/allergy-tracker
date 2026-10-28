@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, AppState, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, AppState, Linking, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,13 +9,16 @@ import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import { connectFoods, readAllTables, useBaby } from '../src/data/queries';
 import { updateBabySettings } from '../src/data/mutations';
-import { isPermissionGranted } from '../src/services/notify';
+import { canAskForPermission, ensurePermission, isPermissionGranted } from '../src/services/notify';
+import { reconcileTrialLifecycle } from '../src/trialLifecycle/sqlite';
+import { PRIVACY_POLICY_URL } from '../src/appLinks';
 import { buildBackup, buildReport } from '../src/services/export';
 import { HeaderButton, ScreenHeader } from '../src/ui/ScreenHeader';
 import { WarmCard } from '../src/ui/WarmCard';
 import { Icon, type IconName } from '../src/ui/Icon';
 import { press } from '../src/ui/pressable';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
+import { Text } from '../src/ui/Text';
 
 export default function Settings() {
   const { t } = useTranslation();
@@ -47,9 +50,12 @@ export default function Settings() {
       const foods = connectFoods(data.foods, data.trials, data.reactions, data.checkins);
       const html = buildReport({ baby: data.baby[0], foods }, new Date(), t);
       const { uri } = await Print.printToFileAsync({ html });
-      await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
+      const path = `${FileSystem.cacheDirectory}allergy-record-${localDateStamp(new Date())}.pdf`;
+      await FileSystem.deleteAsync(path, { idempotent: true });
+      await FileSystem.moveAsync({ from: uri, to: path });
+      await Sharing.shareAsync(path, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
     } catch {
-      Alert.alert(t('errors.generic'));
+      Alert.alert(t('errors.generic'), t('errors.exportHint'));
     } finally {
       exporting.current = false;
     }
@@ -64,10 +70,24 @@ export default function Settings() {
       await FileSystem.writeAsStringAsync(path, json);
       await Sharing.shareAsync(path, { mimeType: 'application/json' });
     } catch {
-      Alert.alert(t('errors.generic'));
+      Alert.alert(t('errors.generic'), t('errors.exportHint'));
     } finally {
       exporting.current = false;
     }
+  };
+
+  const onNotificationsPress = async () => {
+    try {
+      if (await canAskForPermission()) {
+        const granted = await ensurePermission();
+        setNotifOn(granted);
+        if (granted) void reconcileTrialLifecycle();
+        return;
+      }
+    } catch {
+      // fall through to the Settings app
+    }
+    await Linking.openSettings();
   };
 
   return (
@@ -90,7 +110,10 @@ export default function Settings() {
             defaultValue={baby.name ?? ''}
             placeholder={t('settings.optional')}
             placeholderTextColor={colors.inkSecondary}
-            onEndEditing={(event) => updateBabySettings({ name: event.nativeEvent.text.trim() || null })}
+            maxLength={20}
+            returnKeyType="done"
+            submitBehavior="blurAndSubmit"
+            onChangeText={(text) => { void updateBabySettings({ name: text.trim() || null }).catch(() => {}); }}
             style={{ width: 96, minHeight: layout.touchTarget, fontSize: 14, lineHeight: 20, fontWeight: '700', color: colors.ink, textAlign: 'right', paddingVertical: 0 }}
           />
         </View>
@@ -113,7 +136,7 @@ export default function Settings() {
           detail={t('settings.notificationDetail')}
           value={notifOn === null ? '' : notifOn ? t('settings.notifOn') : t('settings.notifOffShort')}
           valueColor={notifOn === false ? colors.red : colors.green}
-          onPress={() => Linking.openSettings()}
+          onPress={onNotificationsPress}
         />
         <Divider />
         <SettingRow
@@ -124,6 +147,13 @@ export default function Settings() {
             await updateBabySettings({ welcomedAt: null });
             router.back();
           }}
+        />
+        <Divider />
+        <SettingRow
+          icon="shield"
+          title={t('settings.privacyPolicy')}
+          detail={t('settings.privacyPolicyDetail')}
+          onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
         />
       </WarmCard>
 
@@ -143,6 +173,11 @@ export default function Settings() {
       <Text style={{ fontSize: 10.5, color: colors.inkSecondary, lineHeight: 16, marginTop: spacing.sm }}>{t('settings.disclaimerClear')}</Text>
     </ScrollView>
   );
+}
+
+// YYYY-MM-DD in the device's local time, for exported file names.
+function localDateStamp(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function SectionLabel({ label }: { label: string }) {

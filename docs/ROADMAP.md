@@ -1,7 +1,7 @@
 # Roadmap — Allergy Tracker
 
-**As of 2026-09-05.** The owner approved the clean-slate Codex takeover and delegated
-the catalogue decisions below. Current source/tests and Git take precedence over historical
+**As of 2026-10-28.** The 2026-09-05 cleanup has landed on `main` and App Store submission
+of 3.0.0 is in progress. Current source/tests and Git take precedence over historical
 handoff claims (DECISIONS D-42).
 
 Evidence: `[Verified]` read this session · `[Inferred]` reasoned · `[Conversation]` only source is
@@ -11,34 +11,34 @@ prior conversation history / local agent notes.
 
 ## NOW — in flight
 
-The three catalogue questions are **completed**: `달걀 (전란)`,
-`셀러리`, and removal of 밤's automatic 고위험 badge. Existing installs receive the badge
-correction without changing personal history or custom rows. See DECISIONS D-43. `[Verified]`
+**App Store submission of 3.0.0** on branch `feat/app-store-readiness`: release config and
+EAS build profile, emergency guidance and wording changes, feeding cautions, privacy policy link,
+and the public privacy/support pages in `site/`. See DECISIONS D-47–D-50. The owner's remaining
+steps (EAS build, App Store Connect, TestFlight check, submission) are in
+[APP_STORE.md](APP_STORE.md). `[Verified]`
 
-The cleanup audit is complete on `codex/audit-cleanup`, pending PR review. Trial
-persistence failures and atomic replacement are fixed; database work and verification
-loops are improved. See [CLEANUP_AUDIT.md](CLEANUP_AUDIT.md) and D-45/D-46.
-Follow-up candidates are prioritized below.
+The 2026-09-05 cleanup audit landed on `main` via [PR #14](https://github.com/mhju0/allergy-tracker/pull/14)
+(D-45/D-46; see [CLEANUP_AUDIT.md](CLEANUP_AUDIT.md)). Dependabot PRs #7–#10 are merged. `[Verified]`
 
 ---
 
 ## NEXT — prioritized follow-ups
 
-Prioritized follow-up work after the catalogue corrections:
-
-1. **Resolve the 7 open Dependabot alerts** — `js-yaml` ×2 (high), `image-size` ×2 (high),
-   `xmldom` ×2 (moderate), `decode-uri-component` (moderate). The blanket claim that these are
-   outside runtime was incorrect: `decode-uri-component` is reachable through Expo Router's
-   `query-string` dependency; exploitability remains unverified. [PR #2](https://github.com/mhju0/allergy-tracker/pull/2)
-   updates both affected xmldom versions and has green CI. `[Verified]`
-2. **Tag a release.** The last tag is `v2.2.4` (2026-07-19), 86 commits behind main at takeover.
-   Release scope/version and a fresh native smoke check remain to be determined. `[Verified]`
-3. **Decide the fate of the Firebase project `mammacare-ce9a5`.** Both secret-scanning alerts are
+1. **Resolve the 6 open Dependabot alerts** (all transitive) — `zod` (high), `node-forge` (high),
+   `image-size` ×2 (high), `decode-uri-component` (moderate), `deepmerge` (low).
+   `decode-uri-component` is reachable through Expo Router's `query-string` dependency;
+   exploitability remains unverified. Dependabot [PR #13](https://github.com/mhju0/allergy-tracker/pull/13)
+   (`decode-uri-component` and `expo-router`) is open. `[Verified] gh api`, 2026-10-28
+2. **Tag the release.** Tag `v3.0.0` after App Store approval (D-50). The last tag is `v2.2.4`. `[Verified]`
+3. **Owner question: 캘린더 vocabulary.** The bottom tab and the screen title show 기록
+   (`nav.history`, `calendar.historyTitle`), while D-30 protects 캘린더 as UI vocabulary. Which one
+   is intended is open. `[Verified] src/i18n/ko.json`
+4. **Decide the fate of the Firebase project `mammacare-ce9a5`.** Both secret-scanning alerts are
    closed as `false_positive` (v1 Firebase *client* config — no private key), but the project is
    still live, so an unrestricted API key can still be abused for quota/billing. Restrict the key
    or delete the project. Complication: v1 was a **shared** project (`github.com/kehdgus96`), so
    deletion is not unilaterally ours. `[Verified] gh api` + `[Conversation]`
-4. **Drop the `food.is_custom` column.** The feature was removed 2026-08-07; the column, the
+5. **Drop the `food.is_custom` column.** The feature was removed 2026-08-07; the column, the
    `foodLabel` branch and the `seed.ts` reconcile guard were kept on purpose so an install from an
    older build does not lose a typed row. Safe to drop only after confirming the owner's device DB
    has no custom rows. `[Verified] src/db/seed.ts:33-44`

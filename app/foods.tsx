@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +17,7 @@ import { ScreenHeader } from '../src/ui/ScreenHeader';
 import { SectionHeaderRow } from '../src/ui/SectionHeaderRow';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
 import { useFreshNow } from '../src/ui/useFreshNow';
+import { Text } from '../src/ui/Text';
 
 const FILTERS = ['testing', 'reacted', 'safe', 'untried'] as const;
 
@@ -98,7 +99,7 @@ export default function Foods() {
 
         {pick === '1' && (
           <View style={{ minHeight: layout.rowHeight, marginBottom: spacing.sm, padding: layout.cardPadding, borderRadius: radii.lg, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.accentTint }}>
-            <View style={{ width: 40, height: 40, borderRadius: radii.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.7)' }}>
+            <View style={{ width: 40, height: 40, borderRadius: radii.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.frost }}>
               <Icon name="plus" size={22} color={colors.accent} />
             </View>
             <View style={{ flex: 1 }}>
@@ -125,7 +126,7 @@ export default function Foods() {
           <View
             accessibilityRole="header"
             accessibilityLabel={[t(`foodFamily.${row.family}`), String(row.count), row.allHighRisk ? t('foods.highRisk') : null].filter(Boolean).join(', ')}
-            style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs, paddingHorizontal: layout.cardPadding, borderRadius: radii.sm, backgroundColor: '#F5EEE9' }}
+            style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs, paddingHorizontal: layout.cardPadding, borderRadius: radii.sm, backgroundColor: colors.neutralTint }}
           >
             <FoodGlyph family={row.family} size={22} color={colors.inkSecondary} />
             <Text style={{ flex: 1, fontSize: 12, lineHeight: 18, fontWeight: '900', color: colors.ink }}>{t(`foodFamily.${row.family}`)}</Text>
@@ -138,6 +139,7 @@ export default function Foods() {
             detail={row.detail}
             highRisk={row.highRisk}
             hideHighRisk={row.hideHighRisk}
+            hint={pick === '1' ? t('foods.pickHint', { days: windowDays }) : undefined}
             onPress={pick === '1'
               ? () => startFlow(row.item.food, () => router.dismissAll())
               : () => router.push({ pathname: '/food/[id]', params: { id: row.item.food.id, from: 'foods' } })}
@@ -150,17 +152,18 @@ export default function Foods() {
   );
 }
 
-function FoodRow({ item, detail, highRisk, onPress, hideHighRisk }: {
+function FoodRow({ item, detail, highRisk, onPress, hideHighRisk, hint }: {
   item: FoodWithStatus;
   detail: CatalogueDetail;
   highRisk: boolean;
   onPress: () => void;
   hideHighRisk: boolean;
+  hint?: string;
 }) {
   const { t } = useTranslation();
   const statusColor = colors.status[item.status].fg;
   const icon = item.status === 'testing' ? 'clock' : item.status === 'safe' ? 'check' : item.status === 'reacted' ? 'warning' : 'plus';
-  const iconBackground = item.status === 'testing' ? colors.amberTint : item.status === 'safe' ? colors.greenTint : item.status === 'reacted' ? colors.redTint : '#F5EEE9';
+  const iconBackground = item.status === 'testing' ? colors.amberTint : item.status === 'safe' ? colors.greenTint : item.status === 'reacted' ? colors.redTint : colors.neutralTint;
   const detailLabel = detail.kind === 'testing'
     ? `${t('status.testing')} · ${t('home.dayOf', { day: detail.day, total: detail.total })}`
     : detail.kind === 'untried'
@@ -172,6 +175,7 @@ function FoodRow({ item, detail, highRisk, onPress, hideHighRisk }: {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={[foodLabel(item.food), highRisk ? t('foods.highRisk') : null, t(`status.${item.status}`)].filter(Boolean).join(', ')}
+      accessibilityHint={hint}
       onPress={onPress}
       style={press({ minHeight: layout.rowHeight, marginBottom: spacing.xs, paddingHorizontal: layout.cardPadding, paddingVertical: spacing.sm, borderRadius: radii.md, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surface })}
     >

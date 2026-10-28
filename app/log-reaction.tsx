@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,14 +7,16 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFoodsWithStatus } from '../src/data/queries';
 import { recordReaction } from '../src/trialLifecycle/sqlite';
 import { foodLabel } from '../src/i18n';
+import { showsEmergency } from '../src/domain/emergency';
 import { Button } from '../src/ui/Button';
 import { HeaderButton, ScreenHeader } from '../src/ui/ScreenHeader';
 import { WarmCard } from '../src/ui/WarmCard';
 import { Icon } from '../src/ui/Icon';
 import { press } from '../src/ui/pressable';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
+import { Text } from '../src/ui/Text';
 
-const SYMPTOMS = ['hives', 'rash', 'vomiting', 'diarrhea', 'swelling', 'cough', 'breathing', 'other'] as const;
+const SYMPTOMS = ['hives', 'rash', 'vomiting', 'diarrhea', 'swelling', 'cough', 'breathing', 'floppy', 'other'] as const;
 const SEVERITIES = ['mild', 'moderate', 'severe'] as const;
 const FIELD_LABEL_STYLE = {
   ...typeStyles.rowTitle,
@@ -36,6 +38,10 @@ export default function LogReaction() {
   const [occurredAt, setOccurredAt] = useState(new Date());
   const [note, setNote] = useState('');
   const saving = useRef(false);
+  const showEmergency = showsEmergency(severity, symptoms);
+  useEffect(() => {
+    if (showEmergency) AccessibilityInfo.announceForAccessibility(t('reaction.emergency'));
+  }, [showEmergency, t]);
 
   if (!entry) {
     return (
@@ -46,7 +52,6 @@ export default function LogReaction() {
     );
   }
 
-  const showEmergency = severity === 'severe' || symptoms.includes('breathing') || symptoms.includes('swelling');
   const toggle = (symptom: string) => setSymptoms((current) => current.includes(symptom) ? current.filter((item) => item !== symptom) : [...current, symptom]);
   const delayed = entry.status !== 'testing';
 
@@ -119,7 +124,7 @@ export default function LogReaction() {
         </View>
 
         <Text style={FIELD_LABEL_STYLE}>{t('reaction.severityQuestion')}</Text>
-        <View style={{ flexDirection: 'row', gap: spacing.xxs, padding: spacing.xxs, borderRadius: radii.md, backgroundColor: '#F1E7E1' }}>
+        <View style={{ flexDirection: 'row', gap: spacing.xxs, padding: spacing.xxs, borderRadius: radii.md, backgroundColor: colors.segmentTrack }}>
           {SEVERITIES.map((level) => {
             const selected = severity === level;
             return (

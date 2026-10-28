@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Icon } from './Icon';
 import { press } from './pressable';
 import { colors, layout, radii, spacing, typeStyles } from './tokens';
+import { Text } from './Text';
 
 export function ScreenHeader({ title, eyebrow, right, alignRightWithTitle = false }: {
   title: string;

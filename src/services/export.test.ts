@@ -107,6 +107,19 @@ describe('buildReport', () => {
     expect(html.indexOf('두부</strong>')).toBeLessThan(html.indexOf('달걀</strong>'));
   });
 
+  // A doctor reads timing as evidence: the date alone hides how soon after
+  // eating the reaction appeared.
+  test('a reaction row carries the time as well as the date', () => {
+    const html = buildReport(base, NOW, t);
+    expect(html).toMatch(/<li><strong>달걀<\/strong> — [^·<]*\d{1,2}:\d{2} · /);
+  });
+
+  test('ends with the footer saying what 안전 does and does not mean', () => {
+    const html = buildReport(base, NOW, t);
+    expect(html).toContain('<p class="meta">report.footer</p>');
+    expect(html.indexOf('report.footer')).toBeGreaterThan(html.indexOf('report.reactionsSection'));
+  });
+
   test('an untried food is left out of the table', () => {
     const html = buildReport({
       ...base,

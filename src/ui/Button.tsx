@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable } from 'react-native';
 import { press } from './pressable';
 import { colors, layout, radii, spacing, typeStyles } from './tokens';
+import { Text } from './Text';
 
 type Props = {
   label: string;

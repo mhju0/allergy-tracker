@@ -1,4 +1,4 @@
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import { foodLabel } from '../../src/i18n';
 import { isWindowElapsed } from '../../src/domain/status';
 import { trialDay } from '../../src/domain/homeState';
 import { buildRecords, reactionSummary, type RecordKind } from '../../src/domain/records';
+import { familyOf } from '../../src/db/families';
 import { Button } from '../../src/ui/Button';
 import { CheckinPill } from '../../src/ui/CheckinPill';
 import { DayLedger } from '../../src/ui/DayLedger';
@@ -20,6 +21,7 @@ import { WarmCard } from '../../src/ui/WarmCard';
 import { Icon } from '../../src/ui/Icon';
 import { colors, layout, radii, spacing, typeStyles } from '../../src/ui/tokens';
 import { useFreshNow } from '../../src/ui/useFreshNow';
+import { Text } from '../../src/ui/Text';
 
 const KIND_COLOR: Record<RecordKind, string> = {
   start: colors.amberText,
@@ -37,7 +39,7 @@ const KIND_LABEL: Record<RecordKind, string> = {
 };
 
 export default function FoodDetail() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
   const insets = useSafeAreaInsets();
@@ -54,10 +56,10 @@ export default function FoodDetail() {
   const latestReaction = latest?.reactions[0];
   const testingDay = latest && status === 'testing' ? trialDay(latest, now) : 0;
   const subline = status === 'reacted' && latestReaction
-    ? `${t('status.reacted')} · ${reactionSummary(latestReaction, t)}`
+    ? reactionSummary(latestReaction, t)
     : status === 'testing' && latest
-      ? `${t('status.testing')} · ${t('home.dayOf', { day: testingDay, total: latest.windowDays })}`
-      : t(`status.${status}`);
+      ? t('home.dayOf', { day: testingDay, total: latest.windowDays })
+      : null;
 
   const historyRows = buildRecords([entry], { includeCancelled: true }).reverse().map((record) => ({
     key: record.key,
@@ -68,6 +70,10 @@ export default function FoodDetail() {
       ? `${reactionSummary(record.reaction, t)}${record.reaction.note ? ` — ${record.reaction.note}` : ''}`
       : undefined,
   }));
+
+  const family = familyOf(food.id);
+  const prepKey = [`foodPrep.food.${food.id}`, family ? `foodPrep.family.${family}` : null]
+    .find((key): key is string => key !== null && i18n.exists(key));
 
   const onStart = () => startFlow(food, () => router.dismissAll());
 
@@ -82,16 +88,22 @@ export default function FoodDetail() {
           <Icon name={status === 'reacted' ? 'warning' : status === 'safe' ? 'check' : status === 'testing' ? 'clock' : 'foods'} size={43} color={colors.status[status].fg} strokeWidth={1.7} />
         </View>
         <Text accessibilityRole="header" style={{ fontSize: 38, lineHeight: 45, fontWeight: '900', letterSpacing: -1, color: colors.ink, marginTop: spacing.sm }}>{foodLabel(food)}</Text>
-        <Text style={{ fontSize: 13, lineHeight: 18, fontWeight: '600', color: colors.inkSecondary, marginTop: spacing.xxs }}>{subline}</Text>
+        {subline && <Text style={{ fontSize: 13, lineHeight: 18, fontWeight: '600', color: colors.inkSecondary, marginTop: spacing.xxs }}>{subline}</Text>}
         <View style={{ marginTop: spacing.xs }}><StatusChip status={status} /></View>
       </View>
 
       {food.allergenGroup && (
         <WarmCard tone="reaction" style={{ marginBottom: spacing.md }}>
           <Text style={{ fontSize: 13, lineHeight: 18, fontWeight: '900', color: colors.red }}>{t('food.highRiskWhyTitle')}</Text>
-          <Text style={{ fontSize: 12.5, color: colors.red, lineHeight: 19, marginTop: spacing.xxs }}>{t('food.highRiskWhyBody', { food: foodLabel(food) })}</Text>
+          <Text style={{ fontSize: 12.5, color: colors.red, lineHeight: 19, marginTop: spacing.xxs }}>{t('food.highRiskWhyBody')}</Text>
         </WarmCard>
       )}
+
+      <WarmCard style={{ marginBottom: spacing.md }}>
+        <Text style={{ fontSize: 13, lineHeight: 19, fontWeight: '900', color: colors.ink }}>{t('food.prepTitle')}</Text>
+        <Text style={{ fontSize: 13, lineHeight: 19, color: colors.inkSecondary, marginTop: spacing.xxs }}>{t('food.prepNote')}</Text>
+        {prepKey && <Text style={{ fontSize: 13, lineHeight: 19, color: colors.inkSecondary, marginTop: spacing.xxs }}>{t(prepKey)}</Text>}
+      </WarmCard>
 
       {latest && (
         <WarmCard style={{ marginBottom: spacing.md }}>

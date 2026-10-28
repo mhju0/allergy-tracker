@@ -17,6 +17,13 @@ export async function isPermissionGranted(): Promise<boolean> {
   return (await Notifications.getPermissionsAsync()).granted;
 }
 
+// True when iOS will still show its permission prompt; false once the user has
+// denied it, after which only the Settings app can turn notifications on.
+export async function canAskForPermission(): Promise<boolean> {
+  const current = await Notifications.getPermissionsAsync();
+  return !current.granted && current.canAskAgain;
+}
+
 export async function ensurePermission(): Promise<boolean> {
   const current = await Notifications.getPermissionsAsync();
   if (current.granted) return true;

@@ -26,6 +26,12 @@ const fieldRed = '#EFCFD3';
 const inkOnField = '#5B4942';
 const dayOutMonth = '#BDAEA5';
 
+// Neutral surfaces: untried-status tint, segmented-control track, and the
+// translucent white that sits over tinted cards.
+const neutralTint = '#F5EEE9';
+const segmentTrack = '#F1E7E1';
+const frost = 'rgba(255,255,255,0.7)';
+
 export const colors = {
   paper,
   surface,
@@ -49,6 +55,9 @@ export const colors = {
   fieldGreen,
   fieldRed,
   inkOnField,
+  neutralTint,
+  segmentTrack,
+  frost,
 
   // status.fg is rendered as TEXT (StatusChip label, home tally, detail
   // subline), so these are the readable variants throughout.

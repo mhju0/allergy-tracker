@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
-import { AppState, Text, View } from 'react-native';
+import { AppState, View } from 'react-native';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import migrations from '../drizzle/migrations';
 import i18n from '../src/i18n';
 import { db } from '../src/db/client';
-import { seedDemoIfEmpty, seedIfEmpty } from '../src/db/seed';
+import { seedIfEmpty } from '../src/db/seed';
 import { recordObservation } from '../src/observation/sqlite';
 import { CHECKIN_ACTION, initNotificationHandler, registerCheckinAction } from '../src/services/notify';
 import { reconcileTrialLifecycle } from '../src/trialLifecycle/sqlite';
-import { colors } from '../src/ui/tokens';
+import { colors, layout, spacing } from '../src/ui/tokens';
+import { Text } from '../src/ui/Text';
 
 initNotificationHandler();
 
@@ -23,10 +25,13 @@ export default function RootLayout() {
     if (success) {
       // Demo seed must run first: it triggers on "no baby row yet", and
       // seedIfEmpty creates that row.
-      (process.env.EXPO_PUBLIC_DEMO === '1' ? seedDemoIfEmpty(new Date()) : Promise.resolve())
+      (process.env.EXPO_PUBLIC_DEMO === '1'
+        // Lazy require keeps the demo fixture out of production bundles.
+        ? require('../src/db/demoSeed').seedDemoIfEmpty(new Date())
+        : Promise.resolve())
         .then(() => seedIfEmpty())
         .then(() => setSeeded(true))
-        .catch((e) => setSeedError(e instanceof Error ? e : new Error(String(e))));
+        .catch((e: unknown) => setSeedError(e instanceof Error ? e : new Error(String(e))));
     }
   }, [success]);
 
@@ -64,10 +69,25 @@ export default function RootLayout() {
     void recordObservation({ foodId });
   }, [response, seeded]);
 
-  if (error || seedError) {
+  const initError = error ?? seedError;
+  useEffect(() => {
+    if (initError) void SplashScreen.hideAsync();
+  }, [initError]);
+
+  if (initError) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', padding: 24 }}>
-        <Text style={{ color: colors.red }}>{i18n.t('errors.dbInit', { message: (error ?? seedError)!.message })}</Text>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          backgroundColor: colors.paper,
+          paddingHorizontal: layout.screenInset,
+        }}
+      >
+        <Text style={{ color: colors.ink, fontSize: 16, lineHeight: 24 }}>{i18n.t('errors.dbInit')}</Text>
+        <Text selectable style={{ color: colors.inkSecondary, fontSize: 12, marginTop: spacing.xs }}>
+          {i18n.t('errors.dbInitDetail', { message: initError.message })}
+        </Text>
       </View>
     );
   }

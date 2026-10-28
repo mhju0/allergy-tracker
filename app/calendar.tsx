@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +16,7 @@ import { WarmCard } from '../src/ui/WarmCard';
 import { press } from '../src/ui/pressable';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
 import { useFreshNow } from '../src/ui/useFreshNow';
+import { Text } from '../src/ui/Text';
 
 const weekdayKeys = ['w0', 'w1', 'w2', 'w3', 'w4', 'w5', 'w6'] as const;
 const TINT_BG = { amber: colors.amberTint, green: colors.greenTint, red: colors.redTint, none: 'transparent' } as const;
@@ -81,7 +82,7 @@ export default function Calendar() {
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: layout.screenInset, paddingTop: insets.top + 8, paddingBottom: 20 }}>
         <ScreenHeader eyebrow={t('calendar.subtitle')} title={t('calendar.historyTitle')} />
         <View style={{ minHeight: layout.touchTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm }}>
-          <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.today')} onPress={goToday} style={press({ minHeight: layout.touchTarget, justifyContent: 'center' })}>
+          <Pressable accessibilityRole="button" accessibilityLabel={t('calendar.monthTitle', { year: display.year, month: display.month0 + 1 })} accessibilityHint={t('calendar.today')} onPress={goToday} style={press({ minHeight: layout.touchTarget, justifyContent: 'center' })}>
             <Text style={{ fontSize: 24, lineHeight: 32, fontWeight: '900', letterSpacing: -0.5, color: colors.ink }}>{t('calendar.monthTitle', { year: display.year, month: display.month0 + 1 })}</Text>
           </Pressable>
           <View style={{ flexDirection: 'row', gap: spacing.xs }}>
@@ -96,7 +97,7 @@ export default function Calendar() {
 
         <WarmCard style={{ padding: spacing.xxs }}>
           <View style={{ flexDirection: 'row', paddingVertical: spacing.xs }}>
-            {weekdayKeys.map((key, index) => <Text key={key} style={{ flex: 1, textAlign: 'center', fontSize: 10.5, lineHeight: 15, fontWeight: '800', color: index === 0 ? colors.red : colors.inkSecondary }}>{t(`calendar.weekday.${key}`)}</Text>)}
+            {weekdayKeys.map((key, index) => <Text key={key} maxFontSizeMultiplier={1.4} style={{ flex: 1, textAlign: 'center', fontSize: 10.5, lineHeight: 15, fontWeight: '800', color: index === 0 ? colors.red : colors.inkSecondary }}>{t(`calendar.weekday.${key}`)}</Text>)}
           </View>
           {weeks.map((week, weekIndex) => (
             <View key={weekIndex} style={{ flexDirection: 'row' }}>
@@ -131,7 +132,7 @@ export default function Calendar() {
                       borderColor: selected ? colors.accent : colors.inkSecondary,
                     })}
                   >
-                    <Text style={{ fontSize: 12, lineHeight: 18, fontWeight: selected ? '900' : '700', color: cell.inMonth ? colors.ink : colors.dayOutMonth }}>{cell.date.getDate()}</Text>
+                    <Text maxFontSizeMultiplier={1.4} style={{ fontSize: 12, lineHeight: 18, fontWeight: selected ? '900' : '700', color: cell.inMonth ? colors.ink : colors.dayOutMonth }}>{cell.date.getDate()}</Text>
                     {mark.dot && <View style={{ position: 'absolute', bottom: 5, width: 4, height: 4, borderRadius: radii.pill, backgroundColor: mark.dot === 'red' ? colors.red : colors.green }} />}
                   </Pressable>
                 );
@@ -145,11 +146,11 @@ export default function Calendar() {
             { label: t('calendar.legendWindow'), color: colors.amberTint, icon: 'clock' as const },
             { label: t('calendar.legendSafe'), color: colors.greenTint, icon: 'check' as const },
             { label: t('calendar.legendReaction'), color: colors.redTint, icon: 'warning' as const },
-            { label: t('calendar.legendRecord'), color: '#F5EEE9', icon: 'file' as const },
+            { label: t('calendar.legendRecord'), color: colors.neutralTint, icon: 'file' as const },
           ].map((item) => (
             <View key={item.label} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xxs }}>
               <View style={{ width: 20, height: 20, borderRadius: 7, alignItems: 'center', justifyContent: 'center', backgroundColor: item.color }}><Icon name={item.icon} size={11} color={colors.ink} /></View>
-              <Text style={{ fontSize: 10.5, lineHeight: 15, fontWeight: '700', color: colors.inkSecondary }}>{item.label}</Text>
+              <Text maxFontSizeMultiplier={1.4} style={{ fontSize: 10.5, lineHeight: 15, fontWeight: '700', color: colors.inkSecondary }}>{item.label}</Text>
             </View>
           ))}
         </View>
