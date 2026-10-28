@@ -47,6 +47,8 @@ There is no lint script. Bundle verification does not compile the native app.
 - Preserve the local Postgres `mammacare_db` as retained historical data.
 - Screens use `src/ui/useFreshNow` for time-aware state and `src/foodCatalogue`
   for catalogue filtering and grouping instead of rebuilding those rules.
+- Text goes through `src/ui/Text` and alerts through `showAlert` in
+  `src/ui/alert`, so Korean copy wraps between words.
 - Colors only from `src/ui/tokens.ts`; a status color always comes with its
   icon and label.
 - Typecheck and tests must both pass before any commit.

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { AccessibilityInfo, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +15,7 @@ import { Icon } from '../src/ui/Icon';
 import { press } from '../src/ui/pressable';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
 import { Text } from '../src/ui/Text';
+import { showAlert } from '../src/ui/alert';
 
 const SYMPTOMS = ['hives', 'rash', 'vomiting', 'diarrhea', 'swelling', 'cough', 'breathing', 'floppy', 'other'] as const;
 const SEVERITIES = ['mild', 'moderate', 'severe'] as const;
@@ -69,13 +70,13 @@ export default function LogReaction() {
         note: note.trim() || null,
       });
       if (!result.ok) {
-        Alert.alert(t('errors.generic'));
+        showAlert(t('errors.generic'));
         return;
       }
       if (navigation.isFocused()) router.back();
-      Alert.alert(t('reaction.savedTitle', { food: foodLabel(entry.food) }), t(delayed ? 'reaction.savedBodyDelayed' : 'reaction.savedBodyActive'));
+      showAlert(t('reaction.savedTitle', { food: foodLabel(entry.food) }), t(delayed ? 'reaction.savedBodyDelayed' : 'reaction.savedBodyActive'));
     } catch {
-      Alert.alert(t('errors.generic'));
+      showAlert(t('errors.generic'));
     } finally {
       saving.current = false;
     }

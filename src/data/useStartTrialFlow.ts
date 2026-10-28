@@ -1,10 +1,10 @@
 import { useRef } from 'react';
-import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { startTrial } from '../trialLifecycle/sqlite';
 import type { FoodWithStatus } from './queries';
 import { foodLabel } from '../i18n';
 import type { Food } from '../db/schema';
+import { showAlert } from '../ui/alert';
 
 // The one shared way to start a trial from UI: contextual notification ask,
 // then startTrial; on the one-active-trial conflict, offer cancel-and-start.
@@ -26,17 +26,17 @@ export function useStartTrialFlow(foods: FoodWithStatus[], windowDays: number) {
         return;
       }
       if (res.reason === 'persistence_failed') {
-        Alert.alert(t('errors.generic'));
+        showAlert(t('errors.generic'));
         return;
       }
       const active = foods.find((f) => f.status === 'testing');
       const activeTrialId = active?.latest?.id;
       if (!active || !activeTrialId) {
-        Alert.alert(t('food.trialBlocked'));
+        showAlert(t('food.trialBlocked'));
         return;
       }
       const activeName = foodLabel(active.food);
-      Alert.alert(t('food.blockedTitle', { food: activeName }), t('food.blockedBody'), [
+      showAlert(t('food.blockedTitle', { food: activeName }), t('food.blockedBody'), [
         {
           text: t('food.blockedCancelStart', { food: activeName }),
           style: 'destructive',
@@ -46,9 +46,9 @@ export function useStartTrialFlow(foods: FoodWithStatus[], windowDays: number) {
             try {
               const retry = await startTrial({ food, windowDays, replaceActiveTrialId: activeTrialId });
               if (retry.ok) onStarted?.();
-              else Alert.alert(t(retry.reason === 'persistence_failed' ? 'errors.generic' : 'food.trialBlocked'));
+              else showAlert(t(retry.reason === 'persistence_failed' ? 'errors.generic' : 'food.trialBlocked'));
             } catch {
-              Alert.alert(t('errors.generic'));
+              showAlert(t('errors.generic'));
             } finally {
               starting.current = false;
             }
@@ -57,7 +57,7 @@ export function useStartTrialFlow(foods: FoodWithStatus[], windowDays: number) {
         { text: t('food.keepGoing'), style: 'cancel' },
       ]);
     } catch {
-      Alert.alert(t('errors.generic'));
+      showAlert(t('errors.generic'));
     } finally {
       starting.current = false;
     }
@@ -65,7 +65,7 @@ export function useStartTrialFlow(foods: FoodWithStatus[], windowDays: number) {
 
   return async (food: Food, onStarted?: () => void) => {
     if (foods.find((f) => f.food.id === food.id)?.status !== 'reacted') return begin(food, onStarted);
-    Alert.alert(t('food.retestReactedTitle'), t('food.retestReactedBody'), [
+    showAlert(t('food.retestReactedTitle'), t('food.retestReactedBody'), [
       { text: t('food.close'), style: 'cancel' },
       { text: t('food.retestReactedConfirm'), onPress: () => { void begin(food, onStarted); } },
     ]);

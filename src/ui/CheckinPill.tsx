@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { RecordedTrial } from '../domain/records';
 import { isEligibleObservationDay, isSameLocalDay } from '../observation';
@@ -8,6 +8,7 @@ import { Icon } from './Icon';
 import { press } from './pressable';
 import { colors, layout, radii, spacing, typeStyles } from './tokens';
 import { Text } from './Text';
+import { showAlert } from './alert';
 
 // One-tap "이상 없음" observation for an active trial. Never touches trial
 // outcome — it only records an Observation. Collapses to a done-state line once one
@@ -53,9 +54,9 @@ export function CheckinPill(
     checkingIn.current = true;
     try {
       const result = await recordObservation({ foodId });
-      if (!result.ok) Alert.alert(t('errors.generic'));
+      if (!result.ok) showAlert(t('errors.generic'));
     } catch {
-      Alert.alert(t('errors.generic'));
+      showAlert(t('errors.generic'));
     } finally {
       checkingIn.current = false;
     }
