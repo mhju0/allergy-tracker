@@ -24,7 +24,7 @@ jest.mock('../src/services/notify', () => ({
   ensurePermission: jest.fn(),
 }));
 jest.mock('../src/trialLifecycle/sqlite', () => ({ reconcileTrialLifecycle: jest.fn(async () => {}) }));
-jest.mock('expo-router', () => ({ useRouter: () => ({ back: jest.fn() }) }));
+jest.mock('expo-router', () => ({ useRouter: () => ({ back: jest.fn() }), useFocusEffect: jest.fn() }));
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));

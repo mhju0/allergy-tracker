@@ -31,6 +31,8 @@ const dayOutMonth = '#BDAEA5';
 const neutralTint = '#F5EEE9';
 const segmentTrack = '#F1E7E1';
 const frost = 'rgba(255,255,255,0.7)';
+// Dims the screen behind an in-app dialog.
+const scrim = 'rgba(54,44,39,0.35)';
 
 export const colors = {
   paper,
@@ -58,6 +60,7 @@ export const colors = {
   neutralTint,
   segmentTrack,
   frost,
+  scrim,
 
   // status.fg is rendered as TEXT (StatusChip label, home tally, detail
   // subline), so these are the readable variants throughout.

@@ -101,7 +101,7 @@ export function DayLedger({ trial, now, backfillFoodId }: {
             })}
           >
             <View>
-              <Text maxFontSizeMultiplier={1.4} style={{ fontSize: 11, lineHeight: 15, fontWeight: '700', letterSpacing: 0.6, color: colors.inkSecondary }}>
+              <Text maxFontSizeMultiplier={1.4} style={{ fontSize: 11, lineHeight: 15, fontWeight: '700', color: colors.inkSecondary }}>
                 {label(day)}
               </Text>
               <Text maxFontSizeMultiplier={1.4} style={{ fontSize: 12.5, lineHeight: 18, fontWeight: '800', color: FG[day.state], marginTop: spacing.xxs }}>
