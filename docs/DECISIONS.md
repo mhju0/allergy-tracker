@@ -319,9 +319,16 @@ All four came out of a grilling session and are recorded in `.superpowers/sdd/pr
 - `plugins/with-scene-lifecycle.js` adopts the scene lifecycle as the SDK 58 template does: the app delegate only creates the React Native factory, and Expo's `ExpoAppSceneDelegate` creates the window. The plugin fails the prebuild if the template changes shape. Remove it when moving to Expo SDK 58.
 - Release checks include a launch on the newest iOS runtime.
 
-### D-54 · Korean copy spaces auxiliary verbs — `ACTIVE`
+### D-54 · Korean copy spaces auxiliary verbs — `ACTIVE` (alert line superseded by D-55)
 - **2026-10-29, owner:** UI copy spaces auxiliary verbs (눌러 보세요, 먹어 보지, 알려 드려요), and the status label becomes **안 먹어 봄**. This is a spacing fix, not a rename; D-30's vocabulary rule still holds.
 - Text renders through `src/ui/Text` and alerts through `showAlert` (`src/ui/alert.ts`), which keep quoted labels on one line and stop native alerts from splitting a word.
+
+### D-55 · App alerts render in the app, not as iOS alerts — `ACTIVE`
+- **2026-10-29, owner:** TestFlight build 3 showed the iOS alert still splitting "소아청 / 소년과": UIAlertController ignores the word joiners D-54 added. The owner asked for every spacing detail to be fixed before submission.
+- `showAlert` now queues the dialog for `DialogHost` (`src/ui/DialogHost.tsx`), which draws it with the app's `Text` (hangul-word wrapping). The root layout mounts one host; the reaction and settings sheets mount `ScreenDialogHost`, because a native sheet covers the root. The newest focused host shows the dialog, so the post-save alert moves to the root host once the reaction sheet closes. With no host mounted, the native alert is the fallback.
+- No entry animation (Part III: decorative motion). The overlay is `accessibilityViewIsModal`, announces its text, and the escape gesture presses the cancel button.
+- Known gap: a notification-tap alert raised while a sheet that has no host is open would sit behind it; every sheet has one today.
+- The day-tile label lost its 0.6 letter-spacing, which widened the gap in "1일".
 
 ---
 

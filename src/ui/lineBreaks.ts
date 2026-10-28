@@ -9,8 +9,3 @@ export function keepKoreanLinesTogether(text: string): string {
     .replace(/ (\S+\s*)$/, ' $1');
 }
 
-// Native alerts have no hangul-word option and split words mid-syllable
-// ("소아" / "청소년과"), so join every syllable pair as well.
-export function keepKoreanWordsTogether(text: string): string {
-  return keepKoreanLinesTogether(text).replace(/([가-힣])(?=[가-힣])/g, '$1⁠');
-}

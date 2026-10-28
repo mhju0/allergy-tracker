@@ -16,6 +16,7 @@ import { reconcileTrialLifecycle } from '../src/trialLifecycle/sqlite';
 import { colors, layout, spacing } from '../src/ui/tokens';
 import { Text } from '../src/ui/Text';
 import { showAlert } from '../src/ui/alert';
+import { DialogHost } from '../src/ui/DialogHost';
 
 initNotificationHandler();
 
@@ -102,7 +103,12 @@ export default function RootLayout() {
     );
   }
   if (!success || !seeded) return null;
-  return <AppStack />;
+  return (
+    <View style={{ flex: 1 }}>
+      <AppStack />
+      <DialogHost />
+    </View>
+  );
 }
 
 function AppStack() {

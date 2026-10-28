@@ -16,6 +16,7 @@ import { press } from '../src/ui/pressable';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
 import { Text } from '../src/ui/Text';
 import { showAlert } from '../src/ui/alert';
+import { ScreenDialogHost } from '../src/ui/DialogHost';
 
 const SYMPTOMS = ['hives', 'rash', 'vomiting', 'diarrhea', 'swelling', 'cough', 'breathing', 'floppy', 'other'] as const;
 const SEVERITIES = ['mild', 'moderate', 'severe'] as const;
@@ -181,6 +182,7 @@ export default function LogReaction() {
           onPress={save}
         />
       </View>
+      <ScreenDialogHost />
     </View>
   );
 }

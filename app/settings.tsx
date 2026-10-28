@@ -20,6 +20,7 @@ import { press } from '../src/ui/pressable';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
 import { Text } from '../src/ui/Text';
 import { showAlert } from '../src/ui/alert';
+import { ScreenDialogHost } from '../src/ui/DialogHost';
 
 export default function Settings() {
   const { t } = useTranslation();
@@ -93,92 +94,95 @@ export default function Settings() {
   };
 
   return (
-    <ScrollView
-      keyboardShouldPersistTaps="handled"
-      contentContainerStyle={{ paddingHorizontal: layout.screenInset, paddingTop: insets.top + 8, paddingBottom: Math.max(insets.bottom, 12) + 24, backgroundColor: colors.paper }}
-    >
-      <ScreenHeader title={t('settings.title')} right={<HeaderButton label={t('food.close')} icon="close" onPress={() => router.back()} />} />
+    <>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingHorizontal: layout.screenInset, paddingTop: insets.top + 8, paddingBottom: Math.max(insets.bottom, 12) + 24, backgroundColor: colors.paper }}
+      >
+        <ScreenHeader title={t('settings.title')} right={<HeaderButton label={t('food.close')} icon="close" onPress={() => router.back()} />} />
 
-      <SectionLabel label={t('settings.babyShort')} />
-      <WarmCard style={{ padding: 0, overflow: 'hidden' }}>
-        <View style={{ minHeight: layout.rowHeight, paddingHorizontal: layout.cardPadding, flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-          <SettingIcon name="user" />
-          <View style={{ flex: 1 }}>
-            <Text style={{ ...typeStyles.rowTitle, color: colors.ink }}>{t('setup.babyName')}</Text>
-            <Text style={{ ...typeStyles.rowDetail, color: colors.inkSecondary }}>{t('settings.reportOnly')}</Text>
+        <SectionLabel label={t('settings.babyShort')} />
+        <WarmCard style={{ padding: 0, overflow: 'hidden' }}>
+          <View style={{ minHeight: layout.rowHeight, paddingHorizontal: layout.cardPadding, flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            <SettingIcon name="user" />
+            <View style={{ flex: 1 }}>
+              <Text style={{ ...typeStyles.rowTitle, color: colors.ink }}>{t('setup.babyName')}</Text>
+              <Text style={{ ...typeStyles.rowDetail, color: colors.inkSecondary }}>{t('settings.reportOnly')}</Text>
+            </View>
+            <TextInput
+              accessibilityLabel={t('setup.babyName')}
+              defaultValue={baby.name ?? ''}
+              placeholder={t('settings.optional')}
+              placeholderTextColor={colors.inkSecondary}
+              returnKeyType="done"
+              submitBehavior="blurAndSubmit"
+              // No maxLength: it cuts a Korean syllable mid-composition ("김ㅅ").
+              onChangeText={(text) => { void updateBabySettings({ name: text.trim().slice(0, 20) || null }).catch(() => {}); }}
+              style={{ width: 96, minHeight: layout.touchTarget, fontSize: 14, lineHeight: 20, fontWeight: '700', color: colors.ink, textAlign: 'right', paddingVertical: 0 }}
+            />
           </View>
-          <TextInput
-            accessibilityLabel={t('setup.babyName')}
-            defaultValue={baby.name ?? ''}
-            placeholder={t('settings.optional')}
-            placeholderTextColor={colors.inkSecondary}
-            returnKeyType="done"
-            submitBehavior="blurAndSubmit"
-            // No maxLength: it cuts a Korean syllable mid-composition ("김ㅅ").
-            onChangeText={(text) => { void updateBabySettings({ name: text.trim().slice(0, 20) || null }).catch(() => {}); }}
-            style={{ width: 96, minHeight: layout.touchTarget, fontSize: 14, lineHeight: 20, fontWeight: '700', color: colors.ink, textAlign: 'right', paddingVertical: 0 }}
+          <Divider />
+          <View style={{ minHeight: layout.rowHeight, paddingHorizontal: layout.cardPadding, flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            <SettingIcon name="calendar" />
+            <View style={{ flex: 1 }}>
+              <Text style={{ ...typeStyles.rowTitle, color: colors.ink }}>{t('setup.birthdate')}</Text>
+              <Text style={{ ...typeStyles.rowDetail, color: colors.inkSecondary }}>{baby.birthdate ? t('settings.reportOnlyShort') : t('settings.optional')}</Text>
+            </View>
+            <DateTimePicker locale="ko-KR" value={baby.birthdate ?? new Date()} mode="date" maximumDate={new Date()} onValueChange={(_, date) => { updateBabySettings({ birthdate: date }).catch(() => showAlert(t('errors.generic'))); }} />
+          </View>
+        </WarmCard>
+
+        <SectionLabel label={t('settings.notificationsAndGuide')} />
+        <WarmCard style={{ padding: 0, overflow: 'hidden' }}>
+          <SettingRow
+            icon="bell"
+            title={t('settings.observationNotifications')}
+            detail={t('settings.notificationDetail')}
+            value={notifOn === null ? '' : notifOn ? t('settings.notifOn') : t('settings.notifOffShort')}
+            valueColor={notifOn === false ? colors.red : colors.green}
+            onPress={onNotificationsPress}
           />
-        </View>
-        <Divider />
-        <View style={{ minHeight: layout.rowHeight, paddingHorizontal: layout.cardPadding, flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-          <SettingIcon name="calendar" />
-          <View style={{ flex: 1 }}>
-            <Text style={{ ...typeStyles.rowTitle, color: colors.ink }}>{t('setup.birthdate')}</Text>
-            <Text style={{ ...typeStyles.rowDetail, color: colors.inkSecondary }}>{baby.birthdate ? t('settings.reportOnlyShort') : t('settings.optional')}</Text>
+          <Divider />
+          <SettingRow
+            icon="help"
+            title={t('settings.showGuide')}
+            detail={t('settings.guideDetail')}
+            onPress={async () => {
+              try {
+                await updateBabySettings({ welcomedAt: null });
+              } catch {
+                showAlert(t('errors.generic'));
+                return;
+              }
+              router.back();
+            }}
+          />
+          <Divider />
+          <SettingRow
+            icon="shield"
+            title={t('settings.privacyPolicy')}
+            detail={t('settings.privacyPolicyDetail')}
+            onPress={() => { Linking.openURL(PRIVACY_POLICY_URL).catch(() => showAlert(t('errors.generic'))); }}
+          />
+        </WarmCard>
+
+        <SectionLabel label={t('settings.myRecords')} />
+        <WarmCard style={{ padding: 0, overflow: 'hidden' }}>
+          <SettingRow icon="file" title={t('settings.exportPdfClear')} detail={t('settings.exportPdfDetail')} value={t('settings.exportPdfFormat')} onPress={exportPdf} />
+          <Divider />
+          <SettingRow icon="download" title={t('settings.exportJsonClear')} detail={t('settings.exportJsonDetail')} value={t('settings.exportJsonFormat')} onPress={exportJson} />
+        </WarmCard>
+
+        <WarmCard tone="safe" style={{ marginTop: spacing.lg }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm }}>
+            <Icon name="shield" size={21} color={colors.green} />
+            <Text style={{ flex: 1, fontSize: 12.5, fontWeight: '700', color: colors.green, lineHeight: 19 }}>{t('settings.privacyClear')}</Text>
           </View>
-          <DateTimePicker locale="ko-KR" value={baby.birthdate ?? new Date()} mode="date" maximumDate={new Date()} onValueChange={(_, date) => { updateBabySettings({ birthdate: date }).catch(() => showAlert(t('errors.generic'))); }} />
-        </View>
-      </WarmCard>
-
-      <SectionLabel label={t('settings.notificationsAndGuide')} />
-      <WarmCard style={{ padding: 0, overflow: 'hidden' }}>
-        <SettingRow
-          icon="bell"
-          title={t('settings.observationNotifications')}
-          detail={t('settings.notificationDetail')}
-          value={notifOn === null ? '' : notifOn ? t('settings.notifOn') : t('settings.notifOffShort')}
-          valueColor={notifOn === false ? colors.red : colors.green}
-          onPress={onNotificationsPress}
-        />
-        <Divider />
-        <SettingRow
-          icon="help"
-          title={t('settings.showGuide')}
-          detail={t('settings.guideDetail')}
-          onPress={async () => {
-            try {
-              await updateBabySettings({ welcomedAt: null });
-            } catch {
-              showAlert(t('errors.generic'));
-              return;
-            }
-            router.back();
-          }}
-        />
-        <Divider />
-        <SettingRow
-          icon="shield"
-          title={t('settings.privacyPolicy')}
-          detail={t('settings.privacyPolicyDetail')}
-          onPress={() => { Linking.openURL(PRIVACY_POLICY_URL).catch(() => showAlert(t('errors.generic'))); }}
-        />
-      </WarmCard>
-
-      <SectionLabel label={t('settings.myRecords')} />
-      <WarmCard style={{ padding: 0, overflow: 'hidden' }}>
-        <SettingRow icon="file" title={t('settings.exportPdfClear')} detail={t('settings.exportPdfDetail')} value={t('settings.exportPdfFormat')} onPress={exportPdf} />
-        <Divider />
-        <SettingRow icon="download" title={t('settings.exportJsonClear')} detail={t('settings.exportJsonDetail')} value={t('settings.exportJsonFormat')} onPress={exportJson} />
-      </WarmCard>
-
-      <WarmCard tone="safe" style={{ marginTop: spacing.lg }}>
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm }}>
-          <Icon name="shield" size={21} color={colors.green} />
-          <Text style={{ flex: 1, fontSize: 12.5, fontWeight: '700', color: colors.green, lineHeight: 19 }}>{t('settings.privacyClear')}</Text>
-        </View>
-      </WarmCard>
-      <Text style={{ fontSize: 10.5, color: colors.inkSecondary, lineHeight: 16, marginTop: spacing.sm }}>{t('settings.disclaimerClear')}</Text>
-    </ScrollView>
+        </WarmCard>
+        <Text style={{ fontSize: 10.5, color: colors.inkSecondary, lineHeight: 16, marginTop: spacing.sm }}>{t('settings.disclaimerClear')}</Text>
+      </ScrollView>
+      <ScreenDialogHost />
+    </>
   );
 }
 
