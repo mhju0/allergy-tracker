@@ -1,4 +1,4 @@
-import { Alert, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { RecordedTrial } from '../domain/records';
 import { projectObservationDays, type ObservationDay } from '../observation';
@@ -6,6 +6,7 @@ import { recordObservation } from '../observation/sqlite';
 import { press } from './pressable';
 import { colors, radii, spacing } from './tokens';
 import { Text } from './Text';
+import { showAlert } from './alert';
 
 // The observation window, rendered as one named cell per day instead of an
 // anonymous progress bar. The rule under each cell carries its state, so the
@@ -58,12 +59,12 @@ export function DayLedger({ trial, now, backfillFoodId }: {
   const backfill = (day: ObservationDay) => {
     if (!backfillFoodId) return;
     const date = day.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
-    Alert.alert(t('ledger.backfillTitle', { date }), t('ledger.backfillBody'), [
+    showAlert(t('ledger.backfillTitle', { date }), t('ledger.backfillBody'), [
       {
         text: t('ledger.backfillYes'),
         onPress: async () => {
           const res = await recordObservation({ foodId: backfillFoodId, targetDay: day.date });
-          if (!res.ok) Alert.alert(t('errors.generic'));
+          if (!res.ok) showAlert(t('errors.generic'));
         },
       },
       { text: t('ledger.backfillNo'), style: 'cancel' },

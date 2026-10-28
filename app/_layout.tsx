@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, AppState, View } from 'react-native';
+import { AppState, View } from 'react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
@@ -15,6 +15,7 @@ import {
 import { reconcileTrialLifecycle } from '../src/trialLifecycle/sqlite';
 import { colors, layout, spacing } from '../src/ui/tokens';
 import { Text } from '../src/ui/Text';
+import { showAlert } from '../src/ui/alert';
 
 initNotificationHandler();
 
@@ -73,9 +74,9 @@ export default function RootLayout() {
     recordObservation(command)
       .then((result) => {
         if (result.ok || result.reason === 'no_active_trial') return;
-        Alert.alert(i18n.t(result.reason === 'outside_window' ? 'notif.checkinOutsideWindow' : 'errors.generic'));
+        showAlert(i18n.t(result.reason === 'outside_window' ? 'notif.checkinOutsideWindow' : 'errors.generic'));
       })
-      .catch(() => Alert.alert(i18n.t('errors.generic')));
+      .catch(() => showAlert(i18n.t('errors.generic')));
   }, [response, seeded]);
 
   const initError = error ?? seedError;

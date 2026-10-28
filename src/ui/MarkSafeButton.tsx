@@ -1,9 +1,9 @@
-import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { confirmSafe } from '../trialLifecycle/sqlite';
 import type { RecordedTrial } from '../domain/records';
 import { coverage } from '../observation';
 import { Button } from './Button';
+import { showAlert } from './alert';
 
 // 안전으로 표시, with the one guard the action needs: a window with nothing
 // recorded has no observation behind it, so one tap must not turn into 안전 in
@@ -17,10 +17,10 @@ export function MarkSafeButton({ trial }: { trial: RecordedTrial }) {
   const onPress = () => {
     const mark = async () => {
       const result = await confirmSafe({ trialId: trial.id });
-      if (!result.ok) Alert.alert(t('errors.generic'));
+      if (!result.ok) showAlert(t('errors.generic'));
     };
     if (observed > 0) return void mark();
-    Alert.alert(t('home.markSafeNoRecordTitle'), t('home.markSafeNoRecordBody', { total: of }), [
+    showAlert(t('home.markSafeNoRecordTitle'), t('home.markSafeNoRecordBody', { total: of }), [
       { text: t('home.markSafeAnyway'), onPress: () => void mark() },
       { text: t('home.markSafeLater'), style: 'cancel' },
     ]);

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, AppState, Linking, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { AppState, Linking, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +19,7 @@ import { Icon, type IconName } from '../src/ui/Icon';
 import { press } from '../src/ui/pressable';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
 import { Text } from '../src/ui/Text';
+import { showAlert } from '../src/ui/alert';
 
 export default function Settings() {
   const { t } = useTranslation();
@@ -56,7 +57,7 @@ export default function Settings() {
       await FileSystem.moveAsync({ from: uri, to: path });
       await Sharing.shareAsync(path, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
     } catch {
-      Alert.alert(t('errors.generic'), t('errors.exportHint'));
+      showAlert(t('errors.generic'), t('errors.exportHint'));
     } finally {
       exporting.current = false;
     }
@@ -71,7 +72,7 @@ export default function Settings() {
       await FileSystem.writeAsStringAsync(path, json);
       await Sharing.shareAsync(path, { mimeType: 'application/json' });
     } catch {
-      Alert.alert(t('errors.generic'), t('errors.exportHint'));
+      showAlert(t('errors.generic'), t('errors.exportHint'));
     } finally {
       exporting.current = false;
     }
@@ -88,7 +89,7 @@ export default function Settings() {
     } catch {
       // fall through to the Settings app
     }
-    await Linking.openSettings().catch(() => Alert.alert(t('errors.generic')));
+    await Linking.openSettings().catch(() => showAlert(t('errors.generic')));
   };
 
   return (
@@ -125,7 +126,7 @@ export default function Settings() {
             <Text style={{ ...typeStyles.rowTitle, color: colors.ink }}>{t('setup.birthdate')}</Text>
             <Text style={{ ...typeStyles.rowDetail, color: colors.inkSecondary }}>{baby.birthdate ? t('settings.reportOnlyShort') : t('settings.optional')}</Text>
           </View>
-          <DateTimePicker locale="ko-KR" value={baby.birthdate ?? new Date()} mode="date" maximumDate={new Date()} onValueChange={(_, date) => { updateBabySettings({ birthdate: date }).catch(() => Alert.alert(t('errors.generic'))); }} />
+          <DateTimePicker locale="ko-KR" value={baby.birthdate ?? new Date()} mode="date" maximumDate={new Date()} onValueChange={(_, date) => { updateBabySettings({ birthdate: date }).catch(() => showAlert(t('errors.generic'))); }} />
         </View>
       </WarmCard>
 
@@ -148,7 +149,7 @@ export default function Settings() {
             try {
               await updateBabySettings({ welcomedAt: null });
             } catch {
-              Alert.alert(t('errors.generic'));
+              showAlert(t('errors.generic'));
               return;
             }
             router.back();
@@ -159,7 +160,7 @@ export default function Settings() {
           icon="shield"
           title={t('settings.privacyPolicy')}
           detail={t('settings.privacyPolicyDetail')}
-          onPress={() => { Linking.openURL(PRIVACY_POLICY_URL).catch(() => Alert.alert(t('errors.generic'))); }}
+          onPress={() => { Linking.openURL(PRIVACY_POLICY_URL).catch(() => showAlert(t('errors.generic'))); }}
         />
       </WarmCard>
 

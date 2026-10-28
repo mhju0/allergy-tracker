@@ -1,4 +1,4 @@
-import { Alert, Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,6 +20,7 @@ import { press } from '../src/ui/pressable';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
 import { useFreshNow } from '../src/ui/useFreshNow';
 import { Text } from '../src/ui/Text';
+import { showAlert } from '../src/ui/alert';
 
 export default function Home() {
   const baby = useBaby();
@@ -63,7 +64,7 @@ function WelcomeCard({ windowDays }: { windowDays: number }) {
         ))}
       </WarmCard>
 
-      <Button label={t('welcome.start')} icon={<Icon name="check" size={20} color={colors.onAccent} />} onPress={() => { updateBabySettings({ welcomedAt: new Date() }).catch(() => Alert.alert(t('errors.generic'))); }} />
+      <Button label={t('welcome.start')} icon={<Icon name="check" size={20} color={colors.onAccent} />} onPress={() => { updateBabySettings({ welcomedAt: new Date() }).catch(() => showAlert(t('errors.generic'))); }} />
       <Text style={{ fontSize: 11.5, color: colors.inkSecondary, lineHeight: 17, marginTop: spacing.md }}>
         {t('settings.privacy')}{'\n'}{t('settings.disclaimer')}
       </Text>

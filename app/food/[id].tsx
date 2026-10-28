@@ -1,4 +1,4 @@
-import { Alert, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,6 +22,7 @@ import { Icon } from '../../src/ui/Icon';
 import { colors, layout, radii, spacing, typeStyles } from '../../src/ui/tokens';
 import { useFreshNow } from '../../src/ui/useFreshNow';
 import { Text } from '../../src/ui/Text';
+import { showAlert } from '../../src/ui/alert';
 
 const KIND_COLOR: Record<RecordKind, string> = {
   start: colors.amberText,
@@ -120,13 +121,13 @@ export default function FoodDetail() {
           <Button
             label={t('food.cancelTrial')}
             variant="secondary"
-            onPress={() => Alert.alert(
+            onPress={() => showAlert(
               t('food.cancelConfirmTitle', { food: foodLabel(food) }),
               t('food.cancelConfirmBody'),
               [
                 { text: t('food.cancelConfirmYes'), style: 'destructive', onPress: async () => {
                   const result = await cancelTrial({ trialId: activeHere.id });
-                  if (!result.ok) Alert.alert(t('errors.generic'));
+                  if (!result.ok) showAlert(t('errors.generic'));
                 } },
                 { text: t('food.keepGoing'), style: 'cancel' },
               ],
