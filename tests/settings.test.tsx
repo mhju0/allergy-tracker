@@ -4,6 +4,8 @@ import Settings from '../app/settings';
 import { readAllTables, useFoodsWithStatus } from '../src/data/queries';
 import { isPermissionGranted } from '../src/services/notify';
 import { printToFileAsync } from 'expo-print';
+import { shareAsync } from 'expo-sharing';
+import { deleteAsync, moveAsync } from 'expo-file-system/legacy';
 
 const mockBaby = { id: 'b1', name: '기존 이름', birthdate: null, defaultWindowDays: 3, welcomedAt: null };
 jest.mock('../src/db/client', () => ({ db: {} }));
@@ -25,6 +27,12 @@ jest.mock('react-i18next', () => ({
 }));
 jest.mock('expo-print', () => ({ printToFileAsync: jest.fn(async () => ({ uri: 'test-report.pdf' })) }));
 jest.mock('expo-sharing', () => ({ shareAsync: jest.fn(async () => {}) }));
+jest.mock('expo-file-system/legacy', () => ({
+  cacheDirectory: 'file:///cache/',
+  deleteAsync: jest.fn(async () => {}),
+  moveAsync: jest.fn(async () => {}),
+  writeAsStringAsync: jest.fn(async () => {}),
+}));
 
 let view: ReactTestRenderer;
 let onStateChange: (state: AppStateStatus) => void;
@@ -65,4 +73,19 @@ test('history is read only when exporting, and the report uses the fresh databas
   await act(async () => { await button?.props.onPress(); });
   expect(readAllTables).toHaveBeenCalledTimes(1);
   expect(printToFileAsync).toHaveBeenCalledWith({ html: expect.stringContaining('최근 이름') });
+});
+
+test('the PDF is shared under a readable, dated file name in local time', async () => {
+  jest.useFakeTimers({ now: new Date(2026, 9, 28, 23, 30), doNotFake: ['nextTick', 'setImmediate', 'queueMicrotask'] });
+  jest.mocked(readAllTables).mockResolvedValue({
+    baby: [mockBaby], foods: [], trials: [], reactions: [], checkins: [],
+  });
+  await act(async () => { view = create(<Settings />); });
+  const button = view.root.findAllByProps({ accessibilityLabel: 'settings.exportPdfClear, PDF' })[0];
+  await act(async () => { await button?.props.onPress(); });
+  jest.useRealTimers();
+  const path = 'file:///cache/allergy-record-2026-10-28.pdf';
+  expect(deleteAsync).toHaveBeenCalledWith(path, { idempotent: true });
+  expect(moveAsync).toHaveBeenCalledWith({ from: 'test-report.pdf', to: path });
+  expect(shareAsync).toHaveBeenCalledWith(path, expect.objectContaining({ mimeType: 'application/pdf' }));
 });

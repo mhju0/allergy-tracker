@@ -47,9 +47,12 @@ export default function Settings() {
       const foods = connectFoods(data.foods, data.trials, data.reactions, data.checkins);
       const html = buildReport({ baby: data.baby[0], foods }, new Date(), t);
       const { uri } = await Print.printToFileAsync({ html });
-      await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
+      const path = `${FileSystem.cacheDirectory}allergy-record-${localDateStamp(new Date())}.pdf`;
+      await FileSystem.deleteAsync(path, { idempotent: true });
+      await FileSystem.moveAsync({ from: uri, to: path });
+      await Sharing.shareAsync(path, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
     } catch {
-      Alert.alert(t('errors.generic'));
+      Alert.alert(t('errors.generic'), t('errors.exportHint'));
     } finally {
       exporting.current = false;
     }
@@ -64,7 +67,7 @@ export default function Settings() {
       await FileSystem.writeAsStringAsync(path, json);
       await Sharing.shareAsync(path, { mimeType: 'application/json' });
     } catch {
-      Alert.alert(t('errors.generic'));
+      Alert.alert(t('errors.generic'), t('errors.exportHint'));
     } finally {
       exporting.current = false;
     }
@@ -143,6 +146,11 @@ export default function Settings() {
       <Text style={{ fontSize: 10.5, color: colors.inkSecondary, lineHeight: 16, marginTop: spacing.sm }}>{t('settings.disclaimerClear')}</Text>
     </ScrollView>
   );
+}
+
+// YYYY-MM-DD in the device's local time, for exported file names.
+function localDateStamp(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function SectionLabel({ label }: { label: string }) {

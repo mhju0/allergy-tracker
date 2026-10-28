@@ -11,8 +11,8 @@
     "reacted": "반응"
   },
   "home": {
-    "title": "알레르기 트래커",
-    "greeting": "좋은 아침이에요",
+    "title": "이유식 기록",
+    "greeting": "안녕하세요",
     "greetingName": "{{name}}의 오늘",
     "todayTitle": "오늘의 관찰",
     "ready": "시작할 준비",
@@ -25,26 +25,26 @@
     "dayOf": "{{total}}일 중 {{day}}일째",
     "markSafe": "안전으로 표시",
     "markSafeNoRecordTitle": "기록된 관찰이 없어요",
-    "markSafeNoRecordBody": "{{total}}일 동안 “이상 없음” 기록이 하나도 없어요. 반응이 없었던 걸로 기억한다면 그대로 표시해도 괜찮아요.",
+    "markSafeNoRecordBody": "{{total}}일 동안 ‘이상 없음’ 기록이 하나도 없어요. 반응이 없었다고 기억한다면 안전으로 표시할 수 있어요. 리포트에는 기록한 날 수가 함께 남아요.",
     "markSafeAnyway": "네, 이상 없었어요",
     "markSafeLater": "나중에",
     "logReaction": "반응 기록",
     "empty": "아직 관찰 기록이 없어요. “새 재료 시작하기”를 눌러보세요.",
     "calendar": "캘린더",
-    "autoclosed": "✓ {{food}} 안전으로 기록됨",
-    "autoclosedUnobserved": "{{food}}는 관찰 기록이 없어 미완료로 남았어요",
+    "autoclosed": "✓ {{food}} 관찰은 안전으로 기록됐어요",
+    "autoclosedUnobserved": "{{food}} 관찰은 기록이 없어 미완료로 남았어요",
     "short": "홈",
     "viewRecord": "기록 보기",
     "state": {
       "observing": "관찰 중",
       "confirm": "관찰 완료",
-      "safe": "안전 확인됨",
+      "safe": "안전으로 기록됨",
       "reacted": "반응 기록됨"
     },
     "sub": {
       "observing": "{{total}}일 중 {{day}}일째 · {{date}} 확인",
       "confirm": "{{total}}일 관찰이 {{date}}에 끝났어요 · {{observed}}/{{total}}일 기록됨",
-      "safe": "{{total}}일 중 {{observed}}일 기록 · 이제 {{count}}가지 안전",
+      "safe": "{{total}}일 중 {{observed}}일 이상 없음 · 안전 기록 {{count}}가지",
       "reacted": "{{day}}일째 · {{severity}} · {{symptoms}}"
     },
     "emptyTitle": "시작해 볼까요"
@@ -55,10 +55,10 @@
   },
   "welcome": {
     "title": "환영해요",
-    "intro": "아기가 새 재료를 안전하게 시작하도록 돕는 기록 앱이에요.",
+    "intro": "이유식 새 재료를 한 가지씩 먹여 보며 아기의 반응을 기록하는 앱이에요. 진료 때 보여 줄 리포트도 만들 수 있어요.",
     "step1": "새 재료를 한 번에 하나씩 시작해요.",
-    "step2": "{{days}}일 동안 하루 한 번, 이상 없음을 눌러요.",
-    "step3": "반응이 있으면 바로 기록하고, {{days}}일이 지나면 안전으로 확인해요.",
+    "step2": "{{days}}일 동안 하루 한 번, 별일 없었다면 ‘이상 없음’을 눌러요.",
+    "step3": "증상이 보이면 바로 기록하고, {{days}}일이 지나면 지켜본 결과대로 기록을 마무리해요.",
     "start": "시작하기"
   },
   "foods": {
@@ -68,12 +68,11 @@
     "searchPlain": "재료 이름으로 검색",
     "pickTitle": "새 재료 고르기",
     "pickHint": "재료를 누르면 {{days}}일 관찰이 바로 시작돼요",
-    "highRisk": "고위험",
+    "highRisk": "알레르기 주의",
     "empty": "아직 재료가 없어요",
-    "pickHintAutoclose": "{{food}}는 안전으로 기록돼요",
-    "pickHintAutocloseUnobserved": "{{food}}는 관찰 기록이 없어 미완료로 남아요",
+    "pickHintAutoclose": "{{food}} 관찰은 안전으로 기록돼요",
+    "pickHintAutocloseUnobserved": "{{food}} 관찰은 기록이 없어 미완료로 남아요",
     "emptySearch": "검색 결과가 없어요",
-    "highRiskHint": "고위험 = 알레르기를 자주 일으키는 재료예요. 시작해도 괜찮지만 더 주의해서 관찰하세요.",
     "groupTried": "기록 있음",
     "groupUntried": "안 먹어봄",
     "filterAll": "전체",
@@ -86,8 +85,8 @@
     "history": "기록",
     "historyCount": "{{count}}건",
     "noHistory": "아직 시도하지 않았어요.",
-    "highRiskWhyTitle": "왜 더 주의해서 보나요?",
-    "highRiskWhyBody": "알레르기 반응이 비교적 자주 나타나는 재료예요. 한 번에 한 가지씩, 3일 동안 살펴보세요.",
+    "highRiskWhyTitle": "알레르기 반응이 흔한 재료예요",
+    "highRiskWhyBody": "알레르기 반응이 비교적 흔하다고 알려진 재료예요. 반응은 대개 먹은 뒤 2시간 안에 나타나지만 늦게 나타나기도 해요. 아기에게 심한 습진이나 다른 음식 알레르기가 있다면 먹이기 전에 소아청소년과 의사와 먼저 상의해 주세요.",
     "observationProgress": "관찰 진행",
     "newReaction": "새 반응 기록하기",
     "trialBlocked": "다른 재료가 아직 관찰 기간 중이에요. 한 번에 한 가지 재료만 관찰하세요.",
@@ -98,7 +97,7 @@
     "cancelConfirmBody": "기록은 남고 이전 상태로 돌아가요.",
     "close": "닫기",
     "outcome": {
-      "safe": "안전 확인",
+      "safe": "안전으로 기록",
       "reacted": "반응 발생",
       "cancelled": "취소됨"
     },
@@ -106,7 +105,12 @@
     "checkinDone": "이상 없음 기록됨 · {{time}}",
     "checkinHint": "하루 한 번이면 충분해요",
     "cancelConfirmYes": "관찰 중단",
-    "keepGoing": "계속 관찰"
+    "keepGoing": "계속 관찰",
+    "retestReactedTitle": "반응이 기록된 재료예요",
+    "retestReactedBody": "이 재료를 먹고 반응이 기록된 적이 있어요. 다시 먹이기 전에 소아청소년과 의사와 먼저 상의해 주세요.",
+    "retestReactedConfirm": "상의했어요, 시작할게요",
+    "prepTitle": "먹이기 전에",
+    "prepNote": "처음에는 완전히 익혀 아기가 삼키기 쉽게 부드럽게 으깨거나 갈아 주세요."
   },
   "reaction": {
     "title": "반응 기록",
@@ -124,24 +128,25 @@
     "saveDisabled": "증상을 선택하면 저장할 수 있어요",
     "savedTitle": "{{food}} 반응이 기록됐어요",
     "missing": "재료를 찾을 수 없어요",
-    "emergency": "호흡 곤란이나 심한 부종이 있다면 지금 바로 119에 연락하세요.",
+    "emergency": "숨쉬기 힘들어하거나 쌕쌕거리고, 입술·얼굴·혀가 붓거나, 목소리·울음소리가 쉬거나, 아기가 창백하고 축 처진다면 지금 바로 119에 연락하세요.",
     "symptom": {
       "hives": "두드러기",
       "rash": "발진",
       "vomiting": "구토",
       "diarrhea": "설사",
-      "swelling": "얼굴 부종",
-      "cough": "기침·쌕쌕거림",
+      "swelling": "얼굴·입술·혀 부종",
+      "cough": "쌕쌕거림·계속되는 기침",
       "breathing": "호흡 곤란",
-      "other": "기타"
+      "other": "기타",
+      "floppy": "축 처짐·창백함"
     },
     "severityLevel": {
       "mild": "가벼움",
       "moderate": "중간",
       "severe": "심각"
     },
-    "savedBodyActive": "관찰이 끝나고 이 재료는 반응 상태가 됐어요. 재료 목록의 반응 칸에서 언제든 볼 수 있어요.",
-    "savedBodyDelayed": "이 재료가 안전에서 반응으로 바뀌었어요. 재료 목록의 반응 칸에서 언제든 볼 수 있어요."
+    "savedBodyActive": "관찰을 끝내고 이 재료를 ‘반응’으로 기록했어요. 증상이 계속되거나 걱정되면 소아청소년과 의사와 상담해 주세요.",
+    "savedBodyDelayed": "이 재료를 ‘반응’으로 기록했어요. 증상이 계속되거나 걱정되면 소아청소년과 의사와 상담해 주세요."
   },
   "settings": {
     "title": "설정",
@@ -166,23 +171,23 @@
     "exportPdfClear": "진료용 리포트 만들기",
     "exportPdfDetail": "시도한 재료와 반응을 PDF로 정리해요",
     "exportJson": "데이터 내보내기 (JSON)",
-    "exportJsonClear": "전체 데이터 백업",
-    "exportJsonDetail": "기록 원본을 JSON 파일로 저장해요",
-    "privacy": "아기의 데이터는 이 기기 밖으로 나가지 않습니다.",
-    "privacyClear": "내보내기를 직접 선택하기 전에는 아기의 데이터가 이 기기 밖으로 나가지 않아요.",
-    "disclaimer": "이 앱은 기록 보조 도구이며 의학적 조언이 아닙니다.",
-    "disclaimerClear": "이 앱은 기록 보조 도구이며 의학적 조언이 아닙니다. 알레르기가 걱정되면 소아청소년과 전문의와 상담하세요."
+    "exportJsonClear": "전체 기록 내보내기",
+    "exportJsonDetail": "모든 기록을 JSON 파일로 내보내 따로 보관해요",
+    "privacy": "기록은 이 기기에만 저장되고, 앱이 외부 서버로 보내지 않아요.",
+    "privacyClear": "기록은 이 기기에만 저장되고, 앱은 어떤 서버로도 보내지 않아요. 내보내기를 직접 선택할 때만 공유되고, iCloud 백업을 켜 두었다면 기기 백업에 함께 포함돼요.",
+    "disclaimer": "이 앱은 기록을 돕는 도구로, 알레르기를 진단하거나 판단하지 않아요. 걱정되는 점은 소아청소년과 의사와 상담해 주세요.",
+    "disclaimerClear": "이 앱은 보호자의 기록을 돕는 도구예요. 알레르기를 진단하거나 의사의 판단을 대신하지 않아요. 이유식이나 알레르기가 걱정되면 소아청소년과 의사와 상담하고, 증상이 심하면 바로 119에 연락해 주세요."
   },
   "notif": {
     "checkinTitle": "{{day}}일째: {{food}}",
     "checkinBody": "{{food}} 먹인 후 증상은 없었나요?",
     "windowEndAgainTitle": "{{food}} 기록이 아직 열려 있어요",
-    "windowEndAgainBody": "관찰 기간은 끝났어요. 기억나는 대로 마무리해도 괜찮아요.",
+    "windowEndAgainBody": "관찰 기간은 끝났어요. 기억나는 대로 마무리해 주세요.",
     "windowEndTitle": "{{food}}: 관찰 기간 종료",
-    "windowEndBody": "반응이 없었다면 앱에서 {{food}}을(를) 안전으로 표시하세요."
+    "windowEndBody": "이상이 없었다면 앱에서 ‘안전으로 표시’를 눌러 기록을 마무리해 주세요."
   },
   "report": {
-    "title": "이유식 알레르기 기록",
+    "title": "이유식 재료·반응 기록",
     "generated": "생성일 {{date}}",
     "born": "{{date}} 출생",
     "foodsTried": "시도한 재료",
@@ -190,12 +195,13 @@
     "none": "없음",
     "colFood": "재료",
     "colStatus": "상태",
-    "statusObserved": "{{label}} (관찰 기록 {{observed}}/{{of}}일)",
-    "colLastTried": "마지막 시도"
+    "statusObserved": "{{label}} (이상 없음 기록 {{observed}}/{{of}}일)",
+    "colLastTried": "마지막 시도",
+    "footer": "보호자가 앱에 직접 기록한 내용이에요. ‘안전’은 관찰 기간에 보호자가 반응을 기록하지 않았다는 뜻이며, 의학적 진단이나 검사 결과가 아니에요."
   },
   "calendar": {
     "title": "캘린더",
-    "subtitle": "우리 아기의 변화",
+    "subtitle": "날짜별 관찰과 반응",
     "historyTitle": "기록",
     "monthTitle": "{{year}}년 {{month}}월",
     "trialStart": "관찰 시작",
@@ -216,17 +222,18 @@
       "w5": "금",
       "w6": "토"
     },
-    "legendSafe": "안전 확인",
+    "legendSafe": "안전 기록",
     "todayLabel": "오늘",
     "a11yObserving": "관찰 중",
-    "a11ySafe": "안전 확인",
+    "a11ySafe": "안전으로 기록됨",
     "a11yReaction": "반응",
     "a11yRecord": "기록 있음"
   },
   "errors": {
     "generic": "문제가 발생했어요. 잠시 후 다시 시도해 주세요.",
     "dbInit": "기록을 불러오지 못했어요. 앱을 완전히 종료한 뒤 다시 열어 주세요. 계속 같은 화면이 나오면 앱을 최신 버전으로 업데이트해 주세요.",
-    "dbInitDetail": "오류 정보: {{message}}"
+    "dbInitDetail": "오류 정보: {{message}}",
+    "exportHint": "기기 저장 공간이 부족하면 파일을 만들 수 없어요. 공간을 확보한 뒤 다시 시도해 주세요."
   },
   "foodName": {
     "egg": "달걀 (전란)",
@@ -412,11 +419,32 @@
     "fruitveg": "열매채소",
     "floret": "꽃채소",
     "mushroom": "버섯",
-    "seaweed": "해조",
+    "seaweed": "해조류",
     "treefruit": "나무열매",
     "berry": "베리",
     "citrus": "감귤",
-    "tropical": "남국과일",
+    "tropical": "열대과일",
     "melon": "박과과일"
+  },
+  "foodPrep": {
+    "family": {
+      "nut": "견과류·씨앗은 통째로나 조각으로 주면 목에 걸릴 수 있어요. 곱게 갈거나 묽게 풀어서 주세요.",
+      "egg": "날것이나 반숙은 피하고 흰자와 노른자까지 완전히 익혀 주세요.",
+      "shell": "날것이나 덜 익힌 상태로 주지 말고 완전히 익힌 뒤 잘게 다져 주세요.",
+      "fish": "완전히 익히고 가시를 꼼꼼히 발라 주세요.",
+      "bean": "충분히 불려 푹 익힌 뒤 으깨 주세요."
+    },
+    "food": {
+      "quailegg": "날것이나 반숙은 피하고 완전히 익혀 주세요. 통째로 주지 말고 잘게 잘라 주세요.",
+      "grape": "작고 둥근 열매는 통째로 주지 말고 으깨거나 잘게 잘라 주세요. 씨는 빼 주세요.",
+      "blueberry": "작고 둥근 열매는 통째로 주지 말고 으깨거나 잘게 잘라 주세요. 씨는 빼 주세요.",
+      "cherry": "작고 둥근 열매는 통째로 주지 말고 으깨거나 잘게 잘라 주세요. 씨는 빼 주세요.",
+      "chestnut": "단단해서 목에 걸릴 수 있어요. 푹 익혀 곱게 으깨 주세요.",
+      "milk": "우유는 모유나 분유를 대신할 수 없어요. 돌 전에는 마시는 우유로 주기보다 이유식에 조금씩 넣어 주세요.",
+      "cheese": "짠 편이라 저염 치즈를 골라 잘게 잘라 주세요.",
+      "anchovy": "물에 담가 짠맛을 뺀 뒤 곱게 갈아 주세요.",
+      "laver": "조미하지 않은 것을 써 주세요.",
+      "greenlaver": "조미하지 않은 것을 써 주세요."
+    }
   }
 }

@@ -15,7 +15,7 @@ jest.mock('../src/data/queries', () => ({
   useBaby: () => ({ defaultWindowDays: 3 }),
   useFoodsWithStatus: () => mockFoods,
 }));
-jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { exists: () => false } }) }));
 jest.mock('../src/i18n', () => ({ foodLabel: (food: { name: string }) => food.name }));
 jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ id: 'egg' }),
@@ -78,6 +78,28 @@ test('confirmed replacement uses one atomic command and reports failure', async 
   expect(cancelTrial).not.toHaveBeenCalled();
   expect(onStarted).not.toHaveBeenCalled();
   expect(Alert.alert).toHaveBeenLastCalledWith('errors.generic');
+});
+
+test('a food with a recorded reaction asks before starting, and starts only on confirm', async () => {
+  jest.mocked(startTrial).mockResolvedValue({ ok: true } as never);
+  const reactedTrial = { ...currentTrial, id: 't0', foodId: 'milk', outcome: 'reacted' as const, endedAt: new Date('2026-07-10T12:00:00Z') };
+  const foods: FoodWithStatus[] = [{ food: milk, status: 'reacted', latest: reactedTrial, trials: [reactedTrial] }];
+  let startReacted: ReturnType<typeof useStartTrialFlow> | undefined;
+  function ReactedProbe() {
+    startReacted = useStartTrialFlow(foods, 3);
+    return null;
+  }
+  const onStarted = jest.fn();
+  act(() => { view = create(<ReactedProbe />); });
+  await act(async () => { await startReacted?.(milk, onStarted); });
+  expect(startTrial).not.toHaveBeenCalled();
+  expect(Alert.alert).toHaveBeenCalledWith('food.retestReactedTitle', 'food.retestReactedBody', expect.any(Array));
+  const buttons = jest.mocked(Alert.alert).mock.calls[0][2];
+  expect(buttons?.find((button) => button.style === 'cancel')?.text).toBe('food.close');
+  const confirm = buttons?.find((button) => button.text === 'food.retestReactedConfirm');
+  await act(async () => { confirm?.onPress?.(); });
+  expect(startTrial).toHaveBeenCalledWith({ food: milk, windowDays: 3 });
+  expect(onStarted).toHaveBeenCalledTimes(1);
 });
 
 test('a failed safe confirmation is visible', async () => {

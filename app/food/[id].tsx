@@ -9,6 +9,7 @@ import { foodLabel } from '../../src/i18n';
 import { isWindowElapsed } from '../../src/domain/status';
 import { trialDay } from '../../src/domain/homeState';
 import { buildRecords, reactionSummary, type RecordKind } from '../../src/domain/records';
+import { familyOf } from '../../src/db/families';
 import { Button } from '../../src/ui/Button';
 import { CheckinPill } from '../../src/ui/CheckinPill';
 import { DayLedger } from '../../src/ui/DayLedger';
@@ -37,7 +38,7 @@ const KIND_LABEL: Record<RecordKind, string> = {
 };
 
 export default function FoodDetail() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
   const insets = useSafeAreaInsets();
@@ -69,6 +70,10 @@ export default function FoodDetail() {
       : undefined,
   }));
 
+  const family = familyOf(food.id);
+  const prepKey = [`foodPrep.food.${food.id}`, family ? `foodPrep.family.${family}` : null]
+    .find((key): key is string => key !== null && i18n.exists(key));
+
   const onStart = () => startFlow(food, () => router.dismissAll());
 
   return (
@@ -89,9 +94,15 @@ export default function FoodDetail() {
       {food.allergenGroup && (
         <WarmCard tone="reaction" style={{ marginBottom: spacing.md }}>
           <Text style={{ fontSize: 13, lineHeight: 18, fontWeight: '900', color: colors.red }}>{t('food.highRiskWhyTitle')}</Text>
-          <Text style={{ fontSize: 12.5, color: colors.red, lineHeight: 19, marginTop: spacing.xxs }}>{t('food.highRiskWhyBody', { food: foodLabel(food) })}</Text>
+          <Text style={{ fontSize: 12.5, color: colors.red, lineHeight: 19, marginTop: spacing.xxs }}>{t('food.highRiskWhyBody')}</Text>
         </WarmCard>
       )}
+
+      <WarmCard style={{ marginBottom: spacing.md }}>
+        <Text style={{ fontSize: 13, lineHeight: 19, fontWeight: '900', color: colors.ink }}>{t('food.prepTitle')}</Text>
+        <Text style={{ fontSize: 13, lineHeight: 19, color: colors.inkSecondary, marginTop: spacing.xxs }}>{t('food.prepNote')}</Text>
+        {prepKey && <Text style={{ fontSize: 13, lineHeight: 19, color: colors.inkSecondary, marginTop: spacing.xxs }}>{t(prepKey)}</Text>}
+      </WarmCard>
 
       {latest && (
         <WarmCard style={{ marginBottom: spacing.md }}>

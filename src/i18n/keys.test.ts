@@ -60,7 +60,7 @@ describe('i18n keys', () => {
     ['status', ['untried', 'testing', 'safe', 'reacted']],
     ['food.outcome', ['safe', 'reacted', 'cancelled']],
     ['reaction.severityLevel', ['mild', 'moderate', 'severe']],
-    ['reaction.symptom', ['hives', 'rash', 'vomiting', 'diarrhea', 'swelling', 'cough', 'breathing', 'other']],
+    ['reaction.symptom', ['hives', 'rash', 'vomiting', 'diarrhea', 'swelling', 'cough', 'breathing', 'other', 'floppy']],
     ['calendar.weekday', ['w0', 'w1', 'w2', 'w3', 'w4', 'w5', 'w6']],
     ['welcome', ['step1', 'step2', 'step3']],
     ['home.state', ['observing', 'confirm', 'safe', 'reacted']],
@@ -84,6 +84,16 @@ describe('i18n keys', () => {
   // sitting across the top of a run of five foods.
   it('every food family has a Korean name', () => {
     expect(FAMILY_IDS.filter((f) => typeof resolve(`foodFamily.${f}`) !== 'string')).toEqual([]);
+  });
+
+  // Feeding cautions are looked up as foodPrep.food.<id>, then
+  // foodPrep.family.<FamilyId>, and silently render nothing when absent — so a
+  // typo in either key would quietly drop a caution instead of failing.
+  it('every foodPrep key names a catalogue id or a food family', () => {
+    const prep = ko.foodPrep as { food: Record<string, string>; family: Record<string, string> };
+    const ids = new Set(CATALOG.map((c) => c.id));
+    expect(Object.keys(prep.food).filter((id) => !ids.has(id))).toEqual([]);
+    expect(Object.keys(prep.family).filter((f) => !(FAMILY_IDS as readonly string[]).includes(f))).toEqual([]);
   });
 
   it('no key still says 테스트 — the app standardised on 관찰', () => {

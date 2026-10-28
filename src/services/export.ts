@@ -16,6 +16,7 @@ export type ReportInput<F extends { isCustom: boolean; name: string }> = {
 };
 
 const koDate = (d: Date) => d.toLocaleDateString('ko-KR');
+const koDateTime = (d: Date) => `${koDate(d)} ${d.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}`;
 
 // The pediatrician hand-out, from domain values to a printable document.
 //
@@ -53,10 +54,11 @@ export function buildReport<F extends { isCustom: boolean; name: string }>(
       })),
     reactionRows: reactions.map(({ food, r }) => ({
       food: foodLabel(food),
-      date: koDate(r.occurredAt),
+      date: koDateTime(r.occurredAt),
       summary: reactionSummary(r, t),
       note: r.note ?? '',
     })),
+    footer: t('report.footer'),
   });
 }
 
@@ -76,6 +78,7 @@ type ReportView = {
   cols: { food: string; status: string; lastTried: string };
   rows: { food: string; status: string; lastTried: string }[];
   reactionRows: { food: string; date: string; summary: string; note: string }[];
+  footer: string;
 };
 
 function render(v: ReportView): string {
@@ -101,6 +104,7 @@ function render(v: ReportView): string {
     <table><tr><th>${e(v.cols.food)}</th><th>${e(v.cols.status)}</th><th>${e(v.cols.lastTried)}</th></tr>${rows}</table>
     <h2>${e(v.reactionsHeading)}</h2>
     ${reactions}
+    <p class="meta">${e(v.footer)}</p>
   </body></html>`;
 }
 
