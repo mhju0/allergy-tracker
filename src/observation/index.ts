@@ -76,13 +76,18 @@ export function createObservationModule({ persistence, now, newId }: {
 }) {
   let pending: Promise<unknown> = Promise.resolve();
 
-  const record = (command: { foodId: string; targetDay?: Date }): Promise<RecordObservationResult> => {
+  // trialId, when given, pins the command to one Trial: a notification that
+  // outlived its Trial must not write to a later Trial of the same food.
+  const record = (command: { foodId: string; trialId?: string; targetDay?: Date }): Promise<RecordObservationResult> => {
     const run = async (): Promise<RecordObservationResult> => {
       const recordedAt = now();
       try {
         return persistence.transaction((transaction) => {
           const active = transaction.activeTrialForFood(command.foodId);
           if (!active || active.outcome !== null) return { ok: false, reason: 'no_active_trial' };
+          if (command.trialId !== undefined && command.trialId !== active.id) {
+            return { ok: false, reason: 'no_active_trial' };
+          }
           const occurredAt = command.targetDay ?? recordedAt;
           if (!isEligibleObservationDay(active, occurredAt, recordedAt)) {
             return { ok: false, reason: 'outside_window' };

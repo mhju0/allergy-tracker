@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AppState, View } from 'react-native';
+import { Alert, AppState, View } from 'react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
@@ -9,7 +9,9 @@ import i18n from '../src/i18n';
 import { db } from '../src/db/client';
 import { seedIfEmpty } from '../src/db/seed';
 import { recordObservation } from '../src/observation/sqlite';
-import { CHECKIN_ACTION, initNotificationHandler, registerCheckinAction } from '../src/services/notify';
+import {
+  CHECKIN_ACTION, checkinActionCommand, initNotificationHandler, registerCheckinAction,
+} from '../src/services/notify';
 import { reconcileTrialLifecycle } from '../src/trialLifecycle/sqlite';
 import { colors, layout, spacing } from '../src/ui/tokens';
 import { Text } from '../src/ui/Text';
@@ -35,7 +37,7 @@ export default function RootLayout() {
     }
   }, [success]);
 
-  useEffect(() => { void registerCheckinAction(); }, []);
+  useEffect(() => { registerCheckinAction().catch(() => undefined); }, []);
 
   useEffect(() => {
     if (!seeded) return;
@@ -62,11 +64,18 @@ export default function RootLayout() {
     // uncleared one would re-fire on a later render — dating a check-in to
     // whatever day the app happened to re-render on.
     Notifications.clearLastNotificationResponse();
-    const { foodId } = response.notification.request.content.data ?? {};
-    if (typeof foodId !== 'string') return;
-    // recordObservation owns the guards: a closed Trial, a day outside the window, or
-    // one already logged makes this a no-op rather than a bad row.
-    void recordObservation({ foodId });
+    const command = checkinActionCommand(response.notification.request.content.data, new Date());
+    if (!command) return;
+    // recordObservation owns the guards: a closed or replaced Trial, a day outside
+    // the window, or one already logged makes this a no-op rather than a bad row.
+    // A closed Trial stays silent — the prompt is simply stale — but a tap that
+    // meant to record and couldn't says so.
+    recordObservation(command)
+      .then((result) => {
+        if (result.ok || result.reason === 'no_active_trial') return;
+        Alert.alert(i18n.t(result.reason === 'outside_window' ? 'notif.checkinOutsideWindow' : 'errors.generic'));
+      })
+      .catch(() => Alert.alert(i18n.t('errors.generic')));
   }, [response, seeded]);
 
   const initError = error ?? seedError;

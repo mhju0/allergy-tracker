@@ -138,6 +138,27 @@ describe('Observation module', () => {
     await expect(broken.record({ foodId: 'egg' }))
       .resolves.toEqual({ ok: false, reason: 'persistence_failed' });
   });
+
+  // A delivered prompt can outlive its Trial; its 이상 없음 must not land on a
+  // later Trial of the same food.
+  test('a command pinned to another Trial records nothing', async () => {
+    const observations: ObservationLike[] = [];
+    const module = createObservationModule({
+      persistence: { transaction: (work) => work({
+        activeTrialForFood: () => trial({ id: 't2' }),
+        observationsForTrial: () => observations,
+        insertObservation: (input) => { observations.push(input); return input; },
+      }) },
+      now: () => D('2026-07-17T12:00:00'),
+      newId: () => 'o1',
+    });
+
+    await expect(module.record({ foodId: 'egg', trialId: 't1' }))
+      .resolves.toEqual({ ok: false, reason: 'no_active_trial' });
+    expect(observations).toHaveLength(0);
+    await expect(module.record({ foodId: 'egg', trialId: 't2' }))
+      .resolves.toMatchObject({ ok: true, status: 'recorded' });
+  });
 });
 
 // Backfilled Observation dates are user input and must respect the window.

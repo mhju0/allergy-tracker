@@ -44,7 +44,8 @@
       "observing": "{{total}}일 중 {{day}}일째 · {{date}} 확인",
       "confirm": "{{total}}일 관찰이 {{date}}에 끝났어요 · {{observed}}/{{total}}일 기록됨",
       "safe": "{{total}}일 중 {{observed}}일 ‘이상 없음’ 기록 · 안전 기록 {{count}}가지",
-      "reacted": "{{day}}일째 · {{severity}} · {{symptoms}}"
+      "reacted": "{{day}}일째 · {{severity}} · {{symptoms}}",
+      "reactedNoDay": "{{severity}} · {{symptoms}}"
     },
     "emptyTitle": "시작해 볼까요"
   },
@@ -165,8 +166,10 @@
     "myRecords": "내 기록",
     "exportPdfClear": "진료용 리포트 만들기",
     "exportPdfDetail": "시도한 재료와 반응을 PDF로 정리해요",
+    "exportPdfFormat": "PDF",
     "exportJsonClear": "전체 기록 내보내기",
     "exportJsonDetail": "모든 기록을 JSON 파일로 내보내 따로 보관해요",
+    "exportJsonFormat": "JSON",
     "privacy": "기록은 이 기기에만 저장되고, 앱이 외부 서버로 보내지 않아요.",
     "privacyClear": "기록은 이 기기에만 저장되고, 앱은 어떤 서버로도 보내지 않아요. 내보내기를 직접 선택할 때만 공유되고, iCloud 백업을 켜 두었다면 기기 백업에 함께 포함돼요.",
     "disclaimer": "이 앱은 기록을 돕는 도구로, 알레르기를 진단하거나 판단하지 않아요. 걱정되는 점은 소아청소년과 의사와 상담해 주세요.",
@@ -178,7 +181,8 @@
     "windowEndAgainTitle": "{{food}} 기록이 아직 열려 있어요",
     "windowEndAgainBody": "관찰 기간은 끝났어요. 기억나는 대로 마무리해 주세요.",
     "windowEndTitle": "{{food}}: 관찰 기간 종료",
-    "windowEndBody": "이상이 없었다면 앱에서 ‘안전으로 표시’를 눌러 기록을 마무리해 주세요."
+    "windowEndBody": "이상이 없었다면 앱에서 ‘안전으로 표시’를 눌러 기록을 마무리해 주세요.",
+    "checkinOutsideWindow": "관찰 기간이 지나 ‘이상 없음’을 기록하지 못했어요. 앱에서 기록을 확인해 주세요."
   },
   "report": {
     "title": "이유식 재료·반응 기록",
