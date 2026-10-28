@@ -21,6 +21,12 @@ describe('keepKoreanLinesTogether', () => {
       .toBe(`아직 없어요. “새${NBSP}재료${NBSP}시작하기”${WJ}를 눌러${NBSP}보세요.`);
   });
 
+  test('keeps "만들 수 있어요" together so the line never ends at "만들"', () => {
+    expect(keepKoreanLinesTogether('리포트도 만들 수 있어요.')).toBe(`리포트도 만들${NBSP}수${NBSP}있어요.`);
+    expect(keepKoreanLinesTogether('표시할 수 없어요. 다시 해 주세요.'))
+      .toBe(`표시할${NBSP}수${NBSP}없어요. 다시 해${NBSP}주세요.`);
+  });
+
   test('leaves a single word unchanged', () => {
     expect(keepKoreanLinesTogether('설정')).toBe('설정');
   });
