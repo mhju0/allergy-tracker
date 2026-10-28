@@ -2,13 +2,17 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "types": [
       "jest"
     ]
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
+    "app",
+    "src",
+    "tests",
+    "drizzle.config.ts",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ]

@@ -1,8 +1,7 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
-// name/birthdate are optional (owner decision 2026-07-23): the app never uses
-// them for logic — they only decorate the exported doctor report, so first
-// launch no longer blocks on a setup form. The row itself is created by seed.
+// Optional profile fields personalize the Home greeting and doctor report.
+// Seed creates the settings row without requiring a setup form.
 export const baby = sqliteTable('baby', {
   id: text('id').primaryKey(),
   name: text('name'),

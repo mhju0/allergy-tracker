@@ -1,4 +1,5 @@
-import { MS_PER_DAY, isSameLocalDay, type TrialLike } from './status';
+import type { TrialLike } from './status';
+import { MS_PER_DAY, isSameLocalDay } from '../observation';
 
 export type DayCell = { date: Date; inMonth: boolean };
 
@@ -11,8 +12,6 @@ export function monthMatrix(year: number, month0: number): DayCell[] {
     return { date: new Date(year, month0, dayOfMonth), inMonth: dayOfMonth >= 1 && dayOfMonth <= daysInMonth };
   });
 }
-
-export const sameLocalDay = isSameLocalDay;
 
 function localDayStart(d: Date): number {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
@@ -59,9 +58,9 @@ export type DayMark = { tint: 'amber' | 'green' | 'red' | null; dot: 'red' | 'gr
 export function dayMark(
   date: Date, trials: TrialLike[], reactionDays: Date[], checkinDays: Date[], today: Date,
 ): DayMark {
-  if (reactionDays.some((d) => sameLocalDay(d, date))) return { tint: 'red', dot: 'red' };
+  if (reactionDays.some((d) => isSameLocalDay(d, date))) return { tint: 'red', dot: 'red' };
 
-  const dot = checkinDays.some((d) => sameLocalDay(d, date)) ? ('green' as const) : null;
+  const dot = checkinDays.some((d) => isSameLocalDay(d, date)) ? ('green' as const) : null;
   const covering = trials.filter((t) => t.outcome !== 'cancelled' && isInTrialWindow(date, t, today));
   if (covering.some((t) => t.outcome === null || t.outcome === 'reacted')) return { tint: 'amber', dot };
   // greenTint was defined in the token file with zero consumers, so a confirmed

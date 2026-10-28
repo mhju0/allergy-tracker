@@ -1,4 +1,4 @@
-import { monthMatrix, sameLocalDay, dayMark, sortDayEvents, type DayCell } from './calendar';
+import { monthMatrix, dayMark, sortDayEvents, type DayCell } from './calendar';
 import type { TrialLike } from './status';
 
 const D = (s: string) => new Date(s);
@@ -38,14 +38,6 @@ describe('monthMatrix', () => {
   });
 });
 
-describe('sameLocalDay', () => {
-  test('23:59 vs 00:01 the next day → false', () => {
-    expect(sameLocalDay(D('2026-07-16T23:59:00'), D('2026-07-17T00:01:00'))).toBe(false);
-  });
-  test('same calendar day, different times → true', () => {
-    expect(sameLocalDay(D('2026-07-16T00:01:00'), D('2026-07-16T23:59:00'))).toBe(true);
-  });
-});
 
 describe('dayMark', () => {
   // A 3-day window covers the start day and the two after it: 16, 17, 18.

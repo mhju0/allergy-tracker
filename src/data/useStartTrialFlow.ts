@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { cancelTrial, startTrial } from '../trialLifecycle/sqlite';
+import { startTrial } from '../trialLifecycle/sqlite';
 import type { FoodWithStatus } from './queries';
 import { foodLabel } from '../i18n';
 import type { Food } from '../db/schema';
@@ -23,6 +23,10 @@ export function useStartTrialFlow(foods: FoodWithStatus[], windowDays: number) {
         onStarted?.();
         return;
       }
+      if (res.reason === 'persistence_failed') {
+        Alert.alert(t('errors.generic'));
+        return;
+      }
       const active = foods.find((f) => f.status === 'testing');
       const activeTrialId = active?.latest?.id;
       if (!active || !activeTrialId) {
@@ -38,17 +42,9 @@ export function useStartTrialFlow(foods: FoodWithStatus[], windowDays: number) {
             if (starting.current) return;
             starting.current = true;
             try {
-              // The window may have elapsed while the alert sat open — try starting
-              // first so implicit-safe autoclose wins over cancelling a clean trial.
-              const first = await startTrial({ food, windowDays });
-              if (first.ok) {
-                onStarted?.();
-                return;
-              }
-              await cancelTrial({ trialId: activeTrialId });
-              const retry = await startTrial({ food, windowDays });
+              const retry = await startTrial({ food, windowDays, replaceActiveTrialId: activeTrialId });
               if (retry.ok) onStarted?.();
-              else Alert.alert(t('food.trialBlocked'));
+              else Alert.alert(t(retry.reason === 'persistence_failed' ? 'errors.generic' : 'food.trialBlocked'));
             } catch {
               Alert.alert(t('errors.generic'));
             } finally {

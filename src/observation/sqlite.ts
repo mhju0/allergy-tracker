@@ -1,7 +1,7 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import { db } from '../db/client';
 import { checkin, trial } from '../db/schema';
-import { newId } from '../data/ids';
+import { randomUUID as newId } from 'expo-crypto';
 import {
   createObservationModule,
   type ObservationLike,

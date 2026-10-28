@@ -1,44 +1,17 @@
-import { readMigrationFiles } from 'drizzle-orm/migrator';
+import { createTestDatabase } from '../../tests/sqlite';
 import { CATALOG } from './catalog';
 import { seedIfEmpty } from './seed';
 
-// Node's built-in SQLite keeps these tests dependency-free (CI uses Node 22).
-type SqliteDatabase = {
-  exec(sql: string): void;
-  prepare(sql: string): {
-    run(...params: unknown[]): unknown;
-    all(...params: unknown[]): Record<string, unknown>[];
-  };
-  close(): void;
-};
-const { DatabaseSync } = jest.requireActual<{
-  DatabaseSync: new (path: string) => SqliteDatabase;
-}>('node:sqlite');
-let mockSqlite: SqliteDatabase;
+let mockDatabase: ReturnType<typeof createTestDatabase>;
+let mockSqlite: ReturnType<typeof createTestDatabase>['sqlite'];
 
-jest.mock('../data/ids', () => ({ newId: () => 'test-baby' }));
+jest.mock('expo-crypto', () => ({ randomUUID: () => 'test-baby' }));
 
-// Run Drizzle's seed queries against real SQLite, without the native Expo
-// driver. This exercises conflicts, foreign keys and history preservation.
-jest.mock('./client', () => {
-  const { drizzle } = jest.requireActual('drizzle-orm/sqlite-proxy');
-  return {
-    db: drizzle(async (sql: string, params: unknown[], method: string) => {
-      const statement = mockSqlite.prepare(sql);
-      if (method === 'run') {
-        statement.run(...params);
-        return { rows: [] };
-      }
-      return { rows: statement.all(...params).map(Object.values) };
-    }),
-  };
-});
+jest.mock('./client', () => ({ get db() { return mockDatabase.db; } }));
 
 beforeEach(() => {
-  mockSqlite = new DatabaseSync(':memory:');
-  for (const migration of readMigrationFiles({ migrationsFolder: 'drizzle' })) {
-    for (const sql of migration.sql) mockSqlite.exec(sql);
-  }
+  mockDatabase = createTestDatabase();
+  mockSqlite = mockDatabase.sqlite;
 });
 
 afterEach(() => mockSqlite.close());
@@ -107,6 +80,13 @@ test('a legacy custom row is preserved even when its id matches a catalogue entr
   await seedIfEmpty();
 
   expect(rows('food').find((f) => f.id === 'chestnut')).toEqual(custom);
+});
+
+test('an unchanged launch performs zero row writes', async () => {
+  await seedIfEmpty();
+  const before = mockSqlite.prepare('SELECT total_changes() AS count').get()?.count;
+  await seedIfEmpty();
+  expect(mockSqlite.prepare('SELECT total_changes() AS count').get()?.count).toBe(before);
 });
 
 test('only removed catalogue foods without history are deleted', async () => {
