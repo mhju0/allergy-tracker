@@ -319,6 +319,10 @@ All four came out of a grilling session and are recorded in `.superpowers/sdd/pr
 - `plugins/with-scene-lifecycle.js` adopts the scene lifecycle as the SDK 58 template does: the app delegate only creates the React Native factory, and Expo's `ExpoAppSceneDelegate` creates the window. The plugin fails the prebuild if the template changes shape. Remove it when moving to Expo SDK 58.
 - Release checks include a launch on the newest iOS runtime.
 
+### D-54 · Korean copy spaces auxiliary verbs — `ACTIVE`
+- **2026-10-29, owner:** UI copy spaces auxiliary verbs (눌러 보세요, 먹어 보지, 알려 드려요), and the status label becomes **안 먹어 봄**. This is a spacing fix, not a rename; D-30's vocabulary rule still holds.
+- Text renders through `src/ui/Text` and alerts through `showAlert` (`src/ui/alert.ts`), which keep quoted labels on one line and stop native alerts from splitting a word.
+
 ---
 
 ## Part III — standing prohibitions

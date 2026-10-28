@@ -5,7 +5,7 @@
     "history": "기록"
   },
   "status": {
-    "untried": "안 먹어봄",
+    "untried": "안 먹어 봄",
     "testing": "관찰 중",
     "safe": "안전",
     "reacted": "반응"
@@ -74,7 +74,7 @@
     "pickHintAutocloseUnobserved": "{{food}} 관찰은 기록이 없어 미완료로 남아요",
     "emptySearch": "검색 결과가 없어요",
     "groupTried": "기록 있음",
-    "groupUntried": "안 먹어봄",
+    "groupUntried": "안 먹어 봄",
     "filterAll": "전체",
     "untriedHint": "아직 먹어 보지 않았어요"
   },

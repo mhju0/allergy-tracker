@@ -40,7 +40,7 @@ dogfooded on a real device.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/status-key-dark.svg">
-  <img src="docs/status-key-light.svg" alt="안 먹어봄: never introduced · 관찰 중: inside the 3-day window · 안전: window closed and marked safe · 반응: a reaction was logged" width="860">
+  <img src="docs/status-key-light.svg" alt="안 먹어 봄: never introduced · 관찰 중: inside the 3-day window · 안전: window closed and marked safe · 반응: a reaction was logged" width="860">
 </picture>
 
 </div>
