@@ -70,3 +70,18 @@ test('a focused sheet host takes the dialog over the root host', () => {
   expect(rootHost.findAllByType(Text)).toHaveLength(0);
   expect(sheetHost.findAllByType(Text).length).toBeGreaterThan(0);
 });
+
+test('a dialog raised as a sheet closes moves to the root host instead of vanishing', () => {
+  act(() => { view = create(<><DialogHost /><ScreenDialogHost /></>); });
+  act(() => showAlert('쌀 반응이 기록됐어요'));
+  act(() => view!.update(<><DialogHost /></>));
+  expect(texts(view!)[0]).toBe('쌀 반응이 기록됐어요');
+});
+
+test('the escape gesture closes a single-button dialog', () => {
+  act(() => { view = create(<DialogHost />); });
+  act(() => showAlert('문제가 생겼어요'));
+  const overlay = view!.root.find((node) => typeof node.props.onAccessibilityEscape === 'function');
+  act(() => overlay.props.onAccessibilityEscape());
+  expect(texts(view!)).toHaveLength(0);
+});
