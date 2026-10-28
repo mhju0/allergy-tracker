@@ -1,8 +1,17 @@
 # Allergy Tracker
 
 Evidence order: source/tests → Git state/history → `docs/DECISIONS.md` →
-`docs/ROADMAP.md` → `docs/PROJECT_HANDOFF.md` → historical Claude material.
+`docs/ROADMAP.md` → `.memory/` and historical agent material.
 Do not migrate Claude configuration without an explicit request.
+
+Memory:
+
+- At session start, read `.memory/README.md` (private, git-ignored).
+- Before ending a session that changed something or left work unfinished,
+  update `.memory/handoff.md`.
+- Product and engineering decisions go in `docs/DECISIONS.md` (roadmap changes
+  in `docs/ROADMAP.md`); the owner's preferences about agent work go in
+  `.memory/decisions.md`.
 
 Commands (CI uses Node 22):
 
@@ -36,3 +45,11 @@ There is no lint or separate build script.
 - Preserve catalogue IDs, historical `foodName.*` translations, and legacy
   `is_custom` rows during upgrades. Existing device history depends on them.
 - Preserve the local Postgres `mammacare_db` as retained historical data.
+- Screens use `src/ui/useFreshNow` for time-aware state and `src/foodCatalogue`
+  for catalogue filtering and grouping instead of rebuilding those rules.
+- Colors only from `src/ui/tokens.ts`; a status color always comes with its
+  icon and label.
+- Typecheck and tests must both pass before any commit.
+- v1 (MammaCare: Capacitor + FastAPI + Postgres) is dead, archived at tag
+  `archive/v1-capacitor`. Don't resurrect anything from it (`docs/design-spec.md` §11).
+- `.superpowers/` is local-only history (build plan, rebuild reports). Never commit it.

@@ -19,3 +19,7 @@ expo-env.d.ts
 # local-only config
 .claude/
 .superpowers/
+
+# Private agent memory and write locks (shared by Claude Code and Codex)
+.memory/
+.locks/
