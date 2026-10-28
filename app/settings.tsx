@@ -87,7 +87,7 @@ export default function Settings() {
     } catch {
       // fall through to the Settings app
     }
-    await Linking.openSettings();
+    await Linking.openSettings().catch(() => Alert.alert(t('errors.generic')));
   };
 
   return (
@@ -124,7 +124,7 @@ export default function Settings() {
             <Text style={{ ...typeStyles.rowTitle, color: colors.ink }}>{t('setup.birthdate')}</Text>
             <Text style={{ ...typeStyles.rowDetail, color: colors.inkSecondary }}>{baby.birthdate ? t('settings.reportOnlyShort') : t('settings.optional')}</Text>
           </View>
-          <DateTimePicker locale="ko-KR" value={baby.birthdate ?? new Date()} mode="date" maximumDate={new Date()} onValueChange={(_, date) => updateBabySettings({ birthdate: date })} />
+          <DateTimePicker locale="ko-KR" value={baby.birthdate ?? new Date()} mode="date" maximumDate={new Date()} onValueChange={(_, date) => { updateBabySettings({ birthdate: date }).catch(() => Alert.alert(t('errors.generic'))); }} />
         </View>
       </WarmCard>
 
@@ -144,7 +144,12 @@ export default function Settings() {
           title={t('settings.showGuide')}
           detail={t('settings.guideDetail')}
           onPress={async () => {
-            await updateBabySettings({ welcomedAt: null });
+            try {
+              await updateBabySettings({ welcomedAt: null });
+            } catch {
+              Alert.alert(t('errors.generic'));
+              return;
+            }
             router.back();
           }}
         />
@@ -153,15 +158,15 @@ export default function Settings() {
           icon="shield"
           title={t('settings.privacyPolicy')}
           detail={t('settings.privacyPolicyDetail')}
-          onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
+          onPress={() => { Linking.openURL(PRIVACY_POLICY_URL).catch(() => Alert.alert(t('errors.generic'))); }}
         />
       </WarmCard>
 
       <SectionLabel label={t('settings.myRecords')} />
       <WarmCard style={{ padding: 0, overflow: 'hidden' }}>
-        <SettingRow icon="file" title={t('settings.exportPdfClear')} detail={t('settings.exportPdfDetail')} value="PDF" onPress={exportPdf} />
+        <SettingRow icon="file" title={t('settings.exportPdfClear')} detail={t('settings.exportPdfDetail')} value={t('settings.exportPdfFormat')} onPress={exportPdf} />
         <Divider />
-        <SettingRow icon="download" title={t('settings.exportJsonClear')} detail={t('settings.exportJsonDetail')} value="JSON" onPress={exportJson} />
+        <SettingRow icon="download" title={t('settings.exportJsonClear')} detail={t('settings.exportJsonDetail')} value={t('settings.exportJsonFormat')} onPress={exportJson} />
       </WarmCard>
 
       <WarmCard tone="safe" style={{ marginTop: spacing.lg }}>

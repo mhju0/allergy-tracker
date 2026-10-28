@@ -1,9 +1,10 @@
-import { AppState, Linking, Text, type AppStateStatus } from 'react-native';
+import { Alert, AppState, Linking, Text, type AppStateStatus } from 'react-native';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import Settings from '../app/settings';
 import { readAllTables, useFoodsWithStatus } from '../src/data/queries';
 import { canAskForPermission, ensurePermission, isPermissionGranted } from '../src/services/notify';
 import { reconcileTrialLifecycle } from '../src/trialLifecycle/sqlite';
+import { updateBabySettings } from '../src/data/mutations';
 import { printToFileAsync } from 'expo-print';
 import { shareAsync } from 'expo-sharing';
 import { deleteAsync, moveAsync } from 'expo-file-system/legacy';
@@ -74,7 +75,7 @@ test('history is read only when exporting, and the report uses the fresh databas
   await act(async () => { view = create(<Settings />); });
   expect(useFoodsWithStatus).not.toHaveBeenCalled();
   expect(readAllTables).not.toHaveBeenCalled();
-  const button = view.root.findAllByProps({ accessibilityLabel: 'settings.exportPdfClear, PDF' })[0];
+  const button = view.root.findAllByProps({ accessibilityLabel: 'settings.exportPdfClear, settings.exportPdfFormat' })[0];
   expect(button).toBeDefined();
   await act(async () => { await button?.props.onPress(); });
   expect(readAllTables).toHaveBeenCalledTimes(1);
@@ -91,7 +92,7 @@ test('the PDF is shared under a readable, dated file name in local time', async 
       baby: [mockBaby], foods: [], trials: [], reactions: [], checkins: [],
     });
     await act(async () => { view = create(<Settings />); });
-    const button = view.root.findAllByProps({ accessibilityLabel: 'settings.exportPdfClear, PDF' })[0];
+    const button = view.root.findAllByProps({ accessibilityLabel: 'settings.exportPdfClear, settings.exportPdfFormat' })[0];
     await act(async () => { await button?.props.onPress(); });
   } finally {
     jest.useRealTimers();
@@ -125,4 +126,24 @@ test('tapping notifications opens the Settings app when iOS can no longer prompt
   await act(async () => { await notificationRow()?.props.onPress(); });
   expect(openSettings).toHaveBeenCalledTimes(1);
   expect(ensurePermission).not.toHaveBeenCalled();
+});
+
+function rowTitled(title: string) {
+  return view.root.findAll((node) => node.props.title === title && typeof node.props.onPress === 'function')[0];
+}
+
+test('a failed save from 사용 안내 다시 보기 is reported, not dropped', async () => {
+  const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+  jest.mocked(updateBabySettings).mockRejectedValueOnce(new Error('disk full'));
+  await act(async () => { view = create(<Settings />); });
+  await act(async () => { await rowTitled('settings.showGuide')?.props.onPress(); });
+  expect(alert).toHaveBeenCalledWith('errors.generic');
+});
+
+test('a privacy policy link that cannot open is reported, not dropped', async () => {
+  const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+  jest.spyOn(Linking, 'openURL').mockRejectedValue(new Error('no handler'));
+  await act(async () => { view = create(<Settings />); });
+  await act(async () => { rowTitled('settings.privacyPolicy')?.props.onPress(); });
+  expect(alert).toHaveBeenCalledWith('errors.generic');
 });

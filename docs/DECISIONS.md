@@ -298,9 +298,21 @@ All four came out of a grilling session and are recorded in `.superpowers/sdd/pr
 ### D-50 · Release versioning — `ACTIVE`
 - **2026-10-28, decided under the owner's delegation;** `feffad5`.
 - Marketing version **3.0.0** (`app.json`, `package.json`) = git tag `v3.0.0`, created after App Store approval. The last earlier tag is `v2.2.4`.
-- Build numbers come from EAS (`eas.json`: `appVersionSource: "remote"`, `autoIncrement` on the production profile); nothing in the repo tracks them.
+- Build numbers come from EAS (`eas.json`: `appVersionSource: "remote"`, `autoIncrement` on the production profile); nothing in the repo tracks them. *Superseded by D-52.*
 - The demo fixture is excluded from production bundles: `src/db/demoSeed.ts` is required lazily inside the `EXPO_PUBLIC_DEMO === '1'` branch of `app/_layout.tsx`, and `eas.json` sets no `EXPO_PUBLIC_DEMO`. `[Verified]`
 - The submission runbook and listing copy are in `docs/APP_STORE.md`.
+
+### D-51 · Notification check-ins are pinned to their prompt — `ACTIVE`
+- **2026-10-28, decided under the owner's delegation** after the release code review.
+- Each check-in notification carries its food, Trial and the day it asks about. Tapping 이상 없음 records that day; a tap on a later day records it as a recalled Observation (`backfilledAt` set), which counts toward coverage like any other. Same-day taps record the moment of the tap. `src/observation` owns that rule; `src/services/notify.ts` only reads the data.
+- A tap for a Trial that is no longer the active one, or for a day outside the window, records nothing; outside the window the app says so.
+- Prompts scheduled by earlier builds carry only the food and record today. They are rescheduled with the new data on the first launch.
+- Banners in Notification Center that belong to a Trial other than the active one are removed when the app reconciles notifications.
+- In the Foods picker, tapping the active food opens its detail page instead of restarting it; an elapsed active Trial is confirmed or replaced from there.
+
+### D-52 · TestFlight builds are archived locally with Xcode — `ACTIVE` (supersedes D-50's build-number line)
+- **2026-10-28, decided under the owner's delegation:** no Expo account is used. Xcode, signed in to the developer account, archives and uploads to App Store Connect (`docs/APP_STORE.md` §2).
+- Build numbers are tracked in `app.json` `ios.buildNumber` and raised for every upload.
 
 ---
 
