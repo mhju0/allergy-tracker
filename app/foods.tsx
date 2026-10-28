@@ -116,6 +116,7 @@ export default function Foods() {
       </View>
 
       <FlatList
+        keyboardShouldPersistTaps="handled"
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: layout.screenInset, paddingBottom: 18 }}
         data={catalogue.rows}

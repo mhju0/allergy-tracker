@@ -79,7 +79,15 @@ test('history is read only when exporting, and the report uses the fresh databas
   expect(button).toBeDefined();
   await act(async () => { await button?.props.onPress(); });
   expect(readAllTables).toHaveBeenCalledTimes(1);
-  expect(printToFileAsync).toHaveBeenCalledWith({ html: expect.stringContaining('최근 이름') });
+  expect(printToFileAsync).toHaveBeenCalledWith({ html: expect.stringContaining('최근 이름'), width: 595, height: 842 });
+});
+
+test('the baby name is not cut mid-syllable by the input and is capped when saved', async () => {
+  await act(async () => { view = create(<Settings />); });
+  const input = view.root.findAllByProps({ accessibilityLabel: 'setup.babyName' }).find((node) => node.props.onChangeText);
+  expect(input?.props.maxLength).toBeUndefined();
+  await act(async () => { input?.props.onChangeText(' 가나다라마바사아자차카타파하가나다라마바사 '); });
+  expect(updateBabySettings).toHaveBeenLastCalledWith({ name: '가나다라마바사아자차카타파하가나다라마바' });
 });
 
 test('the PDF is shared under a readable, dated file name in local time', async () => {
