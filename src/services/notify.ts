@@ -1,7 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import i18n, { foodLabel } from '../i18n';
 import type { PlannedNotification } from '../domain/notifications';
-import { isSameLocalDay } from '../observation';
 
 export function initNotificationHandler(): void {
   Notifications.setNotificationHandler({
@@ -111,14 +110,13 @@ const TRIAL_NOTIFICATION_ID = /:(?:checkin\d+|windowEnd\d+)$/;
 // today.
 export function checkinActionCommand(
   data: Record<string, unknown> | null | undefined,
-  now: Date,
 ): { foodId: string; trialId?: string; targetDay?: Date } | undefined {
   const { foodId, trialId, targetDay } = data ?? {};
   if (typeof foodId !== 'string') return undefined;
   const command: { foodId: string; trialId?: string; targetDay?: Date } = { foodId };
   if (typeof trialId === 'string') command.trialId = trialId;
   const day = typeof targetDay === 'string' ? new Date(targetDay) : undefined;
-  if (day && !Number.isNaN(day.getTime()) && !isSameLocalDay(day, now)) command.targetDay = day;
+  if (day && !Number.isNaN(day.getTime())) command.targetDay = day;
   return command;
 }
 

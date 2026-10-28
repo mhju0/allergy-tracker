@@ -105,6 +105,24 @@ describe('Observation module', () => {
     expect(observations[0].backfilledAt).toEqual(D('2026-07-18T20:00:00'));
   });
 
+  test('a target day that is today records the moment of recording', async () => {
+    const observations: ObservationLike[] = [];
+    const active = trial();
+    const module = createObservationModule({
+      persistence: { transaction: (work) => work({
+        activeTrialForFood: () => active,
+        observationsForTrial: () => observations,
+        insertObservation: (input) => { observations.push(input); return input; },
+      }) },
+      now: () => D('2026-07-16T20:00:00'),
+      newId: () => 'o1',
+    });
+
+    await module.record({ foodId: 'egg', targetDay: D('2026-07-16T09:00:00') });
+
+    expect(observations[0]).toMatchObject({ occurredAt: D('2026-07-16T20:00:00'), backfilledAt: null });
+  });
+
   test('returns explicit failures for missing Trials, ineligible days, and persistence errors', async () => {
     const missing = createObservationModule({
       persistence: { transaction: (work) => work({

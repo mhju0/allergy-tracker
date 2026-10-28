@@ -88,7 +88,10 @@ export function createObservationModule({ persistence, now, newId }: {
           if (command.trialId !== undefined && command.trialId !== active.id) {
             return { ok: false, reason: 'no_active_trial' };
           }
-          const occurredAt = command.targetDay ?? recordedAt;
+          // A target day that is already today is recorded at this moment.
+          const occurredAt = command.targetDay && !isSameLocalDay(command.targetDay, recordedAt)
+            ? command.targetDay
+            : recordedAt;
           if (!isEligibleObservationDay(active, occurredAt, recordedAt)) {
             return { ok: false, reason: 'outside_window' };
           }

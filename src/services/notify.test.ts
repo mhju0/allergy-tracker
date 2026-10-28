@@ -76,30 +76,22 @@ test('a failed dismissal never costs the active Trial its schedule', async () =>
 });
 
 describe('checkinActionCommand', () => {
-  const now = new Date('2026-07-23T14:00:00');
-
   test('a late tap targets the day the prompt asked about', () => {
     const targetDay = new Date('2026-07-21T09:00:00');
-    expect(checkinActionCommand({ foodId: 'egg', trialId: 't2', targetDay: targetDay.toISOString() }, now))
+    expect(checkinActionCommand({ foodId: 'egg', trialId: 't2', targetDay: targetDay.toISOString() }))
       .toEqual({ foodId: 'egg', trialId: 't2', targetDay });
   });
 
-  test('a same-day tap records now rather than the prompt time', () => {
-    expect(checkinActionCommand({
-      foodId: 'egg', trialId: 't2', targetDay: new Date('2026-07-23T09:00:00').toISOString(),
-    }, now)).toEqual({ foodId: 'egg', trialId: 't2' });
-  });
-
   test('a prompt from an older version (foodId only) still records today', () => {
-    expect(checkinActionCommand({ foodId: 'egg', trialLifecycle: true }, now)).toEqual({ foodId: 'egg' });
+    expect(checkinActionCommand({ foodId: 'egg', trialLifecycle: true })).toEqual({ foodId: 'egg' });
   });
 
   test('an unreadable target day falls back to today', () => {
-    expect(checkinActionCommand({ foodId: 'egg', targetDay: 'garbage' }, now)).toEqual({ foodId: 'egg' });
+    expect(checkinActionCommand({ foodId: 'egg', targetDay: 'garbage' })).toEqual({ foodId: 'egg' });
   });
 
   test('no foodId → no command', () => {
-    expect(checkinActionCommand({}, now)).toBeUndefined();
-    expect(checkinActionCommand(undefined, now)).toBeUndefined();
+    expect(checkinActionCommand({})).toBeUndefined();
+    expect(checkinActionCommand(undefined)).toBeUndefined();
   });
 });

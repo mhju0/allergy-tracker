@@ -64,7 +64,7 @@ export default function RootLayout() {
     // uncleared one would re-fire on a later render — dating a check-in to
     // whatever day the app happened to re-render on.
     Notifications.clearLastNotificationResponse();
-    const command = checkinActionCommand(response.notification.request.content.data, new Date());
+    const command = checkinActionCommand(response.notification.request.content.data);
     if (!command) return;
     // recordObservation owns the guards: a closed or replaced Trial, a day outside
     // the window, or one already logged makes this a no-op rather than a bad row.
