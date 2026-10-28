@@ -150,7 +150,7 @@
   "settings": {
     "title": "설정",
     "babyShort": "아기 정보",
-    "reportOnly": "홈 인사와 진료용 리포트에 표시돼요",
+    "reportOnly": "홈 인사와 진료용\u00a0리포트에 표시돼요",
     "reportOnlyShort": "리포트 전용",
     "optional": "미입력",
     "notificationsAndGuide": "알림과 안내",
@@ -168,7 +168,7 @@
     "exportPdfDetail": "시도한 재료와 반응을 PDF로 정리해요",
     "exportPdfFormat": "PDF",
     "exportJsonClear": "전체 기록 내보내기",
-    "exportJsonDetail": "모든 기록을 JSON 파일로 내보내 따로 보관해요",
+    "exportJsonDetail": "모든 기록을 JSON 파일로 내보내\u00a0따로 보관해요",
     "exportJsonFormat": "JSON",
     "privacy": "기록은 이 기기에만 저장되고, 앱이 외부 서버로 보내지 않아요.",
     "privacyClear": "기록은 이 기기에만 저장되고, 앱은 어떤 서버로도 보내지 않아요. 내보내기를 직접 선택할 때만 공유되고, iCloud 백업을 켜 두었다면 기기 백업에 함께 포함돼요.",
