@@ -7,8 +7,21 @@ Written for a first submission. Do the steps in order. Steps marked **(you)** ne
 - `app.json`: version 3.0.0, Korean as the app's language, home-screen name 이유식 기록, export compliance (`usesNonExemptEncryption: false`).
 - `eas.json`: production build profile; EAS assigns build numbers.
 - The demo fixture is excluded from production builds; there is no network code; the privacy manifest declares no collected data.
-- Privacy policy and support pages: https://mhju0.github.io/allergy-tracker/privacy/ and https://mhju0.github.io/allergy-tracker/support/ (source in `site/`, served from the `gh-pages` branch). The privacy policy is also linked in the app under 설정.
-- Store screenshots (1320 × 2868): `docs/appstore/screenshots/`.
+- Privacy policy and support page sources in `site/`, for https://mhju0.github.io/allergy-tracker/privacy/ and https://mhju0.github.io/allergy-tracker/support/. They are **not published yet** (both URLs return 404 as of 2026-10-28; GitHub Pages is not configured and there is no `gh-pages` branch): see step 0.5. The privacy policy is also linked in the app under 설정.
+- Store screenshots are **not** in the repo yet: see step 5.
+
+## 0.5 Before the first build **(you)**
+
+- Apple Developer Program 가입(연 129,000원/USD 99) 완료 및 App Store Connect → 비즈니스(계약)에서 무료 앱 계약 상태가 활성인지 확인. A free personal team cannot run `eas build --profile production` or create the app in App Store Connect.
+- Publish the privacy/support pages, with `site/` as the Pages root (after this branch is merged to `main`):
+
+```bash
+git push origin "$(git subtree split --prefix site HEAD)":refs/heads/gh-pages
+gh api -X POST repos/mhju0/allergy-tracker/pages -f 'source[branch]=gh-pages' -f 'source[path]=/'
+curl -sI https://mhju0.github.io/allergy-tracker/privacy/   # expect HTTP 200
+```
+
+Serving the `main` branch root instead would put the pages at `/allergy-tracker/site/privacy/`, which does not match the in-app link.
 
 ## 1. Expo account and first build **(you)**
 
@@ -46,7 +59,7 @@ If the bundle ID is not in the list yet, run step 1's build first; EAS registers
 eas submit --platform ios --latest
 ```
 
-Choose the app you just created when asked. After 10–30 minutes the build appears under TestFlight. You may get an email titled "ITMS-90078: Missing Push Notification Entitlement". It is expected and harmless, because the app uses local notifications only.
+EAS finds the App Store Connect app by bundle ID com.mhju.allergytracker. Optionally put the app's Apple ID (App Store Connect → 앱 정보 → Apple ID) into eas.json as `"submit": { "production": { "ios": { "ascAppId": "<number>" } } }` so it never creates a second app named Allergy Tracker. After 10–30 minutes the build appears under TestFlight. You may get an email titled "ITMS-90078: Missing Push Notification Entitlement". It is expected and harmless, because the app uses local notifications only.
 
 ## 4. Check on your iPhone via TestFlight **(you, ~10 minutes)**
 
@@ -56,6 +69,8 @@ Install TestFlight from the App Store, then install the build and check:
 3. A reminder notification arrives at the scheduled time. Test the 이상 없음 button on the notification with the app fully closed, then open the app: today is recorded.
 4. 설정 → 진료용 리포트 만들기: the PDF opens in the share sheet, with the footer line at the bottom.
 5. 설정 → 개인정보 처리방침 opens the policy page.
+6. https://mhju0.github.io/allergy-tracker/privacy/ and https://mhju0.github.io/allergy-tracker/support/ both return HTTP 200 (`curl -sI`).
+7. Send a test mail to mj.apps.support@gmail.com and confirm it arrives (create the Gmail account first if it does not exist).
 
 ## 5. Fill in the App Store page **(you)**
 
@@ -75,7 +90,7 @@ Install TestFlight from the App Store, then install the build and check:
 - 데이터 수집: **아니요, 이 앱에서 데이터를 수집하지 않습니다** → 게시
 
 ### 버전 3.0.0 페이지
-- 스크린샷: upload the files in `docs/appstore/screenshots/` to the 6.9" iPhone slot (App Store Connect scales them for smaller phones).
+- 스크린샷: capture 6 screenshots at 1320 × 2868 on a 6.9" simulator (`EXPO_PUBLIC_DEMO=1 npx expo run:ios`) following the captions below, and upload them to the 6.9" iPhone slot (App Store Connect scales them for smaller phones).
 - 프로모션 텍스트, 설명, 키워드: below.
 - 지원 URL: https://mhju0.github.io/allergy-tracker/support/
 - 마케팅 URL: leave empty
@@ -136,4 +151,4 @@ git tag -a v3.0.0 -m "App Store release 3.0.0" && git push origin v3.0.0
 **앱 심사 메모 (English):**
 Korean-language record-keeping app for parents introducing new foods to their baby one at a time. It does not diagnose, detect, or give medical advice. Parents record what they observe and can share a PDF summary with their pediatrician; the app reminds users to consult a pediatrician and to call 119 (Korean emergency number) for severe symptoms.
 All data stays on the device (SQLite). No account, no server, no analytics, no network access. Notifications are local daily reminders scheduled on-device (no push).
-How to test: 1) Launch and tap 시작하기 on the welcome card. 2) Tap 새 재료 시작하기 and choose any food (e.g. 쌀); a 3-day observation starts. 3) On the home screen tap 오늘 이상 없음 기록하기, or 증상이 있었어요 to log a reaction (selecting 호흡 곤란 shows the 119 guidance). 4) The window is a fixed 3 days, so the final status appears after day 3; the food detail (기록 보기) and the calendar show history. 5) 설정 → 진료용 리포트 만들기 creates a PDF via the share sheet. The disclaimer and the privacy policy link are in 설정.
+How to test: 1) Launch and tap 시작하기 on the welcome card. 2) Tap 새 재료 시작하기 and choose any food (e.g. 쌀); a 3-day observation starts. 3) On the home screen tap 오늘 이상 없음 기록하기, or 증상이 있었어요 to log a reaction (selecting 호흡 곤란·쉰 울음소리 shows the 119 guidance). 4) The window is a fixed 3 days, so the final status appears after day 3; the food detail (기록 보기) and the calendar show history. 5) 설정 → 진료용 리포트 만들기 creates a PDF via the share sheet. The disclaimer and the privacy policy link are in 설정.

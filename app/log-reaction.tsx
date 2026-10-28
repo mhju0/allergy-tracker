@@ -15,7 +15,7 @@ import { Icon } from '../src/ui/Icon';
 import { press } from '../src/ui/pressable';
 import { colors, layout, radii, spacing, typeStyles } from '../src/ui/tokens';
 
-const SYMPTOMS = ['hives', 'rash', 'vomiting', 'diarrhea', 'swelling', 'cough', 'breathing', 'other', 'floppy'] as const;
+const SYMPTOMS = ['hives', 'rash', 'vomiting', 'diarrhea', 'swelling', 'cough', 'breathing', 'floppy', 'other'] as const;
 const SEVERITIES = ['mild', 'moderate', 'severe'] as const;
 const FIELD_LABEL_STYLE = {
   ...typeStyles.rowTitle,

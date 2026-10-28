@@ -112,7 +112,7 @@ export default function Settings() {
             maxLength={20}
             returnKeyType="done"
             submitBehavior="blurAndSubmit"
-            onChangeText={(text) => updateBabySettings({ name: text.trim() || null })}
+            onChangeText={(text) => { void updateBabySettings({ name: text.trim() || null }).catch(() => {}); }}
             style={{ width: 96, minHeight: layout.touchTarget, fontSize: 14, lineHeight: 20, fontWeight: '700', color: colors.ink, textAlign: 'right', paddingVertical: 0 }}
           />
         </View>

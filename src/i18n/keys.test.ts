@@ -60,7 +60,7 @@ describe('i18n keys', () => {
     ['status', ['untried', 'testing', 'safe', 'reacted']],
     ['food.outcome', ['safe', 'reacted', 'cancelled']],
     ['reaction.severityLevel', ['mild', 'moderate', 'severe']],
-    ['reaction.symptom', ['hives', 'rash', 'vomiting', 'diarrhea', 'swelling', 'cough', 'breathing', 'other', 'floppy']],
+    ['reaction.symptom', ['hives', 'rash', 'vomiting', 'diarrhea', 'swelling', 'cough', 'breathing', 'floppy', 'other']],
     ['calendar.weekday', ['w0', 'w1', 'w2', 'w3', 'w4', 'w5', 'w6']],
     ['welcome', ['step1', 'step2', 'step3']],
     ['home.state', ['observing', 'confirm', 'safe', 'reacted']],
