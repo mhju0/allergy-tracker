@@ -103,7 +103,7 @@ function Dashboard({ babyName }: { babyName: string | null }) {
         </View>
 
         <WarmCard tone={tone}>
-          <View style={{ alignSelf: 'flex-start', minHeight: 32, paddingHorizontal: spacing.sm, borderRadius: radii.pill, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, backgroundColor: 'rgba(255,255,255,0.68)' }}>
+          <View style={{ alignSelf: 'flex-start', minHeight: 32, paddingHorizontal: spacing.sm, borderRadius: radii.pill, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, backgroundColor: colors.frost }}>
             <Icon name={stateIcon} size={14} color={stateColor} strokeWidth={2.3} />
             <Text style={{ fontSize: 12, lineHeight: 18, fontWeight: '800', color: stateColor }}>
               {state.kind === 'empty' ? t('home.ready') : t(`home.state.${state.kind}`)}
@@ -161,7 +161,7 @@ function Dashboard({ babyName }: { babyName: string | null }) {
 
         <SectionHeaderRow
           title={t('home.ourFoods')}
-          meta={t('home.totalFoods', { count: foods.length })}
+          meta={t('home.triedFoods', { count: foods.length - counts.untried })}
           style={{ paddingHorizontal: layout.cardPadding }}
         />
         <View style={{ flexDirection: 'row', gap: spacing.xs }}>
@@ -182,8 +182,8 @@ function Dashboard({ babyName }: { babyName: string | null }) {
                 opacity: counts[status] === 0 ? 0.45 : 1,
               })}
             >
-              <Text style={{ fontSize: 22, fontWeight: '900', color: colors.status[status].fg, fontVariant: ['tabular-nums'] }}>{counts[status]}</Text>
-              <Text style={{ fontSize: 11, lineHeight: 16, fontWeight: '700', color: colors.inkSecondary }}>{t(`status.${status}`)}</Text>
+              <Text maxFontSizeMultiplier={1.4} style={{ fontSize: 22, fontWeight: '900', color: colors.status[status].fg, fontVariant: ['tabular-nums'] }}>{counts[status]}</Text>
+              <Text maxFontSizeMultiplier={1.4} style={{ fontSize: 11, lineHeight: 16, fontWeight: '700', color: colors.inkSecondary }}>{t(`status.${status}`)}</Text>
             </Pressable>
           ))}
         </View>

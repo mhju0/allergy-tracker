@@ -9,7 +9,9 @@ import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import { connectFoods, readAllTables, useBaby } from '../src/data/queries';
 import { updateBabySettings } from '../src/data/mutations';
-import { isPermissionGranted } from '../src/services/notify';
+import { canAskForPermission, ensurePermission, isPermissionGranted } from '../src/services/notify';
+import { reconcileTrialLifecycle } from '../src/trialLifecycle/sqlite';
+import { PRIVACY_POLICY_URL } from '../src/appLinks';
 import { buildBackup, buildReport } from '../src/services/export';
 import { HeaderButton, ScreenHeader } from '../src/ui/ScreenHeader';
 import { WarmCard } from '../src/ui/WarmCard';
@@ -73,6 +75,20 @@ export default function Settings() {
     }
   };
 
+  const onNotificationsPress = async () => {
+    try {
+      if (await canAskForPermission()) {
+        const granted = await ensurePermission();
+        setNotifOn(granted);
+        if (granted) void reconcileTrialLifecycle();
+        return;
+      }
+    } catch {
+      // fall through to the Settings app
+    }
+    await Linking.openSettings();
+  };
+
   return (
     <ScrollView
       keyboardShouldPersistTaps="handled"
@@ -93,7 +109,10 @@ export default function Settings() {
             defaultValue={baby.name ?? ''}
             placeholder={t('settings.optional')}
             placeholderTextColor={colors.inkSecondary}
-            onEndEditing={(event) => updateBabySettings({ name: event.nativeEvent.text.trim() || null })}
+            maxLength={20}
+            returnKeyType="done"
+            submitBehavior="blurAndSubmit"
+            onChangeText={(text) => updateBabySettings({ name: text.trim() || null })}
             style={{ width: 96, minHeight: layout.touchTarget, fontSize: 14, lineHeight: 20, fontWeight: '700', color: colors.ink, textAlign: 'right', paddingVertical: 0 }}
           />
         </View>
@@ -116,7 +135,7 @@ export default function Settings() {
           detail={t('settings.notificationDetail')}
           value={notifOn === null ? '' : notifOn ? t('settings.notifOn') : t('settings.notifOffShort')}
           valueColor={notifOn === false ? colors.red : colors.green}
-          onPress={() => Linking.openSettings()}
+          onPress={onNotificationsPress}
         />
         <Divider />
         <SettingRow
@@ -127,6 +146,13 @@ export default function Settings() {
             await updateBabySettings({ welcomedAt: null });
             router.back();
           }}
+        />
+        <Divider />
+        <SettingRow
+          icon="shield"
+          title={t('settings.privacyPolicy')}
+          detail={t('settings.privacyPolicyDetail')}
+          onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
         />
       </WarmCard>
 

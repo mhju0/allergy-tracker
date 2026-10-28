@@ -123,7 +123,7 @@ export default function LogReaction() {
         </View>
 
         <Text style={FIELD_LABEL_STYLE}>{t('reaction.severityQuestion')}</Text>
-        <View style={{ flexDirection: 'row', gap: spacing.xxs, padding: spacing.xxs, borderRadius: radii.md, backgroundColor: '#F1E7E1' }}>
+        <View style={{ flexDirection: 'row', gap: spacing.xxs, padding: spacing.xxs, borderRadius: radii.md, backgroundColor: colors.segmentTrack }}>
           {SEVERITIES.map((level) => {
             const selected = severity === level;
             return (

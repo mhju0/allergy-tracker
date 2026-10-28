@@ -14,7 +14,7 @@ export function StatusChip({ status }: { status: FoodStatus }) {
       ? colors.greenTint
       : status === 'reacted'
         ? colors.redTint
-        : '#F5EEE9';
+        : colors.neutralTint;
 
   return (
     <View
@@ -27,7 +27,7 @@ export function StatusChip({ status }: { status: FoodStatus }) {
       ) : (
         <Icon name={status === 'testing' ? 'clock' : status === 'safe' ? 'check' : 'warning'} size={13} color={fg} strokeWidth={2.3} />
       )}
-      <Text style={{ color: fg, fontSize: 11, lineHeight: 16, fontWeight: '800' }}>{label}</Text>
+      <Text maxFontSizeMultiplier={1.4} style={{ color: fg, fontSize: 11, lineHeight: 16, fontWeight: '800' }}>{label}</Text>
     </View>
   );
 }

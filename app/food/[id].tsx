@@ -55,10 +55,10 @@ export default function FoodDetail() {
   const latestReaction = latest?.reactions[0];
   const testingDay = latest && status === 'testing' ? trialDay(latest, now) : 0;
   const subline = status === 'reacted' && latestReaction
-    ? `${t('status.reacted')} · ${reactionSummary(latestReaction, t)}`
+    ? reactionSummary(latestReaction, t)
     : status === 'testing' && latest
-      ? `${t('status.testing')} · ${t('home.dayOf', { day: testingDay, total: latest.windowDays })}`
-      : t(`status.${status}`);
+      ? t('home.dayOf', { day: testingDay, total: latest.windowDays })
+      : null;
 
   const historyRows = buildRecords([entry], { includeCancelled: true }).reverse().map((record) => ({
     key: record.key,
@@ -87,7 +87,7 @@ export default function FoodDetail() {
           <Icon name={status === 'reacted' ? 'warning' : status === 'safe' ? 'check' : status === 'testing' ? 'clock' : 'foods'} size={43} color={colors.status[status].fg} strokeWidth={1.7} />
         </View>
         <Text accessibilityRole="header" style={{ fontSize: 38, lineHeight: 45, fontWeight: '900', letterSpacing: -1, color: colors.ink, marginTop: spacing.sm }}>{foodLabel(food)}</Text>
-        <Text style={{ fontSize: 13, lineHeight: 18, fontWeight: '600', color: colors.inkSecondary, marginTop: spacing.xxs }}>{subline}</Text>
+        {subline && <Text style={{ fontSize: 13, lineHeight: 18, fontWeight: '600', color: colors.inkSecondary, marginTop: spacing.xxs }}>{subline}</Text>}
         <View style={{ marginTop: spacing.xs }}><StatusChip status={status} /></View>
       </View>
 
