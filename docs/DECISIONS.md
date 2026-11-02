@@ -341,6 +341,15 @@ All four came out of a grilling session and are recorded in `.superpowers/sdd/pr
 
 ---
 
+### D-59 · Patch vulnerable transitive dependencies within Expo SDK 57 — `ACTIVE`
+- **2026-11-02, decided under the owner's request** to fix all six high dependency-audit entries before release.
+- Scoped npm overrides use official `query-string` 9.5.1 with `decode-uri-component` 0.5.1, Metro's `image-size` 2.0.4 and Expo CLI's `zod` 4.6.6. Expo SDK 57 and React Native 0.86 stay unchanged. These address the [decoder](https://github.com/advisories/GHSA-qr28-fpjm-wq7f), [image parser](https://github.com/advisories/GHSA-5p2g-fcmc-qvqq) and [schema validator](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5) advisories and their transitive audit entries.
+- `query-string` 9 exposes an ESM default export. `patch-package` is a build-time dependency that applies four export-binding corrections to pinned `expo-router` 57.0.29 during `npm ci`; installation fails if the patch cannot apply. The patch is required for routing, not just audit output. Build installs include dev dependencies.
+- `npm run verify` exercises real routing, Metro image handling and Expo plugin-schema callers through `scripts/verify-dependencies.cjs`, in addition to typecheck and Jest. Malformed-input checks run in a bounded child process.
+- Re-evaluate overrides and remove the compatibility patch when upgrading Expo Router to an upstream version that no longer requires it. Native device behavior still needs acceptance testing; JavaScript bundle verification is not a native build.
+
+---
+
 ## Part III — standing prohibitions
 
 Not dated decisions so much as fences. Sources: `docs/design-spec.md` §11, `design-audit/plan.md` §3, and grilled owner decisions.
