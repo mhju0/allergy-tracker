@@ -124,10 +124,16 @@ export function createObservationModule({ persistence, now, newId }: {
 }
 
 export function projectObservationDays(trial: ObservationTrial, now: Date): ObservationDay[] {
-  const reactionAt = trial.reactions[0]?.occurredAt;
   const endedAt = trial.endedAt ?? undefined;
   return trialDays(trial).map((date, index) => {
-    if (reactionAt && isSameLocalDay(reactionAt, date)) {
+    let reactionAt: Date | undefined;
+    for (const reaction of trial.reactions) {
+      const at = reaction.occurredAt;
+      if (isSameLocalDay(at, date) && (!reactionAt || at.getTime() > reactionAt.getTime())) {
+        reactionAt = at;
+      }
+    }
+    if (reactionAt) {
       return { day: index + 1, date, state: 'reacted', reactionAt };
     }
     if (endedAt && date.getTime() > endedAt.getTime() && !isSameLocalDay(endedAt, date)) {

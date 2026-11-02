@@ -69,6 +69,14 @@ export function deriveHomeState<F>(foods: HomeFood<F>[], now: Date): HomeState<F
 type ReactionLike = { occurredAt: Date; severity: string; symptoms: string[] };
 type Translate = (key: string, opts?: Record<string, unknown>) => string;
 
+function latestReaction(reactions: ReactionLike[]): ReactionLike | undefined {
+  let latest: ReactionLike | undefined;
+  for (const reaction of reactions) {
+    if (!latest || reaction.occurredAt.getTime() > latest.occurredAt.getTime()) latest = reaction;
+  }
+  return latest;
+}
+
 export type HomeView<F> = {
   state: HomeState<F>;
   subline: string; // the field's secondary line
@@ -80,7 +88,7 @@ export type HomeView<F> = {
 export function describeHome<F>(foods: HomeFood<F>[], now: Date, t: Translate): HomeView<F> {
   const state = deriveHomeState(foods, now);
   if (state.kind === 'empty') return { state, subline: t('home.empty'), filled: 0 };
-  const reaction = state.kind === 'reacted' ? state.trial.reactions[0] : undefined;
+  const reaction = state.kind === 'reacted' ? latestReaction(state.trial.reactions) : undefined;
   return { state, subline: subline(state, reaction, t), filled: segmentsFilled(state) };
 }
 
@@ -140,14 +148,20 @@ function segmentsFilled<F>(state: WithTrial<F>): number {
   }
 }
 
-// The non-cancelled trial that ended most recently, across every food.
-// Ordered by endedAt, not startedAt — a trial started earlier can end later.
+// Each food's latest eligible trial competes by its end or latest symptom.
+// A delayed reaction can be newer without changing when its Trial ended.
 function latestClosed<F>(foods: HomeFood<F>[]): { food: F; trial: HomeTrial } | undefined {
   let best: { food: F; trial: HomeTrial } | undefined;
+  let bestAt = -Infinity;
   for (const f of foods) {
     const t = latestTrial(f.trials);
     if (!t?.endedAt || t.outcome === null) continue;
-    if (!best || t.endedAt.getTime() > best.trial.endedAt!.getTime()) best = { food: f.food, trial: t };
+    const reaction = t.outcome === 'reacted' ? latestReaction(t.reactions) : undefined;
+    const at = Math.max(t.endedAt.getTime(), reaction?.occurredAt.getTime() ?? t.endedAt.getTime());
+    if (at > bestAt) {
+      best = { food: f.food, trial: t };
+      bestAt = at;
+    }
   }
   return best;
 }

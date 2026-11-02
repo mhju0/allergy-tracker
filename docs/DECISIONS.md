@@ -332,6 +332,15 @@ All four came out of a grilling session and are recorded in `.superpowers/sdd/pr
 
 ---
 
+### D-58 · Reaction displays follow every recorded symptom date — `ACTIVE`
+- **2026-11-02, decided under the owner's request** to fix the two pre-release reaction-display defects.
+- A reaction on an Observation day overrides its clear or stopped ledger state. Multiple reaction dates remain visible; the day's time is its latest reaction occurrence.
+- Home keeps active-Trial precedence and each food's latest non-cancelled Trial. Closed reacted Trials compete using the later of `endedAt` and their latest reaction occurrence; the headline describes that latest occurrence, independently of row order.
+- Persisted outcomes and Trial timestamps stay unchanged. Reactions have no recording timestamp, so an older symptom entered later remains in occurrence-time order. A later safe re-trial still takes precedence over the same food's older Trial.
+- Regression tests failed before the fix and cover multiple dates, ordering, backfills, active precedence, cancellation and input preservation.
+
+---
+
 ## Part III — standing prohibitions
 
 Not dated decisions so much as fences. Sources: `docs/design-spec.md` §11, `design-audit/plan.md` §3, and grilled owner decisions.
