@@ -17,6 +17,23 @@ const food = (name: string, trials: HomeTrial[]): HomeFood<string> => ({
   food: name, trials, status: deriveStatus(trials), latest: latestTrial(trials),
 });
 
+const reactedEgg = (): HomeTrial => mk({
+  id: 'egg',
+  startedAt: D('2026-11-01T09:00:00'),
+  endedAt: D('2026-11-02T10:00:00'),
+  outcome: 'reacted',
+  reactions: [
+    { id: 'early', trialId: 'egg', occurredAt: D('2026-11-02T10:00:00'), severity: 'mild', symptoms: ['rash'] },
+    { id: 'late', trialId: 'egg', occurredAt: D('2026-11-10T10:00:00'), severity: 'severe', symptoms: ['hives'] },
+  ],
+});
+
+const safeMilk = (): HomeTrial => mk({
+  startedAt: D('2026-11-04T09:00:00'),
+  endedAt: D('2026-11-07T09:00:00'),
+  outcome: 'safe',
+});
+
 describe('trialDay', () => {
   test('the start day is day 1, not day 0', () => {
     expect(trialDay({ startedAt: D('2026-07-28T08:00:00Z'), windowDays: 3 }, NOW)).toBe(1);
@@ -117,6 +134,59 @@ describe('deriveHomeState', () => {
     expect(s.kind).toBe('reacted');
   });
 
+  test.each([false, true])('a later symptom on an already-reacted Trial outranks another food’s safe end (reversed: %s)', (reversed) => {
+    const egg = reactedEgg();
+    if (reversed) egg.reactions.reverse();
+    const foods = [food('달걀', [egg]), food('우유', [safeMilk()])];
+    const before = JSON.stringify(foods);
+    const state = deriveHomeState(foods, D('2026-11-11T12:00:00'));
+    expect(state).toMatchObject({ kind: 'reacted', food: '달걀', trial: egg });
+    expect(egg.endedAt).toEqual(D('2026-11-02T10:00:00'));
+    expect(JSON.stringify(foods)).toBe(before);
+  });
+
+  test('a safe event after the latest symptom supersedes the reacted food', () => {
+    const milk = safeMilk();
+    milk.endedAt = D('2026-11-11T09:00:00');
+    expect(deriveHomeState([food('달걀', [reactedEgg()]), food('우유', [milk])], D('2026-11-12T12:00:00')))
+      .toMatchObject({ kind: 'safe', food: '우유', trial: milk });
+  });
+
+  test('adding an old backfilled symptom does not make it newer than another food’s safe event', () => {
+    const egg = reactedEgg();
+    egg.reactions[1].occurredAt = D('2026-11-03T10:00:00');
+    expect(deriveHomeState([food('달걀', [egg]), food('우유', [safeMilk()])], D('2026-11-11T12:00:00')))
+      .toMatchObject({ kind: 'safe', food: '우유' });
+  });
+
+  test('an active Trial wins even when a closed food has a later symptom', () => {
+    const active = mk({ startedAt: D('2026-11-09T09:00:00') });
+    expect(deriveHomeState([food('달걀', [reactedEgg()]), food('두부', [active])], D('2026-11-10T12:00:00')))
+      .toMatchObject({ kind: 'observing', food: '두부', trial: active });
+  });
+
+  test('a newer eligible Trial for the same food supersedes reactions attached to its older Trial', () => {
+    const newerEgg = mk({
+      startedAt: D('2026-11-03T09:00:00'), endedAt: D('2026-11-06T09:00:00'), outcome: 'safe',
+    });
+    const cancelledEgg = mk({
+      startedAt: D('2026-11-08T09:00:00'), endedAt: D('2026-11-11T09:00:00'), outcome: 'cancelled',
+    });
+    const state = deriveHomeState([
+      food('달걀', [reactedEgg(), cancelledEgg, newerEgg]), food('우유', [safeMilk()]),
+    ], D('2026-11-12T12:00:00'));
+    expect(state).toMatchObject({ kind: 'safe', food: '우유' });
+  });
+
+  test('a newer cancelled Trial leaves the earlier eligible reaction selectable', () => {
+    const egg = reactedEgg();
+    const cancelled = mk({
+      startedAt: D('2026-11-09T09:00:00'), endedAt: D('2026-11-11T09:00:00'), outcome: 'cancelled',
+    });
+    expect(deriveHomeState([food('달걀', [cancelled, egg]), food('우유', [safeMilk()])], D('2026-11-12T12:00:00')))
+      .toMatchObject({ kind: 'reacted', food: '달걀', trial: egg });
+  });
+
   test('a cancelled trial never selects a state', () => {
     expect(deriveHomeState([
       food('두부', [mk({ outcome: 'cancelled', endedAt: D('2026-07-27T10:00:00Z') })]),
@@ -203,6 +273,26 @@ describe('describeHome', () => {
       + 'symptoms=reaction.symptom.hives, reaction.symptom.rash',
     );
     expect(v.filled).toBe(2); // NOT 3 — the window stopped when the reaction landed
+  });
+
+  test.each([false, true])('latest reaction supplies details without extending the Trial’s segments (reversed: %s)', (reversed) => {
+    const egg = reactedEgg();
+    if (reversed) egg.reactions.reverse();
+    const before = JSON.stringify(egg);
+    const view = describeHome([food('달걀', [egg])], D('2026-11-11T12:00:00'), t);
+    expect(view.subline).toBe('home.sub.reactedNoDay|severity=reaction.severityLevel.severe,symptoms=reaction.symptom.hives');
+    expect(view.filled).toBe(2);
+    expect(JSON.stringify(egg)).toBe(before);
+  });
+
+  test('latest symptom day and details do not select the most severe earlier reaction', () => {
+    const egg = reactedEgg();
+    egg.reactions[0].severity = 'severe';
+    egg.reactions[1].occurredAt = D('2026-11-03T10:00:00');
+    egg.reactions[1].severity = 'mild';
+    const view = describeHome([food('달걀', [egg])], D('2026-11-11T12:00:00'), t);
+    expect(view.subline).toBe('home.sub.reacted|day=3,severity=reaction.severityLevel.mild,symptoms=reaction.symptom.hives');
+    expect(view.filled).toBe(2);
   });
 
   test.each([

@@ -33,6 +33,55 @@ describe('Observation module', () => {
     expect(days.map((day) => day.state)).toEqual(['unobserved', 'reacted', 'stopped']);
   });
 
+  test.each([false, true])('every reaction day overrides clear and stopped days (reversed: %s)', (reversed) => {
+    const endedAt = D('2026-07-17T14:30:00');
+    const firstReaction = D('2026-07-17T14:30:00');
+    const delayedReaction = D('2026-07-18T16:00:00');
+    const reactions = [{ occurredAt: firstReaction }, { occurredAt: delayedReaction }];
+    if (reversed) reactions.reverse();
+    const input = trial({
+      windowDays: 5,
+      outcome: 'reacted',
+      endedAt,
+      reactions,
+      observations: [
+        { id: 'o1', trialId: 't1', occurredAt: D('2026-07-17T12:00:00') },
+        { id: 'o2', trialId: 't1', occurredAt: D('2026-07-18T12:00:00') },
+      ],
+    });
+    const before = JSON.stringify(input);
+
+    const days = projectObservationDays(input, D('2026-07-25T12:00:00'));
+
+    expect(days.map((day) => day.state)).toEqual(['unobserved', 'reacted', 'reacted', 'stopped', 'stopped']);
+    expect(days[1].reactionAt).toBe(firstReaction);
+    expect(days[2].reactionAt).toBe(delayedReaction);
+    expect(input.endedAt).toBe(endedAt);
+    expect(JSON.stringify(input)).toBe(before);
+  });
+
+  test('a formerly safe Trial with multiple reactions never displays their observed days as clear', () => {
+    const reactions = [D('2026-07-16T13:00:00'), D('2026-07-18T15:00:00')];
+    const days = projectObservationDays(trial({
+      outcome: 'reacted',
+      endedAt: D('2026-07-20T09:00:00'),
+      reactions: reactions.map((occurredAt) => ({ occurredAt })),
+      observations: [
+        { id: 'o1', trialId: 't1', occurredAt: D('2026-07-16T12:00:00') },
+        { id: 'o2', trialId: 't1', occurredAt: D('2026-07-18T12:00:00') },
+      ],
+    }), D('2026-07-25T12:00:00'));
+    expect(days.map((day) => day.state)).toEqual(['reacted', 'unobserved', 'reacted']);
+  });
+
+  test.each([false, true])('uses the latest symptom time on a reaction day (reversed: %s)', (reversed) => {
+    const latest = D('2026-07-17T18:00:00');
+    const reactions = [{ occurredAt: D('2026-07-17T10:00:00') }, { occurredAt: latest }];
+    if (reversed) reactions.reverse();
+    const days = projectObservationDays(trial({ reactions }), D('2026-07-18T12:00:00'));
+    expect(days[1].reactionAt).toBe(latest);
+  });
+
   test('a safe Trial never repaints unobserved days as clear', () => {
     const days = projectObservationDays(trial({
       outcome: 'safe',
