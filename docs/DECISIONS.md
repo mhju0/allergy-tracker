@@ -358,6 +358,14 @@ All four came out of a grilling session and are recorded in `.superpowers/sdd/pr
 
 ---
 
+### D-61 · Override Expo fingerprint's minimatch 10 to 11.0.4 — `ACTIVE`
+- **2026-11-05, decided under the owner's request** to close the open `minimatch` Dependabot alert ([GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249)), which covers 7.0.0 up to 11.0.1.
+- `@expo/fingerprint` requires `minimatch@^10.2.2` and no patched 10.x exists. The override `"minimatch@^10.0.0": "11.0.4"` matches the copy glob 14 already uses (D-60). Jest's `minimatch` 3.1.5 is outside the advisory range and stays.
+- Fingerprint uses only the `Minimatch` constructor with `{ dot: true }`, `match()`, `negate` and `pattern`, none of the APIs minimatch 11 removed. Its ignore decisions for every tracked file plus edge-case paths, and the project fingerprint hash, are identical under 10.2.5 and 11.0.4. `scripts/verify-dependencies.cjs` checks the resolved version and fingerprint's ignore matching.
+- Build tooling only, like D-60. Remove the override when an Expo upgrade depends on a patched `minimatch` directly.
+
+---
+
 ## Part III — standing prohibitions
 
 Not dated decisions so much as fences. Sources: `docs/design-spec.md` §11, `design-audit/plan.md` §3, and grilled owner decisions.

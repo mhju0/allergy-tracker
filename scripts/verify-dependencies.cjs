@@ -68,6 +68,23 @@ for (const parent of globParents) {
   assert.ok(major > 14 || (major === 14 && (minor > 0 || patch >= 2)), `${parent} resolves glob ${major}.${minor}.${patch}`);
 }
 
+// Expo fingerprint matches ignore paths with minimatch; it must have the globparts fix.
+const fingerprintRoot = path.dirname(globParents[2]);
+const minimatchVersion = require(require.resolve('minimatch/package.json', { paths: [fingerprintRoot] })).version;
+const [mmMajor, mmMinor, mmPatch] = minimatchVersion.split('.').map(Number);
+assert.ok(mmMajor > 11 || (mmMajor === 11 && (mmMinor > 0 || mmPatch >= 1)), `@expo/fingerprint resolves minimatch ${minimatchVersion}`);
+const { isIgnoredPath, buildPathMatchObjects, buildDirMatchObjects } = require(path.join(fingerprintRoot, 'build/utils/Path.js'));
+const { DEFAULT_IGNORE_PATHS } = require(path.join(fingerprintRoot, 'build/Options.js'));
+const ignorePaths = [...DEFAULT_IGNORE_PATHS, '!ios/Pods/Keep/**'];
+assert.equal(isIgnoredPath('ios/Pods/RNSVG/RNSVG.h', DEFAULT_IGNORE_PATHS), true);
+assert.equal(isIgnoredPath('../../node_modules/x/ios/Pods/a.h', DEFAULT_IGNORE_PATHS), true);
+assert.equal(isIgnoredPath('node_modules/expo-sqlite/ios/sqlite3.c', DEFAULT_IGNORE_PATHS), true);
+assert.equal(isIgnoredPath('node_modules/expo-sqlite/ios/sqlite3.m', DEFAULT_IGNORE_PATHS), false);
+assert.equal(isIgnoredPath('src/.hidden/.DS_Store', DEFAULT_IGNORE_PATHS), true);
+assert.equal(isIgnoredPath('plugins/withNotifications.js', DEFAULT_IGNORE_PATHS), false);
+assert.equal(isIgnoredPath('ios/Pods/Keep/a.h', ignorePaths), false);
+assert.ok(buildDirMatchObjects(buildPathMatchObjects(ignorePaths)).some((matcher) => matcher.match('ios/build')));
+
 const globFixture = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'glob-compat-'));
 for (const dir of ['ios/AuditApp', 'ios/Pods']) {
   fs.mkdirSync(path.join(globFixture, dir), { recursive: true });
@@ -80,5 +97,5 @@ const { anyMatchAsync } = require(path.join(cliRoot, 'build/src/utils/glob.js'))
 anyMatchAsync('ios/**/Info.plist', { cwd: globFixture, ignore: ['**/Pods/**'] }).then((matches) => {
   assert.deepEqual(matches, [path.normalize('ios/AuditApp/Info.plist')]);
   fs.rmSync(globFixture, { recursive: true, force: true });
-  console.log('Dependency compatibility passed: routing, image assets, Expo plugin schemas, glob callers.');
+  console.log('Dependency compatibility passed: routing, image assets, Expo plugin schemas, glob and minimatch callers.');
 });
