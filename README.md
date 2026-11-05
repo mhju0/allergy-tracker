@@ -10,22 +10,23 @@
 <table>
 <tr>
 <td width="42%">
-<img src="docs/screenshots/home.png" alt="Warm Care home screen with a three-day observation ledger, clear daily actions, and labeled bottom navigation" width="100%">
+<img src="docs/appstore/screenshots/01-home.png" alt="Today screen: tofu on day 2 of its 3-day observation, a button to record that nothing was seen today, and labeled bottom navigation" width="100%">
 </td>
 <td width="58%">
 
 ### One food at a time.<br>Three days of watching.
 
-A food reaction can surface **up to three days after** the feed. Across months
-of weaning, that makes this a memory problem before it is anything else: what
-went in, when, what happened, and what is still untested.
+A food reaction can surface **up to three days after** the feed. Over months
+of weaning, a parent has to keep track of what went in, when, what happened,
+and what is still untested.
 
-This is that memory: a private notebook that turns the food list into a
-traffic light. **It has no accounts, no server, and no network code at all.**
-Everything lives in one SQLite file on the phone.
+The app keeps that record on the phone and shows each food's status at a
+glance. It has no accounts, no server, and no network code. Everything lives in
+one SQLite file on the device.
 
-Native iOS app **이유식 기록** · Korean-only UI · built as a portfolio project and
-dogfooded on a real device.
+On the App Store as **[이유식 기록](https://apps.apple.com/kr/app/id6827961276)** · Korean-only UI. A solo rebuild of
+Mammacare, a five-person team project I led in May and June 2026: meal planning
+was dropped to focus on logging foods and reactions.
 
 ![Expo SDK 57](https://img.shields.io/badge/Expo-SDK%2057-000020?logo=expo&logoColor=white)
 ![React Native 0.86](https://img.shields.io/badge/React%20Native-0.86-61DAFB?logo=react&logoColor=black)
@@ -77,9 +78,9 @@ because there was never a cached answer to invalidate.
 ## One food at a time, enforced
 
 The rule that makes every other record trustworthy: while a food is inside its
-window, starting another one is blocked. Isolating the variable is the entire
-medical point of a food trial, so it is a guard in the mutation, not a
-convention.
+window, starting another one is blocked. A food trial only tells
+you something if one food changes at a time, so the rule is enforced in the
+database mutation as well as on screen.
 
 ```
 introduce a food ──▶ 관찰 중   the 3-day window opens
@@ -109,9 +110,9 @@ data model, derivation rules and edge cases are in
     <th align="center">Food detail</th>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/home.png" alt="Today: the active observation and one clear primary action" width="200"></td>
-    <td><img src="docs/screenshots/foods.png" alt="Foods: the catalogue, foods with history first" width="200"></td>
-    <td><img src="docs/screenshots/detail.png" alt="Food detail: the observation ledger replayed, then every record" width="200"></td>
+    <td><img src="docs/appstore/screenshots/01-home.png" alt="Today: the active observation and one clear primary action" width="200"></td>
+    <td><img src="docs/appstore/screenshots/02-foods.png" alt="Foods: the catalogue, foods with history first" width="200"></td>
+    <td><img src="docs/appstore/screenshots/03-food-detail.png" alt="Food detail: the observation ledger replayed, then every record" width="200"></td>
   </tr>
   <tr>
     <th align="center">History</th>
@@ -119,15 +120,15 @@ data model, derivation rules and edge cases are in
     <th align="center">Settings</th>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/calendar.png" alt="Calendar: cleared days green, observation amber, reactions red" width="200"></td>
-    <td><img src="docs/screenshots/reaction.png" alt="Reaction logging: symptoms, severity, emergency advisory" width="200"></td>
-    <td><img src="docs/screenshots/settings.png" alt="Settings: baby information, reminders, guidance, and exports grouped into clear cards" width="200"></td>
+    <td><img src="docs/appstore/screenshots/05-calendar.png" alt="Calendar: cleared days green, observation amber, reactions red" width="200"></td>
+    <td><img src="docs/appstore/screenshots/04-log-reaction.png" alt="Reaction logging: symptoms, severity, emergency advisory" width="200"></td>
+    <td><img src="docs/appstore/screenshots/06-settings.png" alt="Settings: baby information, reminders, guidance, and exports grouped into clear cards" width="200"></td>
   </tr>
 </table>
 
 The Warm Care UI keeps the **observation ledger** at the center (one named cell
 per day of the window), while one primary action and a persistent labeled bottom
-bar make the next click obvious on first use.
+bar show what to do next on first use.
 
 ## What it does
 
@@ -135,9 +136,10 @@ bar make the next click obvious on first use.
   window-end prompt. No push service: every notification is scheduled on the
   device.
 - **이상 없음 one-tap check-ins** record "nothing seen today" without ending the
-  trial. Affirmative evidence, not just the absence of an alarm.
+  trial, so a quiet day is logged as observed.
 - **Delayed reactions handled properly:** logging one against a food already
-  marked safe flips it back to 반응, which is how real allergies surface.
+  marked safe flips it back to 반응, because a reaction can appear after a food
+  was already marked safe.
 - **A calendar that means something:** days a food actually cleared are green,
   days under observation amber, reactions red. Future days are never shaded.
 - **120 curated Korean weaning foods**, 43 of them flagged 고위험: the big-9
@@ -152,9 +154,9 @@ bar make the next click obvious on first use.
 | App | Expo SDK 57 · React Native 0.86 · TypeScript (strict) |
 | Navigation | Expo Router (file-based, typed routes, persistent labeled bottom bar) |
 | Data | expo-sqlite + Drizzle ORM, generated migrations committed |
-| Domain | Pure domain rules + SQLite adapters — Jest |
-| Notifications | expo-notifications — all local, no push service |
-| Localization | i18next — Korean-only by design, dates pinned to `ko-KR` |
+| Domain | Pure domain rules + SQLite adapters, tested with Jest |
+| Notifications | expo-notifications, all local, no push service |
+| Localization | i18next, Korean-only by design, dates pinned to `ko-KR` |
 | UI | Hand-rolled Warm Care design system, no component library |
 
 - **The UI is a thin layer over tested interfaces.** Observation owns
@@ -165,10 +167,10 @@ bar make the next click obvious on first use.
 - **Time-sensitive screens stay fresh.** Home, Foods, Food detail, and History
   share one focus-aware clock that advances at local midnight and exact Trial
   boundaries, and reconciles again when the app returns to the foreground.
-- **Colour is measured, not eyeballed.** `src/ui/tokens.test.ts` computes WCAG
+- **Contrast is tested.** `src/ui/tokens.test.ts` computes WCAG
   contrast from the palette and fails the build if any value that carries text
   drops below 4.5:1.
-- **Accessible by construction.** A status colour never travels without its
+- **Status never relies on colour alone.** A status colour never travels without its
   icon and label; primary controls use 48&nbsp;pt-or-larger touch targets.
 - **The demo fixture is code.** A deterministic, invariant-tested seed builds a
   month of plausible history: every observed day recorded, times varied by a
@@ -196,7 +198,7 @@ needed. Native iOS development requires Xcode and CocoaPods.
 npm ci
 npm run ios            # build and launch iOS; starts Metro
 npm start              # Metro only, for an already-installed development build
-npm run verify         # TypeScript + all tests, also run in CI
+npm run verify         # TypeScript, dependency check and all tests, also run in CI
 npm test -- --runInBand src/trialLifecycle/sqlite.test.ts  # targeted regression
 npm run verify:bundle  # production iOS + Android bundles, also run in CI
 ```
@@ -207,7 +209,7 @@ against Node's built-in SQLite. No device or database service is needed.
 Jest and TypeScript scan `app/`, `src/`, and `tests/`, keeping unrelated checkout
 folders out of their input.
 
-Boot it pre-filled with a month of history — 11 trials, two reactions, daily
+Boot it pre-filled with a month of history: 11 trials, two reactions, daily
 check-ins, one food mid-window:
 
 ```bash
@@ -219,16 +221,16 @@ are never touched.
 
 ## Privacy
 
-There is no network code in the app. Nothing is collected, synced or sent
-anywhere: the only way data leaves the phone is a PDF or JSON file you hand to
-the share sheet yourself.
+There is no network code in the app, and it sends nothing to any server. Data
+leaves the phone only as a PDF or JSON export you hand to the share sheet, or
+inside your own iCloud or computer backup of the device if you have one turned on.
 
 [Privacy policy](https://mhju0.github.io/allergy-tracker/privacy/) ·
 [Support](https://mhju0.github.io/allergy-tracker/support/) (Korean; source in `site/`).
 
 ## Status
 
-Feature-complete and in maintenance mode. © 2026 Michael Ju.
+Released on the App Store as [이유식 기록](https://apps.apple.com/kr/app/id6827961276) (3.0.0). Version 3.0.1 is in preparation. © 2026 Michael Ju.
 
 > [!IMPORTANT]
 > 이 앱은 기록 보조 도구이며 의학적 조언이 아닙니다 (a tracking aid, not medical
