@@ -350,6 +350,14 @@ All four came out of a grilling session and are recorded in `.superpowers/sdd/pr
 
 ---
 
+### D-60 · Override Expo tooling's glob 13 to 14.0.3 — `ACTIVE`
+- **2026-11-05, decided under the owner's request** to close the open `glob` Dependabot alert ([GHSA-3g3m-2fjr-6pw4](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4)).
+- Expo SDK 57 tooling (`@expo/cli`, `@expo/config`, `@expo/config-plugins`, `@expo/fingerprint`, `@expo/metro-config`) requires `glob@^13`, and no patched 13.x exists, so Dependabot could not update it. The override `"glob@^13.0.0": "14.0.3"` replaces only those copies; Jest's `glob` 7 is outside the advisory range and stays.
+- These callers use only `glob`, `globSync`/`sync` and `globStream` with `cwd`, `absolute` and extglob `ignore` patterns, none of the APIs glob 14 removed or renamed. `scripts/verify-dependencies.cjs` checks the resolved versions and runs Expo's Info.plist lookup and abortable `anyMatchAsync` on a fixture.
+- `glob` is Node build tooling and is not part of the app's JavaScript bundle. Remove the override when an Expo upgrade depends on a patched `glob` directly.
+
+---
+
 ## Part III — standing prohibitions
 
 Not dated decisions so much as fences. Sources: `docs/design-spec.md` §11, `design-audit/plan.md` §3, and grilled owner decisions.

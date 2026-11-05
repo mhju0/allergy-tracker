@@ -54,4 +54,31 @@ assert.equal(commandSchema.safeParse({ command: 'unknown' }).success, false);
 assert.equal(commandSchema.safeParse({ command: 'inspect', limit: 'three' }).success, false);
 assert.equal(commandSchema.safeParse({ command: 'inspect', extra: true }).success, false);
 
-console.log('Dependency compatibility passed: routing, image assets, Expo plugin schemas.');
+// Every Expo tooling caller of glob must resolve a version with the abort fix.
+const globParents = [
+  require.resolve('@expo/config-plugins/package.json'),
+  require.resolve('@expo/config/package.json', { paths: [expoRoot] }),
+  require.resolve('@expo/fingerprint/package.json', { paths: [expoRoot] }),
+  require.resolve('@expo/metro-config/package.json', { paths: [expoRoot] }),
+  path.join(cliRoot, 'package.json'),
+];
+for (const parent of globParents) {
+  const globPackage = require.resolve('glob/package.json', { paths: [path.dirname(parent)] });
+  const [major, minor, patch] = require(globPackage).version.split('.').map(Number);
+  assert.ok(major > 14 || (major === 14 && (minor > 0 || patch >= 2)), `${parent} resolves glob ${major}.${minor}.${patch}`);
+}
+
+const globFixture = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'glob-compat-'));
+for (const dir of ['ios/AuditApp', 'ios/Pods']) {
+  fs.mkdirSync(path.join(globFixture, dir), { recursive: true });
+  fs.writeFileSync(path.join(globFixture, dir, 'Info.plist'), '');
+}
+const { IOSConfig } = require('@expo/config-plugins');
+assert.deepEqual(IOSConfig.Paths.getAllInfoPlistPaths(globFixture), [path.join(globFixture, 'ios/AuditApp/Info.plist')]);
+const { anyMatchAsync } = require(path.join(cliRoot, 'build/src/utils/glob.js'));
+
+anyMatchAsync('ios/**/Info.plist', { cwd: globFixture, ignore: ['**/Pods/**'] }).then((matches) => {
+  assert.deepEqual(matches, [path.normalize('ios/AuditApp/Info.plist')]);
+  fs.rmSync(globFixture, { recursive: true, force: true });
+  console.log('Dependency compatibility passed: routing, image assets, Expo plugin schemas, glob callers.');
+});
