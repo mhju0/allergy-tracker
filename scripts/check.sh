@@ -31,6 +31,12 @@ want() { [ -z "$PART" ] || [ "$PART" = "$1" ]; }
 run() { echo "==> $*"; "$@"; }
 
 if want check; then
+  # npm only: another package manager's lockfile fails the gate.
+  foreign=$(find . -path ./node_modules -prune -o \( -name pnpm-lock.yaml -o -name yarn.lock \) -print)
+  if [ -n "$foreign" ]; then
+    echo "npm only; remove: $foreign" >&2
+    exit 1
+  fi
   run npm run verify
   if [ "$FAST" -eq 0 ]; then
     run npm run verify:bundle
