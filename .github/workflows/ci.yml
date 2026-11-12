@@ -15,5 +15,4 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run verify
-      - run: npm run verify:bundle
+      - run: scripts/check.sh --part check

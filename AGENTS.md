@@ -51,7 +51,7 @@ There is no lint script. Bundle verification does not compile the native app.
   `src/ui/alert`, so Korean copy wraps between words.
 - Colors only from `src/ui/tokens.ts`; a status color always comes with its
   icon and label.
-- Typecheck and tests must both pass before any commit.
+- Done means `scripts/check.sh` prints GATE: PASS; paste the last lines.
 - v1 (MammaCare: Capacitor + FastAPI + Postgres) is dead, archived at tag
   `archive/v1-capacitor`. Don't resurrect anything from it (`docs/design-spec.md` §11).
 - `.superpowers/` is local-only history (build plan, rebuild reports). Never commit it.
